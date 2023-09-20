@@ -1,5 +1,5 @@
 import numpy as np
-from util import MSE
+from util import MSE, R2Score
 
 
 def create_OLS_beta(X: np.ndarray, z: np.array) -> np.array:
@@ -16,7 +16,7 @@ def create_OLS_beta(X: np.ndarray, z: np.array) -> np.array:
 
 def OLS(
     X_train: np.ndarray, X_test: np.ndarray, y_train: np.array, y_test: np.ndarray
-) -> tuple[float, float]:
+) -> tuple[float, float, float]:
     """Create MSE for dataset using OLS.
 
     inputs:
@@ -36,4 +36,6 @@ def OLS(
     train_MSE = MSE(y_train, ztilde)
     test_MSE = MSE(y_test, z_pred_OLS)
 
-    return train_MSE, test_MSE
+    R2 = R2Score(y_test, z_pred_OLS)
+
+    return train_MSE, test_MSE, R2
