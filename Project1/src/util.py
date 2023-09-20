@@ -43,8 +43,9 @@ def create_X(x: np.array, y: np.array, n: int) -> np.ndarray:
     return X
 
 
-def ScaleandCenterData(X: np.ndarray) -> np.ndarray:
+def ScaleandCenterData(X: np.ndarray, scale: bool = False) -> np.ndarray:
     "Scale and center the given data"
-    X /= np.max(np.abs(X), axis=0)
+    if scale:
+        X /= np.max(np.abs(X), axis=0)
     X -= np.mean(X, axis=0)
     return X
