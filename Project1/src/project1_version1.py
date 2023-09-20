@@ -7,8 +7,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import PolynomialFeatures
 from util import MSE, R2Score, create_X, FrankeFunction
-from OLS import create_OLS_beta
-from Ridge import create_ridge_beta
+from OLS import OLS
+from Ridge import Ridge
 
 
 n = 5
@@ -40,14 +40,6 @@ for dim in range(n):
 
     # -------- Train sets ---------- #
 
-    # OLS
-    beta_OLS = create_OLS_beta(X_train, y_train)
-    ztilde = X_train @ beta_OLS
-
-    # Ridge
-    beta_ridge = create_ridge_beta(X_train, y_train, 0.1)
-    z_tilde_ridge = X_train @ beta_ridge
-
     # Lasso
     model = make_pipeline(PolynomialFeatures(degree=dim), Lasso(fit_intercept=True))
     clf = model.fit(X_train, y_train)
@@ -57,23 +49,19 @@ for dim in range(n):
 
     # ---------- Test sets ------------ #
 
-    # OLS
-    beta_OLS_t = create_OLS_beta(X_test, y_test)
-    z_pred_OLS = X_test @ beta_OLS_t
-
-    # Ridge
-    beta_ridge_t = create_ridge_beta(X_test, y_test, 0.5)
-    z_pred_Ridge = X_test @ beta_ridge_t
-
     # Lasso
     z_pred_Lasso = clf.predict(X_test)
 
     # MSE
-    train_OLS_MSE.append(MSE(y_train, ztilde))
-    train_Ridge_MSE.append(MSE(y_train, z_tilde_ridge))
+    MSE_OLS = OLS(X_train, X_test, y_train, y_test)
+    train_OLS_MSE.append(MSE_OLS[0])
+    test_OLS_MSE.append(MSE_OLS[1])
+
+    MSE_Ridge = Ridge(X_train, X_test, y_train, y_test, 0.1)
+    train_Ridge_MSE.append(MSE_Ridge[0])
+    test_Ridge_MSE.append(MSE_Ridge[1])
+
     train_Lasso_MSE.append(MSE(y_train, z_tilde_lasso))
-    test_OLS_MSE.append(MSE(y_test, z_pred_OLS))
-    test_Ridge_MSE.append(MSE(y_test, z_pred_Ridge))
     test_Lasso_MSE.append(MSE(y_test, z_pred_Lasso))
 
     # print(z_tilde_lasso)
