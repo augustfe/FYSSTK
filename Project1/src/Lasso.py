@@ -11,12 +11,24 @@ def pureSKLearnLasso(
     y_test: np.array,
     alpha: float = 0.1,
 ) -> tuple[float, float]:
-    "Using scikit to solve with Lasso."
+    """Using scikit to solve with Lasso.
+
+    inputs:
+        X_train: Training values
+        X_test: Testing data
+        y_train: Training values
+        y_test: Testing data
+        alpha (float): Regularization strength
+    returns:
+        Mean squared error of trained and predicted.
+    """
+    # Scale the data
     scaler = StandardScaler().fit(X_train)
 
     scaled_X_train = scaler.transform(X_train)
     scaled_X_test = scaler.transform(X_test)
 
+    # Initialize and fit model
     clf = Lasso(alpha=alpha)
     clf.fit(scaled_X_train, y_train)
 
