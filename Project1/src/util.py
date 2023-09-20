@@ -41,3 +41,10 @@ def create_X(x: np.array, y: np.array, n: int) -> np.ndarray:
             X[:, q + k] = (x ** (i - k)) * (y**k)
 
     return X
+
+
+def ScaleandCenterData(X: np.ndarray) -> np.ndarray:
+    "Scale and center the given data"
+    X /= np.max(np.abs(X), axis=0)
+    X -= np.mean(X, axis=0)
+    return X
