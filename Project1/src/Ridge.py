@@ -11,5 +11,5 @@ def create_ridge_beta(X: np.ndarray, z: np.array, lmbd: float = 0) -> np.array:
     returns:
         Optimal solution (np.array)
     """
-    I = np.identity(X.shape[1])
-    return np.linalg.pinv(X.T @ X + lmbd * I) @ X.T @ z
+    Identity = np.identity(X.shape[1])
+    return np.linalg.pinv(X.T @ X + lmbd * Identity) @ X.T @ z

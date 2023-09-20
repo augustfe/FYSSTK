@@ -32,14 +32,12 @@ def create_X(x: np.array, y: np.array, n: int) -> np.ndarray:
         y = np.ravel(y)
 
     N = len(x)
-    l = int((n + 1) * (n + 2) / 2)
-    X = np.ones((N, l))
+    lgth = int((n + 1) * (n + 2) / 2)
+    X = np.ones((N, lgth))
 
     for i in range(1, n + 1):
         q = int((i) * (i + 1) / 2)
         for k in range(i + 1):
             X[:, q + k] = (x ** (i - k)) * (y**k)
-            # print(f"x^{i-k} * y^{k}")
-    # print()
 
     return X
