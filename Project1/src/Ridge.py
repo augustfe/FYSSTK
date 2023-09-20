@@ -1,5 +1,5 @@
 import numpy as np
-from util import MSE
+from util import MSE, R2Score
 
 
 def create_ridge_beta(X: np.ndarray, z: np.array, lmbd: float = 0) -> np.array:
@@ -22,7 +22,7 @@ def Ridge(
     y_train: np.array,
     y_test: np.ndarray,
     lmbda: float,
-) -> tuple[float, float]:
+) -> tuple[float, float, float]:
     """Create MSE for dataset using Ridge.
 
     inputs:
@@ -43,4 +43,6 @@ def Ridge(
     MSE_train = MSE(y_train, z_tilde_ridge)
     MSE_test = MSE(y_test, z_pred_Ridge)
 
-    return MSE_train, MSE_test
+    R2 = R2Score(y_test, z_pred_Ridge)
+
+    return MSE_train, MSE_test, R2
