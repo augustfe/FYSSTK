@@ -1,13 +1,13 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from util import FrankeFunction, create_X, ScaleandCenterData
+from util import FrankeFunction, create_X
 from sklearn.model_selection import train_test_split
 from OLS import OLS
 
 
 def OLSofFranke() -> tuple[list, list, list]:
-    maxDim = 15
+    maxDim = 9
     N = 100
     x = np.sort(np.random.uniform(0, 1, N))
     y = np.sort(np.random.uniform(0, 1, N))
@@ -28,13 +28,18 @@ def OLSofFranke() -> tuple[list, list, list]:
 
     for dim in range(maxDim + 1):
         X = create_X(x, y, dim)
-        X = ScaleandCenterData(X)
+        # X = ScaleandCenterData(X)
 
-        X_train, X_test, y_train, y_test = train_test_split(
-            X, ScaleandCenterData(z).ravel()
-        )
+        X_train, X_test, y_train, y_test = train_test_split(X, z)
+        X_train_mean = X_train.mean(axis=0)
+        X_train_scaled = X_train - X_train_mean
+        X_test_scaled = X_test - X_train_mean
 
-        scores = OLS(X_train, X_test, y_train, y_test)
+        y_train_mean = y_train.mean()
+        y_train_scaled = y_train - y_train_mean
+        y_test_scaled = y_test - y_train_mean
+
+        scores = OLS(X_train_scaled, X_test_scaled, y_train_scaled, y_test_scaled)
         MSE_trains.append(scores[0])
         MSE_tests.append(scores[1])
         R2s.append(scores[2])
