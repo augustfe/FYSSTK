@@ -3,7 +3,7 @@ import numpy as np
 
 def MSE(y: np.array, y_pred: np.array) -> float:
     "Calculate mean squared error"
-    n = y.shape[0]
+    n = np.size(y)
     return np.sum((y - y_pred) ** 2) / n
 
 
@@ -48,4 +48,5 @@ def ScaleandCenterData(X: np.ndarray, scale: bool = False) -> np.ndarray:
     if scale:
         X /= np.max(np.abs(X), axis=0)
     X -= np.mean(X, axis=0)
+
     return X

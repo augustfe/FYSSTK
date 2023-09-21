@@ -13,6 +13,8 @@ def create_OLS_beta(X: np.ndarray, z: np.array) -> np.array:
     """
     return np.linalg.pinv(X.T @ X) @ X.T @ z
 
+    # return np.linalg.lstsq(X, z, rcond=None)[0]
+
 
 def OLS(
     X_train: np.ndarray, X_test: np.ndarray, y_train: np.array, y_test: np.ndarray
@@ -30,8 +32,8 @@ def OLS(
     beta_OLS = create_OLS_beta(X_train, y_train)
     ztilde = X_train @ beta_OLS
 
-    beta_OLS_test = create_OLS_beta(X_test, y_test)
-    z_pred_OLS = X_test @ beta_OLS_test
+    # beta_OLS_test = create_OLS_beta(X_test, y_test)
+    z_pred_OLS = X_test @ beta_OLS
 
     train_MSE = MSE(y_train, ztilde)
     test_MSE = MSE(y_test, z_pred_OLS)

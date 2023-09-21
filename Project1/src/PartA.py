@@ -7,12 +7,20 @@ from OLS import OLS
 
 
 def OLSofFranke() -> tuple[list, list, list]:
-    maxDim = 5
+    maxDim = 15
     N = 100
     x = np.sort(np.random.uniform(0, 1, N))
     y = np.sort(np.random.uniform(0, 1, N))
-    x, y = np.meshgrid(x, y)
-    z = FrankeFunction(x, y) + 0.2 * np.random.randn(N, N)
+
+    # x, y = np.meshgrid(x, y)
+    # x = x.flatten()
+    # y = y.flatten()
+
+    z_true = FrankeFunction(x, y)
+    # z = z_true + np.random.randn(N * N) * 0.2
+    z = z_true + z_true.mean() * np.random.randn(N) * 0.2
+
+    # print(z_true.mean())
 
     MSE_trains = []
     MSE_tests = []
@@ -23,7 +31,7 @@ def OLSofFranke() -> tuple[list, list, list]:
         X = ScaleandCenterData(X)
 
         X_train, X_test, y_train, y_test = train_test_split(
-            X, ScaleandCenterData(np.ravel(z))
+            X, ScaleandCenterData(z).ravel()
         )
 
         scores = OLS(X_train, X_test, y_train, y_test)
