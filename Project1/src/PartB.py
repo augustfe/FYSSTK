@@ -13,7 +13,7 @@ def RidgeofFranke(N: int = 100)-> tuple[list[float], list[float], list[float]]:
     """
     Fits a linear regression model to the Franke function using ridge regression, for each
     polynomial degree less than maxDim. Returns a tuple containing the lists MSEs_train,
-    MSEs_test and R2s (R-aquared scores)
+    MSEs_test and R2s (R-squared scores)
 
     Parameters:
     N (int): The number of data points to generate. The default value is 100
@@ -57,7 +57,7 @@ def RidgeofFranke(N: int = 100)-> tuple[list[float], list[float], list[float]]:
 def plotScores(MSE_train: list[list[float]], MSE_test: list[list[float]], R2: list[list[float]]):
     """
     Plots MSE_train, MSE_test, and R2 values as a function of polynomial
-    degree for different lambda using ridge regression.
+    degree for different lambdas using ridge regression.
     """
     fig, ax1 = plt.subplots()
 

@@ -29,8 +29,8 @@ def OLSofFranke(N: int = 500) -> tuple[list[float], list[float], list[float]]:
 
     # print(z_true.mean())
 
-    MSE_trains = []
-    MSE_tests = []
+    MSEs_train = []
+    MSEs_test = []
     R2s = []
 
     for dim in range(maxDim + 1):
@@ -39,8 +39,8 @@ def OLSofFranke(N: int = 500) -> tuple[list[float], list[float], list[float]]:
 
         X_train, X_test, z_train, z_test = train_test_split(X, z, random_state=2018)
         scores = OLS(X_train, X_test, z_train, z_test)
-        MSE_trains.append(scores[0])
-        MSE_tests.append(scores[1])
+        MSEs_train.append(scores[0])
+        MSEs_test.append(scores[1])
         R2s.append(scores[2])
 
     return MSEs_train, MSEs_test, R2s

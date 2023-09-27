@@ -8,6 +8,21 @@ from PartA import OLSofFranke
 from sklearn.pipeline import make_pipeline
 from sklearn.utils import resample
 
+def get_variance(z_pred: np.ndarray):
+    """Retruns mean of variance array which is
+    equal to the variance if we assume that our
+    vals are unifromly distributed
+    """
+    return np.mean(np.var(z_pred, axis=1, keepdims=True))
+
+
+def get_bias(z_test, z_pred):
+    z_pred_mean = np.mean(z_pred, axis=1, keepdims=True)
+    return np.mean((z_test - z_pred_mean) ** 2)
+
+
+def get_error(z_test, z_pred):
+    return np.mean(np.mean((z_test - z_pred) ** 2, axis=1, keepdims=True))
 
 def hastieFig():
     """plots figure similar to fig 2.11 in Hastie, Tibshirani, and Friedman.
@@ -45,47 +60,33 @@ def hastieFig():
     plt.show()
 
 
-def bootstrapp(n_bstraps, X_ ,X_train, z_train, polydegrees):
-    n_degrees = len(polydegrees)
+def bootstrap(x, y, z, polyDegrees, n_boostraps):
+    n_degrees = len(polyDegrees)
 
     error = np.zeros(n_degrees)
     bias = np.zeros(n_degrees)
     variance = np.zeros(n_degrees)
 
-    for degree in polydegrees:
-        X = create_X(x, y, dim)
+    for degree in polyDegrees:
+        X = create_X(x, y, degree)
         # X = ScaleandCenterData(X)
 
         X_train, X_test, z_train, z_test = train_test_split(X, z)
-        for i in range(n_bstraps):
+        z_test = z_test.reshape(z_test.shape[0], 1)
+
+        z_pred = np.empty((z_test.shape[0], n_boostraps))
+        for i in range(n_boostraps):
             x_, z_ = resample(X_train, z_train)
             beta_hat = create_OLS_beta(x_, z_)
             z_pred[:, i] = (X_test @ beta_hat).ravel()
 
-            error[degree] = np.mean(
-                np.mean((z_test - z_pred) ** 2, axis=1, keepdims=True)
-            )
-            bias[degree] = np.mean(
-                (z_test - np.mean(z_pred, axis=1, keepdims=True)) ** 2
-            )
-            variance[degree] = np.mean(np.var(z_pred, axis=1, keepdims=True))
+        error[degree]    = get_error(z_test, z_pred)
+        bias[degree]     =  get_bias(z_test, z_pred)
+        variance[degree] = get_variance(z_pred)
+
+    return error, bias, variance
 
 
-def variance(z_pred: np.ndarray):
-    """Retruns mean of variance array which is
-    equal to the variance if we assume that our
-    vals are unifromly distributed
-    """
-    return np.mean(np.var(z_pred, axis=1, keepdims=True))
-
-
-def bias(z_test, z_pred):
-    z_pred_mean = np.mean(z_pred, axis=1, keepdims=True)
-    return np.mean((z_test - z_pred_mean) ** 2)
-
-
-def error(z_test, z_pred):
-    return np.mean(np.mean((z_test - z_pred) ** 2, axis=1, keepdims=True))
 
 
 def plot_Bias_VS_Varaince():
@@ -108,7 +109,7 @@ def plot_Bias_VS_Varaince():
     Bias of the estimate
 
     """
-    N = 40
+    N = 400
     n_boostraps = 100
     maxdegree = 14
 
@@ -120,13 +121,13 @@ def plot_Bias_VS_Varaince():
     # z = z_true + np.random.randn(N * N) * 0.2
     z = z_true + z_true.mean() * np.random.randn(N) * 0.2
 
-    polydegree = list(range(10))
+    polyDegrees = list(range(maxdegree))
 
-    error, bias, variance = bootstrapp(z)
+    error, bias, variance = bootstrap(x,y,z, polyDegrees, n_boostraps)
 
-    plt.plot(polydegree, error, label="Error")
-    plt.plot(polydegree, bias, label="bias")
-    plt.plot(polydegree, variance, label="Variance")
+    plt.plot(polyDegrees, error, label="Error")
+    plt.plot(polyDegrees, bias, label="bias")
+    plt.plot(polyDegrees, variance, label="Variance")
     plt.legend()
     plt.show()
 
@@ -138,11 +139,12 @@ we are creating the x, y and corresponding z vals in A, B, C, E
 
 we'll be doing some resampling stuff for partE and partF
 
-boostrapp be a func that straps for single degree? or should it do the boostrapp
+boostrap be a func that straps for single degree? or should it do the boostrap
 for
 
 """
 
 
 if __name__ == "__main__":
-    hastieFig()
+    #hastieFig()
+    plot_Bias_VS_Varaince()
