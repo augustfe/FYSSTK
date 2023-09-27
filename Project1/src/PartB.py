@@ -9,10 +9,17 @@ lmbdaVals = [0.0001, 0.001, 0.01, 0.1, 1.0]
 maxDim = 15
 
 
-def RidgeofFranke():
-    N = 100
-    x = np.sort(np.random.uniform(0, 1, N))
-    y = np.sort(np.random.uniform(0, 1, N))
+def RidgeofFranke(N: int = 100)-> tuple[list[float], list[float], list[float]]:
+    """
+    Fits a linear regression model to the Franke function using ridge regression, for each
+    polynomial degree less than maxDim. Returns a tuple containing the lists MSEs_train,
+    MSEs_test and R2s (R-aquared scores)
+
+    Parameters:
+    N (int): The number of data points to generate. The default value is 100
+    """
+    x = np.random.uniform(0, 1, N)
+    y = np.random.uniform(0, 1, N)
     # x, y = np.meshgrid(x, y)
 
     z_true = FrankeFunction(x, y)
@@ -27,7 +34,7 @@ def RidgeofFranke():
         X = create_X(x, y, dim)
         # X = ScaleandCenterData(X)
 
-        X_train, X_test, y_train, y_test = train_test_split(X, z)
+        X_train, X_test, y_train, y_test = train_test_split(X, z, random_state=2018)
         X_train_mean = X_train.mean(axis=0)
         X_train_scaled = X_train - X_train_mean
         X_test_scaled = X_test - X_train_mean
@@ -47,13 +54,17 @@ def RidgeofFranke():
     return MSE_trains, MSE_tests, R2s
 
 
-def plotScores(MSE_train: list, MSE_test: list, R2: list):
+def plotScores(MSE_train: list[list[float]], MSE_test: list[list[float]], R2: list[list[float]]):
+    """
+    Plots MSE_train, MSE_test, and R2 values as a function of polynomial
+    degree for different lambda using ridge regression.
+    """
     fig, ax1 = plt.subplots()
 
     xVals = [i for i in range(maxDim + 1)]
 
     color = "tab:red"
-    ax1.set_xlabel("# of Polynomial dimensions")
+    ax1.set_xlabel("Polynomial dimension")
     ax1.set_xticks(xVals)
     ax1.set_ylabel("MSE score", color=color)
     for i, lmbda in enumerate(lmbdaVals):
@@ -77,5 +88,6 @@ def plotScores(MSE_train: list, MSE_test: list, R2: list):
 
 
 if __name__ == "__main__":
+    np.random.seed(2018)
     scores = RidgeofFranke()
     plotScores(*scores)

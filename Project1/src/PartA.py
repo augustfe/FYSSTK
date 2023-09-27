@@ -6,9 +6,16 @@ from sklearn.model_selection import train_test_split
 from OLS import OLS
 
 
-def OLSofFranke() -> tuple[list, list, list]:
+def OLSofFranke(N: int = 500) -> tuple[list[float], list[float], list[float]]:
+    """
+    Fits a linear regression model to the Franke function using Ordinary Least Squares (OLS), for each
+    polynomial degree in the given polyDegrees. Returns a tuple containing the lists MSEs_train,
+    MSEs_test and R2s (R-aquared scores)
+
+    Parameters:
+    N (int): The number of data points to generate. The default value is 100
+    """
     maxDim = 9
-    N = 100
     x = np.sort(np.random.uniform(0, 1, N))
     y = np.sort(np.random.uniform(0, 1, N))
 
@@ -30,41 +37,42 @@ def OLSofFranke() -> tuple[list, list, list]:
         X = create_X(x, y, dim)
         # X = ScaleandCenterData(X)
 
-        X_train, X_test, y_train, y_test = train_test_split(X, z, random_state=2018)
-        X_train_mean = X_train.mean(axis=0)
-        X_train_scaled = X_train - X_train_mean
-        X_test_scaled = X_test - X_train_mean
-
-        y_train_mean = y_train.mean()
-        y_train_scaled = y_train - y_train_mean
-        y_test_scaled = y_test - y_train_mean
-
-        scores = OLS(X_train_scaled, X_test_scaled, y_train_scaled, y_test_scaled)
+        X_train, X_test, z_train, z_test = train_test_split(X, z, random_state=2018)
+        scores = OLS(X_train, X_test, z_train, z_test)
         MSE_trains.append(scores[0])
         MSE_tests.append(scores[1])
         R2s.append(scores[2])
 
-    return MSE_trains, MSE_tests, R2s
+    return MSEs_train, MSEs_test, R2s
 
 
-def plotScores(MSE_train, MSE_test, R2):
+def plotScores(MSEs_train: list[float], MSEs_test: list[float], R2s: list[float])-> None:
+    """
+    Plots MSE_train, MSE_test, and R2 values as a function of polynomial degree
+
+    Args:
+    MSE_train(list[float]): MSE of traning data and model prediction
+    MSE_test(list[float]): MSE of test data and model prediction
+    R2(list[float]): R-squared score of test data and model prediction
+    """
+
     fig, ax1 = plt.subplots()
 
     xVals = [i for i in range(len(MSE_train))]
 
     color = "tab:red"
-    ax1.set_xlabel("# of Polynomial dimensions")
+    ax1.set_xlabel("Polynomial dimension")
     ax1.set_xticks(xVals)
     ax1.set_ylabel("MSE score", color=color)
-    ax1.plot(xVals, MSE_train, label="MSE train", color="r")
-    ax1.plot(xVals, MSE_test, label="MSE test", color="g")
+    ax1.plot(xVals, MSEs_train, label="MSE train", color="r")
+    ax1.plot(xVals, MSEs_test, label="MSE test", color="g")
     ax1.tick_params(axis="y", labelcolor=color)
 
     ax2 = ax1.twinx()
 
     color = "tab:blue"
     ax2.set_ylabel("R2", color=color)
-    ax2.plot(xVals, R2, label="R2 score", color=color)
+    ax2.plot(xVals, R2s, label="R2 score", color=color)
     ax2.tick_params(axis="y", labelcolor=color)
 
     fig.legend()

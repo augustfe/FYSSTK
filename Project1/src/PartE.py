@@ -11,13 +11,13 @@ from sklearn.utils import resample
 
 def hastieFig():
     """plots figure similar to fig 2.11 in Hastie, Tibshirani, and Friedman.
-        all the same as PartA, but without the R2 value
+    all the same as PartA, but without the R2 value
 
-        note to teammates: graph kinda ugly sometimes
+    note to teammates: graph kinda ugly sometimes
     """
 
-    #if N is too large MSE_train won't diverge
-    scores = OLSofFranke(N = 30)
+    # if N is too large MSE_train won't diverge
+    scores = OLSofFranke()
 
     MSE_train = scores[0]
     MSE_test = scores[1]
@@ -44,8 +44,8 @@ def hastieFig():
 
     plt.show()
 
-def bootstrapp(n_bstraps, X_train, z_train, polydegrees):
 
+def bootstrapp(n_bstraps, X_ ,X_train, z_train, polydegrees):
     n_degrees = len(polydegrees)
 
     error = np.zeros(n_degrees)
@@ -53,32 +53,39 @@ def bootstrapp(n_bstraps, X_train, z_train, polydegrees):
     variance = np.zeros(n_degrees)
 
     for degree in polydegrees:
-            for i in range(n_bstraps):
-                x_, z_ = resample(X_train, z_train)
-                beta_hat = create_OLS_beta(x_, z_)
-                z_pred[:, i] = (X_test @ beta_hat).ravel()
+        X = create_X(x, y, dim)
+        # X = ScaleandCenterData(X)
 
+        X_train, X_test, z_train, z_test = train_test_split(X, z)
+        for i in range(n_bstraps):
+            x_, z_ = resample(X_train, z_train)
+            beta_hat = create_OLS_beta(x_, z_)
+            z_pred[:, i] = (X_test @ beta_hat).ravel()
 
-            error[degree] = np.mean( np.mean((z_test - z_pred)**2, axis=1, keepdims=True) )
-            bias[degree] = np.mean( (z_test - np.mean(z_pred, axis=1, keepdims=True))**2 )
-            variance[degree] = np.mean( np.var(z_pred, axis=1, keepdims=True))
+            error[degree] = np.mean(
+                np.mean((z_test - z_pred) ** 2, axis=1, keepdims=True)
+            )
+            bias[degree] = np.mean(
+                (z_test - np.mean(z_pred, axis=1, keepdims=True)) ** 2
+            )
+            variance[degree] = np.mean(np.var(z_pred, axis=1, keepdims=True))
 
 
 def variance(z_pred: np.ndarray):
-    """ Retruns mean of variance array which is
-        equal to the variance if we assume that our
-        vals are unifromly distributed
+    """Retruns mean of variance array which is
+    equal to the variance if we assume that our
+    vals are unifromly distributed
     """
     return np.mean(np.var(z_pred, axis=1, keepdims=True))
 
+
 def bias(z_test, z_pred):
     z_pred_mean = np.mean(z_pred, axis=1, keepdims=True)
-    return np.mean( (z_test - z_pred_mean)**2 )
+    return np.mean((z_test - z_pred_mean) ** 2)
+
 
 def error(z_test, z_pred):
-    return np.mean( np.mean((z_test - z_pred)**2, axis=1, keepdims=True) )
-
-
+    return np.mean(np.mean((z_test - z_pred) ** 2, axis=1, keepdims=True))
 
 
 def plot_Bias_VS_Varaince():
@@ -105,7 +112,6 @@ def plot_Bias_VS_Varaince():
     n_boostraps = 100
     maxdegree = 14
 
-
     # Make data set.
     x = np.sort(np.random.uniform(0, 1, N))
     y = np.sort(np.random.uniform(0, 1, N))
@@ -114,35 +120,13 @@ def plot_Bias_VS_Varaince():
     # z = z_true + np.random.randn(N * N) * 0.2
     z = z_true + z_true.mean() * np.random.randn(N) * 0.2
 
+    polydegree = list(range(10))
 
-    error = np.zeros(maxdegree)
-    bias = np.zeros(maxdegree)
-    variance = np.zeros(maxdegree)
-    polydegree = np.zeros(maxdegree)
+    error, bias, variance = bootstrapp(z)
 
-    for degree in range(maxdegree):
-        X = create_X(x, y, dim)
-        # X = ScaleandCenterData(X)
-
-        X_train, X_test, z_train, z_test = train_test_split(X, z)
-
-
-        z_pred = np.empty((z_test.shape[0], n_boostraps))
-
-        for i in range(n_boostraps):
-            x_, z_ = resample(X_train, z_train)
-            beta_hat = create_OLS_beta(x_, z_)
-            z_pred[:, i] = (X_test @ beta_hat).ravel()
-
-
-        polydegree[degree] = degree
-        error[degree] = np.mean( np.mean((z_test - z_pred)**2, axis=1, keepdims=True) )
-        bias[degree] = np.mean( (z_test - np.mean(z_pred, axis=1, keepdims=True))**2 )
-        variance[degree] = np.mean( np.var(z_pred, axis=1, keepdims=True) )
-
-    plt.plot(polydegree, error, label='Error')
-    plt.plot(polydegree, bias, label='bias')
-    plt.plot(polydegree, variance, label='Variance')
+    plt.plot(polydegree, error, label="Error")
+    plt.plot(polydegree, bias, label="bias")
+    plt.plot(polydegree, variance, label="Variance")
     plt.legend()
     plt.show()
 
