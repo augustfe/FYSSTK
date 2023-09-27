@@ -30,7 +30,7 @@ def OLSofFranke() -> tuple[list, list, list]:
         X = create_X(x, y, dim)
         # X = ScaleandCenterData(X)
 
-        X_train, X_test, y_train, y_test = train_test_split(X, z)
+        X_train, X_test, y_train, y_test = train_test_split(X, z, random_state=2018)
         X_train_mean = X_train.mean(axis=0)
         X_train_scaled = X_train - X_train_mean
         X_test_scaled = X_test - X_train_mean
@@ -75,5 +75,6 @@ def plotScores(MSE_train, MSE_test, R2):
 
 
 if __name__ == "__main__":
+    np.random.seed(2018)
     scores = OLSofFranke()
     plotScores(*scores)
