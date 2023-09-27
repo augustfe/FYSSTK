@@ -1,28 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
-
-from util import FrankeFunction, create_X, MSE
+from util import FrankeFunction, create_X, MSE, get_variance, get_bias, get_error
 from sklearn.model_selection import train_test_split
 from OLS import OLS, create_OLS_beta
 from PartA import OLSofFranke
 from sklearn.pipeline import make_pipeline
 from sklearn.utils import resample
 
-def get_variance(z_pred: np.ndarray):
-    """Retruns mean of variance array which is
-    equal to the variance if we assume that our
-    vals are unifromly distributed
-    """
-    return np.mean(np.var(z_pred, axis=1, keepdims=True))
-
-
-def get_bias(z_test, z_pred):
-    z_pred_mean = np.mean(z_pred, axis=1, keepdims=True)
-    return np.mean((z_test - z_pred_mean) ** 2)
-
-
-def get_error(z_test, z_pred):
-    return np.mean(np.mean((z_test - z_pred) ** 2, axis=1, keepdims=True))
 
 def hastieFig():
     """plots figure similar to fig 2.11 in Hastie, Tibshirani, and Friedman.
@@ -71,17 +55,19 @@ def bootstrap(x, y, z, polyDegrees, n_boostraps):
         X = create_X(x, y, degree)
         # X = ScaleandCenterData(X)
 
-        X_train, X_test, z_train, z_test = train_test_split(X, z)
-        z_test = z_test.reshape(z_test.shape[0], 1)
+        X_train, X_test, z_train, z_test = train_test_split(X, z, random_state=2018)
 
+        z_test = z_test.reshape(z_test.shape[0], 1)
         z_pred = np.empty((z_test.shape[0], n_boostraps))
+
         for i in range(n_boostraps):
             x_, z_ = resample(X_train, z_train)
             beta_hat = create_OLS_beta(x_, z_)
             z_pred[:, i] = (X_test @ beta_hat).ravel()
 
-        error[degree]    = get_error(z_test, z_pred)
+        error[degree] = get_error(z_test, z_pred)
         bias[degree]     =  get_bias(z_test, z_pred)
+        print(z_pred.shape)
         variance[degree] = get_variance(z_pred)
 
     return error, bias, variance
@@ -111,7 +97,7 @@ def plot_Bias_VS_Varaince():
     """
     N = 400
     n_boostraps = 100
-    maxdegree = 14
+    maxdegree = 9
 
     # Make data set.
     x = np.sort(np.random.uniform(0, 1, N))
@@ -123,7 +109,7 @@ def plot_Bias_VS_Varaince():
 
     polyDegrees = list(range(maxdegree))
 
-    error, bias, variance = bootstrap(x,y,z, polyDegrees, n_boostraps)
+    error, bias, variance = bootstrap(x, y, z, polyDegrees, n_boostraps)
 
     plt.plot(polyDegrees, error, label="Error")
     plt.plot(polyDegrees, bias, label="bias")

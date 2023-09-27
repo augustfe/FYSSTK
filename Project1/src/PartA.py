@@ -46,7 +46,9 @@ def OLSofFranke(N: int = 500) -> tuple[list[float], list[float], list[float]]:
     return MSEs_train, MSEs_test, R2s
 
 
-def plotScores(MSEs_train: list[float], MSEs_test: list[float], R2s: list[float])-> None:
+def plotScores(
+    MSEs_train: list[float], MSEs_test: list[float], R2s: list[float]
+) -> None:
     """
     Plots MSE_train, MSE_test, and R2 values as a function of polynomial degree
 
@@ -58,7 +60,7 @@ def plotScores(MSEs_train: list[float], MSEs_test: list[float], R2s: list[float]
 
     fig, ax1 = plt.subplots()
 
-    xVals = [i for i in range(len(MSE_train))]
+    xVals = [i for i in range(len(MSEs_train))]
 
     color = "tab:red"
     ax1.set_xlabel("Polynomial dimension")

@@ -50,3 +50,19 @@ def ScaleandCenterData(X: np.ndarray, scale: bool = False) -> np.ndarray:
     X -= np.mean(X, axis=0)
 
     return X
+
+def get_variance(z_pred: np.ndarray):
+    """Retruns mean of variance array which is
+    equal to the variance if we assume that our
+    vals are unifromly distributed
+    """
+    return np.mean(np.var(z_pred, axis=1, keepdims=True))
+
+
+def get_bias(z_test, z_pred):
+    z_pred_mean = np.mean(z_pred, axis=1, keepdims=True)
+    return np.mean((z_test - z_pred_mean) ** 2)
+
+
+def get_error(z_test, z_pred):
+    return np.mean(np.mean((z_test - z_pred) ** 2, axis=1, keepdims=True))
