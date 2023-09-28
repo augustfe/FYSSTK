@@ -9,14 +9,15 @@ from sklearn.utils import resample
 
 
 def hastieFig():
-    """plots figure similar to fig 2.11 in Hastie, Tibshirani, and Friedman.
+    """
+    plots figure similar to fig 2.11 in Hastie, Tibshirani, and Friedman.
     all the same as PartA, but without the R2 value
 
     note to teammates: graph kinda ugly sometimes
     """
 
     # if N is too large MSE_train won't diverge
-    scores = OLSofFranke()
+    scores = OLSofFranke(N=50)
 
     MSE_train = scores[0]
     MSE_test = scores[1]
@@ -61,18 +62,15 @@ def bootstrap(x, y, z, polyDegrees, n_boostraps):
         z_pred = np.empty((z_test.shape[0], n_boostraps))
 
         for i in range(n_boostraps):
-            x_, z_ = resample(X_train, z_train)
-            beta_hat = create_OLS_beta(x_, z_)
+            X_, z_ = resample(X_train, z_train)
+            beta_hat = create_OLS_beta(X_, z_)
             z_pred[:, i] = (X_test @ beta_hat).ravel()
 
         error[degree] = get_error(z_test, z_pred)
-        bias[degree]     =  get_bias(z_test, z_pred)
-        print(z_pred.shape)
+        bias[degree] = get_bias(z_test, z_pred)
         variance[degree] = get_variance(z_pred)
 
     return error, bias, variance
-
-
 
 
 def plot_Bias_VS_Varaince():
@@ -95,9 +93,9 @@ def plot_Bias_VS_Varaince():
     Bias of the estimate
 
     """
-    N = 400
+    N = 150
     n_boostraps = 100
-    maxdegree = 9
+    maxdegree = 10
 
     # Make data set.
     x = np.sort(np.random.uniform(0, 1, N))
@@ -105,7 +103,7 @@ def plot_Bias_VS_Varaince():
 
     z_true = FrankeFunction(x, y)
     # z = z_true + np.random.randn(N * N) * 0.2
-    z = z_true + z_true.mean() * np.random.randn(N) * 0.2
+    z = z_true + z_true.mean() * np.random.randn(N) * 0.30
 
     polyDegrees = list(range(maxdegree))
 
@@ -132,5 +130,6 @@ for
 
 
 if __name__ == "__main__":
-    #hastieFig()
+    # hastieFig()
+    np.random.seed(2017)
     plot_Bias_VS_Varaince()
