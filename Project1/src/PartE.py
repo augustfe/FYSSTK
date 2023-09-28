@@ -85,13 +85,6 @@ def plot_Bias_VS_Varaince():
     num_samples : int
         Optional, default is 1000. Number of random samples to generate using bootstrapping.
 
-
-    Plots:
-    ------
-    Variance of y_tilde
-    Mean squared error (MSE) of the estimate
-    Bias of the estimate
-
     """
     N = 150
     n_boostraps = 100

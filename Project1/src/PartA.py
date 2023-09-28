@@ -13,7 +13,9 @@ def OLSofFranke(N: int = 500) -> tuple[list[float], list[float], list[float]]:
     MSEs_test and R2s (R-aquared scores)
 
     Parameters:
-    N (int): The number of data points to generate. The default value is 100
+    -----------
+        N: (int) 
+            The number of data points to generate. The default value is 100
     """
     maxDim = 9
     x = np.sort(np.random.uniform(0, 1, N))
@@ -52,10 +54,16 @@ def plotScores(
     """
     Plots MSE_train, MSE_test, and R2 values as a function of polynomial degree
 
-    Args:
-    MSE_train(list[float]): MSE of traning data and model prediction
-    MSE_test(list[float]): MSE of test data and model prediction
-    R2(list[float]): R-squared score of test data and model prediction
+    Parameters:
+    -----------
+        MSE_train: (list[float])
+            MSE of traning data and model prediction
+
+        MSE_test: (list[float])
+            MSE of test data and model prediction
+
+        R2: (list[float])
+            R-squared score of test data and model prediction
     """
 
     fig, ax1 = plt.subplots()

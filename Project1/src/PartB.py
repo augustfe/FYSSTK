@@ -16,7 +16,27 @@ def RidgeofFranke(N: int = 100)-> tuple[list[float], list[float], list[float]]:
     MSEs_test and R2s (R-squared scores)
 
     Parameters:
-    N (int): The number of data points to generate. The default value is 100
+    -----------
+    N :(int)
+        The number of data points to generate. The default value is 100
+
+    Returns:
+    --------
+        MSE_trains: list[list[float]]
+            MSE of training z and prediction for training x,y
+            Each inner list consists of MSEs for same degree,
+            but different lambdas
+
+        MSE_tests: list[list[float]]
+            MSE of test z and prediction for test x,y
+            Each inner list consists of MSEs for same degree,
+            but different lambdas
+
+        R2s : list[list[float]]
+            R-squared score of test z and prediction for test x,y
+            Each inner list consists of R2s for same degree,
+            but different lambdas
+
     """
     x = np.random.uniform(0, 1, N)
     y = np.random.uniform(0, 1, N)
@@ -54,10 +74,21 @@ def RidgeofFranke(N: int = 100)-> tuple[list[float], list[float], list[float]]:
     return MSE_trains, MSE_tests, R2s
 
 
-def plotScores(MSE_train: list[list[float]], MSE_test: list[list[float]], R2: list[list[float]]):
+def plotScores(MSE_train: list[list[float]], MSE_test: list[list[float]], R2: list[list[float]])-> None:
     """
     Plots MSE_train, MSE_test, and R2 values as a function of polynomial
     degree for different lambdas using ridge regression.
+
+    Paramaters:
+    -----------
+        MSE_train: list[list[float]]
+            MSE of training z and prediction for training x,y
+
+        MSE_test: list[list[float]]
+            MSE of test z and prediction for test x,y
+
+        R2 : list[list[float]]
+            R-squared score of test z and prediction for test x,y
     """
     fig, ax1 = plt.subplots()
 

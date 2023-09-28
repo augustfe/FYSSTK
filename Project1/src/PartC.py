@@ -10,6 +10,28 @@ maxDim = 5
 
 
 def LassoofFranke():
+    """
+     Performs Lasso regression on the Franke function data and returns
+     the mean squared errors (MSEs) of the training and testing sets, as
+     well as the R2 scores for different values of alpha.
+
+     Returns:
+     --------
+         MSE_trains: list[list[float]]
+             MSE of training z and prediction for training x,y
+             Each inner list consists of MSEs for same degree,
+             but different alphas
+
+         MSE_tests: list[list[float]]
+             MSE of test z and prediction for test x,y
+             Each inner list consists of MSEs for same degree,
+             but different alphas
+
+         R2s : list[list[float]]
+             R-squared score of test z and prediction for test x,y
+             Each inner list consists of R2s for same degree,
+             but different alphas
+    """
     N = 100
     x = np.sort(np.random.uniform(0, 1, N))
     y = np.sort(np.random.uniform(0, 1, N))
@@ -37,6 +59,21 @@ def LassoofFranke():
 
 
 def plotScores(MSE_train: list, MSE_test: list, R2: list):
+    """
+    Plots MSE_train, MSE_test, and R2 values as a function of polynomial
+    degree for different alphas using lasso regression.
+
+    Paramaters:
+    -----------
+        MSE_train: list[list[float]]
+            MSE of training z and prediction for training x,y
+
+        MSE_test: list[list[float]]
+            MSE of test z and prediction for test x,y
+
+        R2 : list[list[float]]
+            R-squared score of test z and prediction for test x,y
+    """
     fig, ax1 = plt.subplots()
 
     xVals = [i for i in range(maxDim + 1)]
