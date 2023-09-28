@@ -58,6 +58,7 @@ def RidgeofFranke(N: int = 100)-> tuple[list[float], list[float], list[float]]:
         X_train_mean = X_train.mean(axis=0)
         X_train_scaled = X_train - X_train_mean
         X_test_scaled = X_test - X_train_mean
+        print(X_train_scaled[0, 0])
 
         y_train_mean = y_train.mean()
         y_train_scaled = y_train - y_train_mean

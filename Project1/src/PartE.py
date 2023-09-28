@@ -53,7 +53,7 @@ def bootstrap(x, y, z, polyDegrees, n_boostraps):
     bias = np.zeros(n_degrees)
     variance = np.zeros(n_degrees)
 
-    for degree in polyDegrees:
+    for j, degree in enumerate(polyDegrees):
         X = create_X(x, y, degree)
         # X = ScaleandCenterData(X)
 
@@ -67,9 +67,9 @@ def bootstrap(x, y, z, polyDegrees, n_boostraps):
             beta_hat = create_OLS_beta(X_, z_)
             z_pred[:, i] = (X_test @ beta_hat).ravel()
 
-        error[degree] = get_error(z_test, z_pred)
-        bias[degree] = get_bias(z_test, z_pred)
-        variance[degree] = get_variance(z_pred)
+        error[j] = get_error(z_test, z_pred)
+        bias[j] = get_bias(z_test, z_pred)
+        variance[j] = get_variance(z_pred)
 
     return error, bias, variance
 
@@ -88,9 +88,9 @@ def plot_Bias_VS_Varaince():
 
     """
     #N = 230, n_boostraps = 200, maxdegree = 10 looks pretty good
-    N = 230
-    n_boostraps = 200
-    maxdegree = 10
+    N = 450
+    n_boostraps = 400
+    maxdegree = 13
 
 
     # Make data set.
@@ -101,7 +101,7 @@ def plot_Bias_VS_Varaince():
     # z = z_true + np.random.randn(N * N) * 0.2
     z = z_true + z_true.mean() * np.random.randn(N) * 0.30
 
-    polyDegrees = list(range(maxdegree))
+    polyDegrees = list(range(1, maxdegree))
 
     error, bias, variance = bootstrap(x, y, z, polyDegrees, n_boostraps)
 

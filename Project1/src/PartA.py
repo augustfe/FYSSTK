@@ -35,7 +35,8 @@ def OLSofFranke(N: int = 500, maxDim: int = 9) -> tuple[list[float], list[float]
     MSEs_train = []
     MSEs_test = []
     R2s = []
-
+    create_X(x,y,3)
+    quit()
     for dim in range(maxDim + 1):
         X = create_X(x, y, dim)
         # X = ScaleandCenterData(X)
