@@ -32,9 +32,9 @@ def LassoofFranke():
              Each inner list consists of R2s for same degree,
              but different alphas
     """
-    N = 100
-    x = np.sort(np.random.uniform(0, 1, N))
-    y = np.sort(np.random.uniform(0, 1, N))
+    N = 500
+    x = np.random.uniform(0, 1, N)
+    y = np.random.uniform(0, 1, N)
     x, y = np.meshgrid(x, y)
     z = FrankeFunction(x, y) + 0.2 * np.random.randn(N, N)
 
@@ -47,7 +47,7 @@ def LassoofFranke():
         X = ScaleandCenterData(X)
 
         X_train, X_test, y_train, y_test = train_test_split(
-            X, ScaleandCenterData(np.ravel(z))
+            X, ScaleandCenterData(np.ravel(z)), random_state=2018
         )
         for i, alpha in enumerate(alphaVals):
             scores = pureSKLearnLasso(X_train, X_test, y_train, y_test, alpha)

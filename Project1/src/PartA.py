@@ -6,7 +6,7 @@ from sklearn.model_selection import train_test_split
 from OLS import OLS
 
 
-def OLSofFranke(N: int = 500) -> tuple[list[float], list[float], list[float]]:
+def OLSofFranke(N: int = 500, maxDim: int = 9) -> tuple[list[float], list[float], list[float]]:
     """
     Fits a linear regression model to the Franke function using Ordinary Least Squares (OLS), for each
     polynomial degree in the given polyDegrees. Returns a tuple containing the lists MSEs_train,
@@ -14,12 +14,13 @@ def OLSofFranke(N: int = 500) -> tuple[list[float], list[float], list[float]]:
 
     Parameters:
     -----------
-        N: (int) 
+        N: (int)
             The number of data points to generate. The default value is 100
+        maxDim: (int)
+            Highest model degree to fit to the Franke Function
     """
-    maxDim = 9
-    x = np.sort(np.random.uniform(0, 1, N))
-    y = np.sort(np.random.uniform(0, 1, N))
+    x = np.random.uniform(0, 1, N)
+    y = np.random.uniform(0, 1, N)
 
     # x, y = np.meshgrid(x, y)
     # x = x.flatten()
