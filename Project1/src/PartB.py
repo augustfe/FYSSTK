@@ -5,8 +5,6 @@ from Ridge import Ridge
 from util import FrankeFunction, create_X, ScaleandCenterData
 from sklearn.model_selection import train_test_split
 
-lmbdaVals = [0.0001, 0.001, 0.01, 0.1, 1.0]
-maxDim = 15
 
 
 def RidgeofFranke(N: int = 100)-> tuple[list[float], list[float], list[float]]:
@@ -58,7 +56,6 @@ def RidgeofFranke(N: int = 100)-> tuple[list[float], list[float], list[float]]:
         X_train_mean = X_train.mean(axis=0)
         X_train_scaled = X_train - X_train_mean
         X_test_scaled = X_test - X_train_mean
-        print(X_train_scaled[0, 0])
 
         y_train_mean = y_train.mean()
         y_train_scaled = y_train - y_train_mean
@@ -74,7 +71,7 @@ def RidgeofFranke(N: int = 100)-> tuple[list[float], list[float], list[float]]:
 
     return MSE_trains, MSE_tests, R2s
 
-
+#I think it's best if we only use this function for comparing a cuple of different lambda vals
 def plotScores(MSE_train: list[list[float]], MSE_test: list[list[float]], R2: list[list[float]])-> None:
     """
     Plots MSE_train, MSE_test, and R2 values as a function of polynomial
@@ -116,10 +113,59 @@ def plotScores(MSE_train: list[list[float]], MSE_test: list[list[float]], R2: li
     fig.suptitle("Scores by polynomial degree for Ridge")
     fig.tight_layout()
 
+def ridge_vs_OLS():
+    """
+    fucntion for comparing the analasys in A to that of here. Again
+    I think it's best to only do a cuple of different lambda vals.
+
+    """
+    return
+
+def plot_3D_lambda_vs_polydegree(MSE_test: list[list[float]], lambdaVals: list[float]):
+    """Plots a 3D surface plot of the test MSE as a function of polynomial degree and lambda values.
+
+    Args:
+        MSE_test (list[list[float]]): The test mean square error for different lambda values and polynomial degrees.
+        lambdaVals (list[float]): The lambda values used for regularization.
+
+    Returns:
+        None: Displays the 3D surface plot of the test mean square error.
+    """
+
+      # Define polynomial degrees and lambda values
+    degrees = np.arange(1, len(MSE_test[0]) + 1)
+
+    # Initialize arrays to store MSE values
+    mse_train = np.array(MSE_test)
+
+    fig = plt.figure(figsize=plt.figaspect(1) * 2)  # make it a bit larger
+    ax = fig.add_subplot(projection='3d')
+
+    X, Y = np.meshgrid(degrees, lambdaVals)
+    ax.plot_surface(X, np.log10(Y), mse_train, cmap=plt.cm.coolwarm, rstride=1, cstride=1)
+
+    # Set labels and title
+    ax.set_xlabel('Polynomial Degree')
+    ax.set_ylabel('log10($\lambda$)')
+    ax.set_zlabel('Test MSE')
+    ax.set_title('Test MSE as a function of complexity and $\lambda$')
+
     plt.show()
+
+
+
+
 
 
 if __name__ == "__main__":
     np.random.seed(2018)
+
+    n_lmbdas = 16
+    lmbdaVals = np.logspace(-3, 5, n_lmbdas)
+    maxDim = 15
+
     scores = RidgeofFranke()
-    plotScores(*scores)
+    #plotScores(*scores)
+    MSE_test = scores[1]
+    plot_3D_lambda_vs_polydegree(MSE_test, lmbdaVals)
+    #plt.show()
