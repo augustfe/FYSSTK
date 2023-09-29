@@ -88,6 +88,7 @@ def plot_Bias_VS_Varaince():
 
     """
     #N = 230, n_boostraps = 200, maxdegree = 10 looks pretty good
+    #450, 400, 13 also deecent
     N = 450
     n_boostraps = 400
     maxdegree = 13
@@ -111,18 +112,6 @@ def plot_Bias_VS_Varaince():
     plt.legend()
     plt.show()
 
-
-"""
-ok, what bits of code is it that we are reusing?
-
-we are creating the x, y and corresponding z vals in A, B, C, E
-
-we'll be doing some resampling stuff for partE and partF
-
-boostrap be a func that straps for single degree? or should it do the boostrap
-for
-
-"""
 
 
 if __name__ == "__main__":

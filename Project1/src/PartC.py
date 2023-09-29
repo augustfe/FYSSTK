@@ -102,6 +102,14 @@ def plotScores(MSE_train: list, MSE_test: list, R2: list):
     plt.show()
 
 
+
 if __name__ == "__main__":
     scores = LassoofFranke()
     plotScores(*scores)
+    """
+    in this part we are supposed to 'Give a critical discussion
+    of the three methods and a judgement of which model fits the data best'
+
+    To do this I think we can find the best lasso model(s) and compare them to the best
+    model(s) we find in partA and PartB
+    """

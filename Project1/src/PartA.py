@@ -95,4 +95,20 @@ def plotScores(
 if __name__ == "__main__":
     np.random.seed(2018)
     scores = OLSofFranke()
-    plotScores(*scores)
+    #plotScores(*scores)
+"""
+If we just increase the number of points our model
+won't overfit. This is true for all regression models
+To compare the models we therfore have to consider efficency.
+That is how well do the models perform for the same number of
+points.
+
+It's also worth noting that we are not fitting a polnomial, but some funky
+exponential function, which we know from the taylor series is approximated
+better and better the more degrees we add. So training with enough points
+our best model should have more and more degrees.
+
+Need to figure out if the Ridge and Lasso models manage to avoid overfitting
+with their regularization terms.
+
+"""

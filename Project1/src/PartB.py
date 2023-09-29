@@ -115,11 +115,16 @@ def plotScores(MSE_train: list[list[float]], MSE_test: list[list[float]], R2: li
 
 def ridge_vs_OLS():
     """
-    fucntion for comparing the analasys in A to that of here. Again
-    I think it's best to only do a cuple of different lambda vals.
-
+    calculate and compare ridge model vs OLS. Use this when we know the best lambda val
+    and compare the best ridge model to the best OLS model
     """
     return
+
+def MSE_R2_lambas():
+    """
+    calculate mse test and r2 scores for different lamba of polynomial of same degree.
+    can be used to find the best lambda and also plot MSE and R2 as a function og lambda
+    """
 
 def plot_3D_lambda_vs_polydegree(MSE_test: list[list[float]], lambdaVals: list[float]):
     """Plots a 3D surface plot of the test MSE as a function of polynomial degree and lambda values.
