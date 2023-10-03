@@ -1,21 +1,27 @@
 \documentclass{article}
+% \documentclass[aps,rmp,reprint,amsmath,amssymb,graphicx,longbibliography]{article}
 \usepackage[utf8]{inputenc}
 \usepackage{graphicx}
 \usepackage{float}
 \usepackage{listings}
-\usepackage{hyperref}
 \usepackage{amsmath}
 \usepackage{commath}
 \usepackage{tabularx}
 \usepackage[ruled,vlined]{algorithm2e}
 \graphicspath{{./plots/}}
-\usepackage{biblatex}
-\addbibresource{reff.bib}
+% \usepackage{biblatex}
+% \addbibresource{refs.bib}
 \usepackage{caption}
 \usepackage{subcaption}
+\usepackage{minted}
+% \usepackage{longbibliography}
 
-\title{FYS-STK3155 Project 1}
-\author{Femtehjell, Et Vegard.}
+\bibliographystyle{apalike}
+\usepackage{hyperref}
+\hypersetup{breaklinks=true,colorlinks=true,linkcolor=blue,citecolor=blue,filecolor=magenta,urlcolor=blue}
+
+\title{Regression analysis and resampling methods applied to the Franke's Function}
+\author{Femtehjell, Hoel, Otterlei and Steeneveldt}
 \date{September 2023}
 
 % Sample for adding code to text:
@@ -24,12 +30,121 @@
 % linenos,
 % fontsize=\footnotesize]{python}{filename.py}
 
-
+\def\@bibdataout@aps{%
+\immediate\write\@bibdataout{%
+@CONTROL{%
+apsrev41Control%
+\longbibliography@sw{%
+    ,author="08",editor="1",pages="1",title="0",year="1"%
+    }{%
+    ,author="08",editor="1",pages="1",title="",year="1"%
+    }%
+  }%
+}%
+\if@filesw \immediate \write \@auxout {\string \citation {apsrev41Control}}\fi
+}
 
 \begin{document}
 
-\maketitle
 
+\maketitle
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.5]{Project1/1797261_uio-logo.png}
+\end{figure}
+\newpage
+\tableofcontents
+\newpage
+
+\section*{Abstract}
+
+In this project, we aim to gain valuable insights from a dataset of terrain data using various regression methods such as Ordinary Least Squares (OLS), Ridge, and LASSO. To achieve this, we utilize two-variable polynomials at varying orders and carefully tune hyperparameters such as $\lambda$ for Ridge and LASSO methods. Additionally, we employ advanced resampling techniques such as non-parametric bootstrap and k-fold cross-validation. These techniques help us accurately assess the models' performance by dividing the data into test and training subsets and evaluating the performance multiple times by training the model with the training subset and evaluating with the testing subset.
+
+To mesure the performance of our regression methods, we use well-established metrics such as Mean Squared Error (MSE) and R2 score. Initially, we validate the methods on a well-known smooth function, the Franke function with Gaussian noise, before adapting and re-tuning the same methods for the more complicated terrain data. Our analysis reveals that Ridge regression provides the best fit for the terrain data.
 \section{Introduction}
+Machine learning has become wildly popular in the last decade. It is now used to some degree in all aspects of society and keeps growing in popularity. The most popular of the different machine learning models are deep learning, which is based on neural network and the base layer of neural networks theory is regression methods. This project will look into the theory of different regression methods and re-sampling techniques. Specifically, the project will look how to use linear regression, ridge and lasso regression to model polynomials of different degrees and how they differ in output.
+
+Early in our education, we learn how to connect points by drawing a straight line through them. However, when such a line does not exists, how should one proceed? You may perhaps try to draw a wave through the points, or maybe draw a straight line through which is the 'closest' to all the points. Later we learn how to utilize tools to automatically create these lines, which are as mathematically close to the points as possible, but how does this work? How does the computer decide which type of line to draw, and how does it calculate how 'far' the line is from the points?
+
+Suppose all of your points lay along a line, except one which is far away. Should the best line be the one which passes straight through most of the points, or should we penalize it for being far from one of the points. Maybe we should draw a line which goes straight from point to point, deviating far to catch the deviant. What if we know that we only have a handful of all the points, and that we want to place the line such that future points will also lay close to it. Does your answer change then?
+
+We find the answers to these questions within the art of regression. One common way to calculate the deviation of points from the line, is to calculate the mean sum of the square of the errors (MSE), a method often attributed to Galileo Galilei \cite{galileo}. This method is what we find at the core of our first regression method, namely ordinary least squares (OLS), which tries to minimize this metric. This however, may cause problems where our model is too closely fitted our line, such that new points lay far away. In order to alleviate some of these issues, there are more complex methods such as ridge and Lasso regression, which build on OLS, which add a penalty in order to make sure that the most relevant aspects of the line are prioritized.
+
+We will apply these methods to the Franke function, a method commonly used to test interpolation problems \cite{Franke:1982}. This function consists of two peaks, which is ideal as we will later attempt to analyse real world terrain data.
+
+\section{Theory}
+Linear regression is a well-known and well-used method in statistics. It is the method of drawing a line through a set of data to match the data points best as possible. It creates a
+\begin{equation*}
+    y = f(x) + \epsilon
+\end{equation*}
+where $y$ are the resulting values, $f(x)$ is the function we want to approximate and $\epsilon$ is the error estimate. For a single dimension, this becomes
+\begin{equation*}
+    y = \beta x + \epsilon
+\end{equation*}
+When fitting this to data, this will look like this
+%%%%
+% Insert linear regression plot w/o intercept
+%%%%
+As we can see from the plot, this does not work so well if the data is not naturally formed around the origin. To fix this we can add in a constant, called intercept, $\beta$. This gives us the equation
+\begin{equation*}
+    y = \beta_0 + \beta_1x + \epsilon
+\end{equation*}
+From the figure below, we can see that this fits better as the intercept controls the starting point of the linear regression line.
+%%%%
+%% Add regression plot with intercept
+%%%%
+For the case in this project, we need to use linear regression in multiple dimensions. For this, we need to move to matrix calculus. Our new equation for linear regression becomes
+\begin{equation*}
+    \mathbf{y} = f(\mathbf{x}) + \mathbf{\epsilon}
+\end{equation*}
+where $\mathbf{x} = [x_1 x_2 x_3 ... x_n]^T$. Since we can't know the original function $f$, we have to be satisfied with an approximation, which gives us
+\begin{equation*}
+    \mathbf{\Tilde{y}} = \mathbf{X\beta}
+\end{equation*}
+here, $\mathbf{X}$ is the design matrix and $\mathbf{\beta}$ is the weights
+
+\subsection{Ordinary Least Squares}
+The OLS method is derived from the the mean squared error (MSE), the most used metric in statistics. If we let $\mathbf{y}$ denote our observed data for some given input data and $\mathbf{\Tilde{y}}$ denote our prediction for the same 
+
+Loss function
+\begin{equation*}
+    C(\mathbf{\beta}) = \frac{1}{n}\Big((\mathbf{y} - \mathbf{X\beta})^T(\mathbf{y} - \mathbf{X\beta})\Big)
+\end{equation*}
+\begin{equation*}
+    \frac{\partial C(\mathbf{\beta})}{\partial \mathbf{\beta}^T} = 0
+\end{equation*}
+\begin{equation*}
+    \mathbf{X}^T\mathbf{y} = \mathbf{X\beta}
+\end{equation*}
+if $\mathbf{X}^T\mathbf{X}$ is invertible, we have a direct (?) solution for $\beta$
+\begin{equation*}
+    \mathbf{\beta} = (\mathbf{X}^T\mathbf{X})^{-1}\mathbf{X}^T\mathbf{y}
+\end{equation*}
+
+\subsubsection{Single Value Decomposition}
+When $\mathbf{X}^T\mathbf{X}$ is not invertible, we can solve this using the method of the SVD algorithm. SVD is defined as
+\begin{equation*}
+    \mathbf{A} = \mathbf{U}\mathbf{\Sigma}\mathbf{V}^T
+\end{equation*}
+\subsection{Ridge and Lasso Regression}
+For ridge regression, we add in a parameter, $\lambda$, such that we get
+\begin{equation*}
+    \mathbf{\beta} = (\mathbf{X}^T\mathbf{X} - \lambda\mathbf{I})\mathbf{X}^T\mathbf{y}
+\end{equation*}
+\section{Method}
+The data we use for this project is Franke's Function
+\begin{equation*}
+    \begin{split}
+        f(x,y) & = \frac{3}{4}\exp\Bigg(-\frac{(9x-2)^2}{4} - \frac{(9y-2)^2}{4}\Bigg) + \frac{3}{4}\exp\Bigg(-\frac{(9x+1)^2}{49} - \frac{(9y+1)}{10}\Bigg) \\
+        & + \frac{1}{2}\exp\Bigg(-\frac{(9x-7)^2}{4} - \frac{(9y-3)^2}{4}\Bigg) - \frac{1}{5}\exp\Bigg(-(9x-4)^2 - (9y-7)^2\Bigg)
+    \end{split}
+\end{equation*}
+where $x,y \in [0,1]$
+\section{Results}
+\section{Discussion}
+\section{Conclusion}
+\section{References}
+
+\bibliography{Project1/refs} % add  references to this file
 
 \end{document}
