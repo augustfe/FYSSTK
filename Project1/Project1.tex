@@ -5,6 +5,7 @@
 \usepackage{float}
 \usepackage{listings}
 \usepackage{amsmath}
+\usepackage{amssymb}
 \usepackage{commath}
 \usepackage{tabularx}
 \usepackage[ruled,vlined]{algorithm2e}
@@ -62,7 +63,8 @@ apsrev41Control%
 
 In this project, we aim to gain valuable insights from a dataset of terrain data using various regression methods such as Ordinary Least Squares (OLS), Ridge, and LASSO. To achieve this, we utilize two-variable polynomials at varying orders and carefully tune hyperparameters such as $\lambda$ for Ridge and LASSO methods. Additionally, we employ advanced resampling techniques such as non-parametric bootstrap and k-fold cross-validation. These techniques help us accurately assess the models' performance by dividing the data into test and training subsets and evaluating the performance multiple times by training the model with the training subset and evaluating with the testing subset.
 
-To mesure the performance of our regression methods, we use well-established metrics such as Mean Squared Error (MSE) and R2 score. Initially, we validate the methods on a well-known smooth function, the Franke function with Gaussian noise, before adapting and re-tuning the same methods for the more complicated terrain data. Our analysis reveals that Ridge regression provides the best fit for the terrain data.
+To measure the performance of our regression methods, we use well-established metrics such as Mean Squared Error (MSE) and R2 score. Initially, we validate the methods on a well-known smooth function, the Franke function with Gaussian noise, before adapting and re-tuning the same methods for the more complicated terrain data. Our analysis reveals that Ridge regression provides the best fit for the terrain data.
+
 \section{Introduction}
 Machine learning has become wildly popular in the last decade. It is now used to some degree in all aspects of society and keeps growing in popularity. The most popular of the different machine learning models are deep learning, which is based on neural network and the base layer of neural networks theory is regression methods. This project will look into the theory of different regression methods and re-sampling techniques. Specifically, the project will look how to use linear regression, ridge and lasso regression to model polynomials of different degrees and how they differ in output.
 
@@ -99,11 +101,68 @@ For the case in this project, we need to use linear regression in multiple dimen
 \begin{equation*}
     \mathbf{y} = f(\mathbf{x}) + \mathbf{\epsilon}
 \end{equation*}
-where $\mathbf{x} = [x_1 x_2 x_3 ... x_n]^T$. Since we can't know the original function $f$, we have to be satisfied with an approximation, which gives us
+where $\mathbf{x} = [x_1, x_2, x_3, ..., x_n]^T$. Since we can't know the original function $f$, we have to be satisfied with an approximation, which gives us
 \begin{equation*}
     \mathbf{\Tilde{y}} = \mathbf{X\beta}
 \end{equation*}
 here, $\mathbf{X}$ is the design matrix and $\mathbf{\beta}$ is the weights
+
+\newpage
+\subsection{TENTATIV Ordinary Least Squares}
+In order to have a basis to work from, we assume that there exists a continuous function $f: X \to Y$ such that our data points $\boldsymbol{y}$ can be described as
+\begin{equation*}
+    \boldsymbol{y} = f(\boldsymbol{x}) + \boldsymbol{\varepsilon},
+\end{equation*}
+where $\boldsymbol{\varepsilon} \sim N(0, \sigma^2)$. We are then looking for an approximation of $f$ which gives $\tilde{\boldsymbol{y}}$ such that the MSE $\frac{1}{n} \left( \boldsymbol{y} - \tilde{\boldsymbol{y}} \right)^2$ is minimized. In order to approximate $f$, we consider $n$ samples of $\boldsymbol{y}$ and assume that there are $p$ characteristics which define each of the samples, such that $y_i = f(\boldsymbol{x}_i) + \varepsilon_i$ where $\boldsymbol{x}_i = \left[x_{i,0}, x_{i, 1}, \ldots, x_{i, p-1} \right]$.
+
+We gather this information in a matrix $\boldsymbol{X}$, called the design matrix, such that
+\begin{equation*}
+    \boldsymbol{X} =
+    \begin{bmatrix}
+        x_{0,0} & x_{0,1} & \ldots & x_{0, p-1} \\
+        x_{1,0} & x_{1,1} & \ldots & x_{1, p-1} \\
+        \vdots & \vdots & \ddots & \vdots \\
+        x_{n,0} & x_{n,1} & \ldots & x_{n, p-1}
+    \end{bmatrix}.
+\end{equation*}
+We are seeking to find a causal relationship between $\boldsymbol{y}$ and $\boldsymbol{x}$, and as we have no knowledge of what type of function $f$ is, we assume there is a linear relationship such that $y_i = \boldsymbol{x}_i \cdot \boldsymbol{\beta} + \varepsilon_i$, for some weight $\beta_i$. This can be written as
+\begin{equation*}
+    \boldsymbol{y} = \begin{bmatrix}
+        x_{0,0} & x_{0,1} & \ldots & x_{0, p-1} \\
+        x_{1,0} & x_{1,1} & \ldots & x_{1, p-1} \\
+        \vdots & \vdots & \ddots & \vdots \\
+        x_{n,0} & x_{n,1} & \ldots & x_{n, p-1}
+    \end{bmatrix}
+    \begin{bmatrix}
+        \beta_0 \\ \beta_1 \\ \vdots \\ \beta_{p-1}
+    \end{bmatrix}
+    +
+    \begin{bmatrix}
+        \varepsilon_0 \\ \varepsilon_1 \\ \vdots \\ \varepsilon_{n}
+    \end{bmatrix}
+    = \boldsymbol{X} \boldsymbol{\beta} + \boldsymbol{\varepsilon},
+\end{equation*}
+where $f(\boldsymbol{x})$ is now equal to $\boldsymbol{X\beta}$. Our approximation $\boldsymbol{\tilde{y}}$ then becomes $\boldsymbol{\tilde{y}} = \boldsymbol{X\beta}$.
+
+We call $\boldsymbol{x}_i$ the explanatory variables, $\boldsymbol{\beta}$ the regression parameter, and $\boldsymbol{y}$ the response variable.
+
+Our goal is now to find $\boldsymbol{\hat{\beta}}$ such that $\left( \boldsymbol{y} - \boldsymbol{\tilde{y}} \right)^2$ is minimized, i.e.,
+\begin{equation*}
+    \frac{1}{n} \left( \boldsymbol{y} - \boldsymbol{X} \boldsymbol{\hat{\beta}}\right)^2  = \min_{\boldsymbol{\beta} \in \mathbb{R}^p} \frac{1}{n} \left( \boldsymbol{y} - \boldsymbol{X\beta} \right)^2 = \min_{\boldsymbol{\beta} \in \mathbb{R}^p} \frac{1}{n} \left( \boldsymbol{y} - \boldsymbol{X\beta} \right)^T \left( \boldsymbol{y} - \boldsymbol{X\beta} \right).
+\end{equation*}
+As then
+\begin{equation*}
+    \left( \boldsymbol{y} - \boldsymbol{X\beta} \right)^T \left( \boldsymbol{y} - \boldsymbol{X\beta} \right) = \boldsymbol{y}^T \boldsymbol{y} - 2 \boldsymbol{\beta}^T \boldsymbol{X}^T \boldsymbol{y} + \boldsymbol{\beta}^T \boldsymbol{X}^T \boldsymbol{X} \boldsymbol{\beta} 
+\end{equation*}
+is a non-negative quadratic equation, the minimum must exist. We may therefore find it by equating the partial derivatives with respect to the $p$ components of $\boldsymbol{\beta}$ with zero.
+
+\begin{align*}
+    \frac{\partial}{\partial \boldsymbol{\beta}} \left( \boldsymbol{y}^T \boldsymbol{y} - 2 \boldsymbol{\beta}^T \boldsymbol{X}^T \boldsymbol{y} + \boldsymbol{\beta}^T \boldsymbol{X}^T \boldsymbol{X} \boldsymbol{\beta} \right) &= 0 \\
+    -2 \boldsymbol{X}^T \boldsymbol{y} + 2 \boldsymbol{X}^T \boldsymbol{X \beta} &= 0 \\
+    2 \boldsymbol{X}^T \boldsymbol{X \beta} &= 2 \boldsymbol{X}^T \boldsymbol{y} \\
+    \boldsymbol{\beta} &= \left( \boldsymbol{X}^T \boldsymbol{X} \right)^{-1} \boldsymbol{X}^T \boldsymbol{y}
+\end{align*}
+When the hessian matrix $\boldsymbol{X}^T \boldsymbol{X}$ is invertible, this solution $\boldsymbol{\hat{\beta}}$ which minimizes the MSE can be found precisely. Often, especially when working numerically, the hessian matrix is singular, so we instead apply the Moore-Penrose generalised inverse defined from the Singular Value Decomposition, often just called the pseudoinverse \cite{introNumeric}.
 
 \subsection{Ordinary Least Squares}
 The OLS method is derived from the the mean squared error (MSE), the most used metric in statistics. If we let $\mathbf{y}$ denote our observed data for some given input data and $\mathbf{\Tilde{y}}$ denote our prediction for the same 
@@ -128,8 +187,16 @@ When $\mathbf{X}^T\mathbf{X}$ is not invertible, we can solve this using the met
 \begin{equation*}
     \mathbf{A} = \mathbf{U}\mathbf{\Sigma}\mathbf{V}^T
 \end{equation*}
-\subsection{Ridge and Lasso Regression}
-For ridge regression, we add in a parameter, $\lambda$, such that we get
+\subsection{Ridge}
+For ridge regression, we add in a parameter, $\lambda$, such that we get 
+\\ 
+Notes: 
+\\
+ When is it the most natural to introduce ridge? 
+\\
+If we 
+\\
+To adress overfitting. Need to explain what overfitting is, why it happens. 
 \begin{equation*}
     \mathbf{\beta} = (\mathbf{X}^T\mathbf{X} - \lambda\mathbf{I})\mathbf{X}^T\mathbf{y}
 \end{equation*}
