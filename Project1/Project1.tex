@@ -167,32 +167,38 @@ When the matrix $\boldsymbol{X}^T \boldsymbol{X}$ is invertible, this solution $
 
 
 \subsubsection{Single Value Decomposition}
+% Maybe move this down after Lasso?
 When $\mathbf{X}^T\mathbf{X}$ is not invertible, we can solve this using the method of the SVD algorithm. SVD is defined as
 \begin{equation*}
     \mathbf{A} = \mathbf{U}\mathbf{\Sigma}\mathbf{V}^T
 \end{equation*}
-\subsection{Ridge (MAYBE A BIT MUCH TEXT? FOR MY MONKE BRAIN IT MAKES IT SIMPLE THOUGH)}
 
+\subsection{Ridge}
 When using Ordinary Least Squares (OLS) regression, overfitting can be a significant challenge. Overfitting occurs when our model closely conforms to the training data, not only capturing the genuine underlying pattern but also incorporating the random fluctuations present in our data. This can result in a model that exhibits exceptional performance on the training data it has seen but performs poorly when tasked with predicting unseen data.
 
-Overfitting is influenced by two closely related factors: the density of our training data and the complexity of our model. Ideally, with an infinitely dense training dataset, we could employ an arbitrarily complex model. However, acquiring such an extensive dataset is often impractical, not to mention that even if obtained regression would then be inefficent for predictive purposes. Therefore, our model must strike a balance, delivering reliable performance even when trained on a limited number of data points.
+Overfitting is influenced by two closely related factors: the density of our training data and the complexity of our model. Ideally, with an infinitely dense training dataset, we could employ an arbitrarily complex model. Acquiring such a dataset is in practice impossible, not to mention that we would then have no need to predict using regression. Our model must therefore strike a balance, delivering a reliable performance even when trained on a limited number of data points.
 
-Ridge regression is a method which aims to adress this by utilizing the cost function
+% However, acquiring such an extensive dataset is often impractical, not to mention that even if obtained regression would then be inefficient for predictive purposes. Therefore, our model must strike a balance, delivering reliable performance even when trained on a limited number of data points.
+
+Ridge regression is a method which aims to address these issues from OLS, by taking into account the size of the values in the regression parameter $\boldsymbol{\beta}$. The cost function is now defined as
 \begin{align*}
-    C(\boldsymbol{X},\boldsymbol{\beta})=&\frac{1}{n}\vert\vert \boldsymbol{y}-\boldsymbol{\tilde{y}}\vert\vert_2^2+\lambda\vert\vert \boldsymbol{\beta}\vert\vert_2^2\\
-    =& \frac{1}{n}\vert\vert \boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\vert\vert_2^2+\lambda\vert\vert \boldsymbol{\beta}\vert\vert_2^2
+    C \left( \boldsymbol{X}, \boldsymbol{\beta} \right) &= \frac{1}{n} \lVert\boldsymbol{y} - \boldsymbol{\tilde{y}} \rVert_2^2 + \lambda \lVert \boldsymbol{\beta} \rVert_2^2 \\
+    &= \frac{1}{n} \left( \boldsymbol{y} - \boldsymbol{X\beta} \right)^2 + \lambda \boldsymbol{\beta}^2
 \end{align*}
 
-The right addend
-($\lambda\vert\vert \boldsymbol{\beta}\vert\vert_2^2$) is called the regularization term. It penalizes large regression coefficients, discouraging the model from assigning excessive importance to any single feature. This skews our predictions towards zero. Resulting in higher bias, but lower variance on training sets.
+% Ridge regression is a method which aims to address this by utilizing the cost function
+% \begin{align*}
+%     C(\boldsymbol{X},\boldsymbol{\beta})=&\frac{1}{n}\vert\vert \boldsymbol{y}-\boldsymbol{\tilde{y}}\vert\vert_2^2+\lambda\vert\vert \boldsymbol{\beta}\vert\vert_2^2\\
+%     =& \frac{1}{n}\vert\vert \boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\vert\vert_2^2+\lambda\vert\vert \boldsymbol{\beta}\vert\vert_2^2
+% \end{align*}
 
-The strength of the regularization is determined by $\lambda$. When $\lambda=0$, we recover ordinary least squares (OLS) regression. By increasing $\lambda$, we enforce stronger penalization on large coefficient values, effectively skewing our predictions more towards zero. The optimal value of $\lambda$ can be determined through resampling techniques, which will be elaborated on in SOME SECTION!
+The right addend ($\lambda\lVert \boldsymbol{\beta} \rVert_2^2$) is called the regularization term. It penalizes large regression coefficients, discouraging the model from assigning excessive importance to any single feature. This skews our predictions closer to zero. Resulting in higher bias, but lower variance on training sets.
 
-Given a $\lambda$ our regression coefficients ($\boldsymbol{\hat{\beta}}$) satisfy 
+The strength of the regularization is determined by $\lambda$. When $\lambda=0$, we recover OLS regression. By increasing the value of the hyperparameter $\lambda$, we enforce stronger penalization on large coefficient values, effectively skewing our predictions more towards zero. The optimal value of $\lambda$ can be determined through resampling techniques.
 
-
+Given a $\lambda$ our optimal regression parameter $\boldsymbol{\hat{\beta}}$ satisfies
 \begin{equation*}
-    \frac{1}{n} \left( y - \boldsymbol{X} \boldsymbol{\hat{\beta}} \right)^2 + \lambda \boldsymbol{\hat{\beta}}^2 = \min_{\boldsymbol{\beta} \in \mathbb{R}^p} \frac{1}{n} \left( y - \boldsymbol{X} \boldsymbol{\beta} \right)^2 + \lambda \boldsymbol{\beta}^2
+    \frac{1}{n} \left( \boldsymbol{y} - \boldsymbol{X} \boldsymbol{\hat{\beta}} \right)^2 + \lambda \boldsymbol{\hat{\beta}}^2 = \min_{\boldsymbol{\beta} \in \mathbb{R}^p} \frac{1}{n} \left( \boldsymbol{y} - \boldsymbol{X} \boldsymbol{\beta} \right)^2 + \lambda \boldsymbol{\beta}^2
 \end{equation*}
 The right hand side multiplies out to
 \begin{equation*}
@@ -200,7 +206,7 @@ The right hand side multiplies out to
 \end{equation*}
 which again is a non-negative quadratic, meaning the minimum exists. We proceed similarly as with OLS, by taking the partial derivatives with respect to each component of $\boldsymbol{\beta}$ and equating it with zero. As $\frac{1}{n}$ is just a scaling factor, we can safely ignore it while finding the derivative.
 \begin{gather*}
-    \frac{\partial}{\partial \boldsymbol{\beta}} \left( \left( y - \boldsymbol{X} \boldsymbol{\beta} \right)^2 + \lambda \boldsymbol{\beta}^2 \right) = 0 \\
+    \frac{\partial}{\partial \boldsymbol{\beta}} \left( \left( \boldsymbol{y} - \boldsymbol{X} \boldsymbol{\beta} \right)^2 + \lambda \boldsymbol{\beta}^2 \right) = 0 \\
     -2 \boldsymbol{X}^T \boldsymbol{y} + 2 \boldsymbol{X}^T \boldsymbol{X \beta} + 2\lambda \boldsymbol{\beta} = 0 \\
     \boldsymbol{X}^T \boldsymbol{X \beta} + \lambda \boldsymbol{\beta} = \boldsymbol{X}^T \boldsymbol{y} \\
     \left(\boldsymbol{X}^T \boldsymbol{X} + \boldsymbol{I}_p \lambda \right) \boldsymbol{\beta} = \boldsymbol{X}^T \boldsymbol{y} \\
@@ -213,7 +219,10 @@ Again, we apply the pseudoinverse when finding $(\boldsymbol{X}^T \boldsymbol{X}
 \end{equation*}
 
 \subsection{Lasso}
-Lasso regression 
+LASSO is an abbreviating of Least Absolute Shrinkage and Selection Operator, and performs both regularization as in Ridge regression, and variable selection. Here, the cost function is defined as
+\begin{align*}
+    C \left( \boldsymbol{X}, \boldsymbol{\beta} \right) &= \frac{1}{n} \lVert \boldsymbol{y} - \boldsymbol{X\beta} \rVert_2^2 + \lVert \boldsymbol{\beta} \rVert_1.
+\end{align*}
 
 \newpage
 \section{Method}
