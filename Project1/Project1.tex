@@ -108,8 +108,8 @@ where $\mathbf{x} = [x_1, x_2, x_3, ..., x_n]^T$. Since we can't know the origin
 here, $\mathbf{X}$ is the design matrix and $\mathbf{\beta}$ is the weights
 
 \newpage
-\subsection{TENTATIV Ordinary Least Squares}
-In order to have a basis to work from, we assume that there exists a continuous function $f: X \to Y$ such that our data points $\boldsymbol{y}$ can be described as
+\subsection{Ordinary Least Squares}
+In order to have a basis to work from, we assume that there exists a continuous function $f: X \to Y$ such that our data points $\boldsymbol{y} \in Y$ can be described as
 \begin{equation*}
     \boldsymbol{y} = f(\boldsymbol{x}) + \boldsymbol{\varepsilon},
 \end{equation*}
@@ -154,64 +154,83 @@ As then
 \begin{equation*}
     \left( \boldsymbol{y} - \boldsymbol{X\beta} \right)^T \left( \boldsymbol{y} - \boldsymbol{X\beta} \right) = \boldsymbol{y}^T \boldsymbol{y} - 2 \boldsymbol{\beta}^T \boldsymbol{X}^T \boldsymbol{y} + \boldsymbol{\beta}^T \boldsymbol{X}^T \boldsymbol{X} \boldsymbol{\beta} 
 \end{equation*}
-is a non-negative quadratic equation, the minimum must exist. We may therefore find it by equating the partial derivatives with respect to the $p$ components of $\boldsymbol{\beta}$ with zero.
+is a non-negative quadratic equation, the minimum must exist. We may therefore find it by equating the partial derivatives with respect to the $p$ components of $\boldsymbol{\beta}$ with zero. In finding the derivative, we can ignore the scaling factor $\frac{1}{n}$
 
-\begin{align*}
-    \frac{\partial}{\partial \boldsymbol{\beta}} \left( \boldsymbol{y}^T \boldsymbol{y} - 2 \boldsymbol{\beta}^T \boldsymbol{X}^T \boldsymbol{y} + \boldsymbol{\beta}^T \boldsymbol{X}^T \boldsymbol{X} \boldsymbol{\beta} \right) &= 0 \\
-    -2 \boldsymbol{X}^T \boldsymbol{y} + 2 \boldsymbol{X}^T \boldsymbol{X \beta} &= 0 \\
-    2 \boldsymbol{X}^T \boldsymbol{X \beta} &= 2 \boldsymbol{X}^T \boldsymbol{y} \\
-    \boldsymbol{\beta} &= \left( \boldsymbol{X}^T \boldsymbol{X} \right)^{-1} \boldsymbol{X}^T \boldsymbol{y}
-\end{align*}
-When the hessian matrix $\boldsymbol{X}^T \boldsymbol{X}$ is invertible, this solution $\boldsymbol{\hat{\beta}}$ which minimizes the MSE can be found precisely. Often, especially when working numerically, the hessian matrix is singular, so we instead apply the Moore-Penrose generalised inverse defined from the Singular Value Decomposition, often just called the pseudoinverse \cite{introNumeric}.
+\begin{gather*}
+    \frac{\partial}{\partial \boldsymbol{\beta}} \left( \boldsymbol{y}^T \boldsymbol{y} - 2 \boldsymbol{\beta}^T \boldsymbol{X}^T \boldsymbol{y} + \boldsymbol{\beta}^T \boldsymbol{X}^T \boldsymbol{X} \boldsymbol{\beta} \right) = 0 \\
+    -2 \boldsymbol{X}^T \boldsymbol{y} + 2 \boldsymbol{X}^T \boldsymbol{X \beta} = 0 \\
+    2 \boldsymbol{X}^T \boldsymbol{X \beta} = 2 \boldsymbol{X}^T \boldsymbol{y} \\
+    \boldsymbol{\beta} = \left( \boldsymbol{X}^T \boldsymbol{X} \right)^{-1} \boldsymbol{X}^T \boldsymbol{y}
+\end{gather*}
 
-\subsection{Ordinary Least Squares}
-The OLS method is derived from the the mean squared error (MSE), the most used metric in statistics. If we let $\mathbf{y}$ denote our observed data for some given input data and $\mathbf{\Tilde{y}}$ denote our prediction for the same 
+When the matrix $\boldsymbol{X}^T \boldsymbol{X}$ is invertible, this solution $\boldsymbol{\hat{\beta}}$ which minimizes the MSE can be found precisely. Often, especially when working numerically, the matrix is singular, so we instead apply the Moore-Penrose generalised inverse defined from the Singular Value Decomposition, often just called the pseudoinverse \cite{introNumeric}.
 
-Loss function
-\begin{equation*}
-    C(\mathbf{\beta}) = \frac{1}{n}\Big((\mathbf{y} - \mathbf{X\beta})^T(\mathbf{y} - \mathbf{X\beta})\Big)
-\end{equation*}
-\begin{equation*}
-    \frac{\partial C(\mathbf{\beta})}{\partial \mathbf{\beta}^T} = 0
-\end{equation*}
-\begin{equation*}
-    \mathbf{X}^T\mathbf{y} = \mathbf{X\beta}
-\end{equation*}
-if $\mathbf{X}^T\mathbf{X}$ is invertible, we have a direct (?) solution for $\beta$
-\begin{equation*}
-    \mathbf{\beta} = (\mathbf{X}^T\mathbf{X})^{-1}\mathbf{X}^T\mathbf{y}
-\end{equation*}
 
 \subsubsection{Single Value Decomposition}
 When $\mathbf{X}^T\mathbf{X}$ is not invertible, we can solve this using the method of the SVD algorithm. SVD is defined as
 \begin{equation*}
     \mathbf{A} = \mathbf{U}\mathbf{\Sigma}\mathbf{V}^T
 \end{equation*}
-\subsection{Ridge}
-For ridge regression, we add in a parameter, $\lambda$, such that we get 
-\\ 
-Notes: 
-\\
- When is it the most natural to introduce ridge? 
-\\
-If we 
-\\
-To adress overfitting. Need to explain what overfitting is, why it happens. 
+\subsection{Ridge (MAYBE A BIT MUCH TEXT? FOR MY MONKE BRAIN IT MAKES IT SIMPLE THOUGH)}
+
+When using Ordinary Least Squares (OLS) regression, overfitting can be a significant challenge. Overfitting occurs when our model closely conforms to the training data, not only capturing the genuine underlying pattern but also incorporating the random fluctuations present in our data. This can result in a model that exhibits exceptional performance on the training data it has seen but performs poorly when tasked with predicting unseen data.
+
+Overfitting is influenced by two closely related factors: the density of our training data and the complexity of our model. Ideally, with an infinitely dense training dataset, we could employ an arbitrarily complex model. However, acquiring such an extensive dataset is often impractical, not to mention that even if obtained regression would then be inefficent for predictive purposes. Therefore, our model must strike a balance, delivering reliable performance even when trained on a limited number of data points.
+
+Ridge regression is a method which aims to adress this by utilizing the cost function
+\begin{align*}
+    C(\boldsymbol{X},\boldsymbol{\beta})=&\frac{1}{n}\vert\vert \boldsymbol{y}-\boldsymbol{\tilde{y}}\vert\vert_2^2+\lambda\vert\vert \boldsymbol{\beta}\vert\vert_2^2\\
+    =& \frac{1}{n}\vert\vert \boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\vert\vert_2^2+\lambda\vert\vert \boldsymbol{\beta}\vert\vert_2^2
+\end{align*}
+
+The right addend
+($\lambda\vert\vert \boldsymbol{\beta}\vert\vert_2^2$) is called the regularization term. It penalizes large regression coefficients, discouraging the model from assigning excessive importance to any single feature. This skews our predictions towards zero. Resulting in higher bias, but lower variance on training sets.
+
+The strength of the regularization is determined by $\lambda$. When $\lambda=0$, we recover ordinary least squares (OLS) regression. By increasing $\lambda$, we enforce stronger penalization on large coefficient values, effectively skewing our predictions more towards zero. The optimal value of $\lambda$ can be determined through resampling techniques, which will be elaborated on in SOME SECTION!
+
+Given a $\lambda$ our regression coefficients ($\boldsymbol{\hat{\beta}}$) satisfy 
+
+
 \begin{equation*}
-    \mathbf{\beta} = (\mathbf{X}^T\mathbf{X} - \lambda\mathbf{I})\mathbf{X}^T\mathbf{y}
+    \frac{1}{n} \left( y - \boldsymbol{X} \boldsymbol{\hat{\beta}} \right)^2 + \lambda \boldsymbol{\hat{\beta}}^2 = \min_{\boldsymbol{\beta} \in \mathbb{R}^p} \frac{1}{n} \left( y - \boldsymbol{X} \boldsymbol{\beta} \right)^2 + \lambda \boldsymbol{\beta}^2
 \end{equation*}
+The right hand side multiplies out to
+\begin{equation*}
+    \frac{1}{n} \left( \boldsymbol{y}^T \boldsymbol{y} - 2 \boldsymbol{\beta}^T \boldsymbol{X}^T \boldsymbol{y} + \boldsymbol{\beta}^T \boldsymbol{X}^T \boldsymbol{X} \boldsymbol{\beta} \right) + \lambda \boldsymbol{\beta}^T \boldsymbol{\beta},
+\end{equation*}
+which again is a non-negative quadratic, meaning the minimum exists. We proceed similarly as with OLS, by taking the partial derivatives with respect to each component of $\boldsymbol{\beta}$ and equating it with zero. As $\frac{1}{n}$ is just a scaling factor, we can safely ignore it while finding the derivative.
+\begin{gather*}
+    \frac{\partial}{\partial \boldsymbol{\beta}} \left( \left( y - \boldsymbol{X} \boldsymbol{\beta} \right)^2 + \lambda \boldsymbol{\beta}^2 \right) = 0 \\
+    -2 \boldsymbol{X}^T \boldsymbol{y} + 2 \boldsymbol{X}^T \boldsymbol{X \beta} + 2\lambda \boldsymbol{\beta} = 0 \\
+    \boldsymbol{X}^T \boldsymbol{X \beta} + \lambda \boldsymbol{\beta} = \boldsymbol{X}^T \boldsymbol{y} \\
+    \left(\boldsymbol{X}^T \boldsymbol{X} + \boldsymbol{I}_p \lambda \right) \boldsymbol{\beta} = \boldsymbol{X}^T \boldsymbol{y} \\
+    \boldsymbol{\beta} = \left(\boldsymbol{X}^T \boldsymbol{X} + \boldsymbol{I}_p \lambda \right)^{-1} \boldsymbol{X}^T \boldsymbol{y}
+\end{gather*}
+
+Again, we apply the pseudoinverse when finding $(\boldsymbol{X}^T \boldsymbol{X} + \lambda \boldsymbol{I})^{-1}$. This gives us that the optimal parameter $\boldsymbol{\hat{\beta}}$ for ridge regression is given by
+\begin{equation*}
+    \boldsymbol{\hat{\beta}}_\text{Ridge} = (\boldsymbol{X}^T \boldsymbol{X} + \lambda \boldsymbol{I})^{-1} \boldsymbol{X}^T \boldsymbol{y}.
+\end{equation*}
+
+\subsection{Lasso}
+Lasso regression 
+
+\newpage
 \section{Method}
 The data we use for this project is Franke's Function
 \begin{equation*}
     \begin{split}
-        f(x,y) & = \frac{3}{4}\exp\Bigg(-\frac{(9x-2)^2}{4} - \frac{(9y-2)^2}{4}\Bigg) + \frac{3}{4}\exp\Bigg(-\frac{(9x+1)^2}{49} - \frac{(9y+1)}{10}\Bigg) \\
-        & + \frac{1}{2}\exp\Bigg(-\frac{(9x-7)^2}{4} - \frac{(9y-3)^2}{4}\Bigg) - \frac{1}{5}\exp\Bigg(-(9x-4)^2 - (9y-7)^2\Bigg)
+        f(x,y) & = \frac{3}{4}\exp\left(-\frac{(9x-2)^2}{4} - \frac{(9y-2)^2}{4}\right) + \frac{3}{4}\exp\left(-\frac{(9x+1)^2}{49} - \frac{(9y+1)}{10}\right) \\
+        & + \frac{1}{2}\exp\left(-\frac{(9x-7)^2}{4} - \frac{(9y-3)^2}{4}\right) - \frac{1}{5}\exp\left(-(9x-4)^2 - (9y-7)^2\right)
     \end{split}
 \end{equation*}
 where $x,y \in [0,1]$
 \section{Results}
+
 \section{Discussion}
+
 \section{Conclusion}
+
 \section{References}
 
 \bibliography{Project1/refs} % add  references to this file
