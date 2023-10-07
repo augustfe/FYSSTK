@@ -1,4 +1,5 @@
 \documentclass{article}
+%hvem faen er krampedunk?
 % \documentclass[aps,rmp,reprint,amsmath,amssymb,graphicx,longbibliography]{article}
 \usepackage[utf8]{inputenc}
 \usepackage{graphicx}
@@ -21,6 +22,10 @@
 \bibliographystyle{apalike}
 \usepackage{hyperref}
 \hypersetup{breaklinks=true,colorlinks=true,linkcolor=blue,citecolor=blue,filecolor=magenta,urlcolor=blue}
+
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\sgn}{sgn}
 
 \title{Regression analysis and resampling methods applied to the Franke's Function}
 \author{Femtehjell, Hoel, Otterlei and Steeneveldt}
@@ -148,7 +153,7 @@ We call $\boldsymbol{x}_i$ the explanatory variables, $\boldsymbol{\beta}$ the r
 
 Our goal is now to find $\boldsymbol{\hat{\beta}}$ such that $\left( \boldsymbol{y} - \boldsymbol{\tilde{y}} \right)^2$ is minimized, i.e.,
 \begin{equation*}
-    \frac{1}{n} \left( \boldsymbol{y} - \boldsymbol{X} \boldsymbol{\hat{\beta}}\right)^2  = \min_{\boldsymbol{\beta} \in \mathbb{R}^p} \frac{1}{n} \left( \boldsymbol{y} - \boldsymbol{X\beta} \right)^2 = \min_{\boldsymbol{\beta} \in \mathbb{R}^p} \frac{1}{n} \left( \boldsymbol{y} - \boldsymbol{X\beta} \right)^T \left( \boldsymbol{y} - \boldsymbol{X\beta} \right).
+    \boldsymbol{\hat{\beta}}  = \argmin_{\boldsymbol{\beta} \in \mathbb{R}^p} \frac{1}{n} \left( \boldsymbol{y} - \boldsymbol{X\beta} \right)^2 = \argmin_{\boldsymbol{\beta} \in \mathbb{R}^p} \frac{1}{n} \left( \boldsymbol{y} - \boldsymbol{X\beta} \right)^T \left( \boldsymbol{y} - \boldsymbol{X\beta} \right).
 \end{equation*}
 As then
 \begin{equation*}
@@ -174,13 +179,14 @@ When $\mathbf{X}^T\mathbf{X}$ is not invertible, we can solve this using the met
 \end{equation*}
 
 \subsection{Ridge}
-When using Ordinary Least Squares (OLS) regression, overfitting can be a significant challenge. Overfitting occurs when our model closely conforms to the training data, not only capturing the genuine underlying pattern but also incorporating the random fluctuations present in our data. This can result in a model that exhibits exceptional performance on the training data it has seen but performs poorly when tasked with predicting unseen data.
+When conducting Ordinary Least Squares (OLS) regression, overfitting can be a challenge. Overfitting occurs when our model closely conforms to the training data, not only capturing the genuine underlying pattern but also incorporating the random fluctuations present in our data. This can result in a model that exhibits exceptional performance on the training data it has seen but performs poorly when tasked with predicting unseen data.
 
-Overfitting is influenced by two closely related factors: the density of our training data and the complexity of our model. Ideally, with an infinitely dense training dataset, we could employ an arbitrarily complex model. Acquiring such a dataset is in practice impossible, not to mention that we would then have no need to predict using regression. Our model must therefore strike a balance, delivering a reliable performance even when trained on a limited number of data points.
+Overfitting is influenced by two closely related factors: the density of our training data and the complexity of our model. Ideally, with an infinitely dense training dataset, we could employ an arbitrarily complex model. Acquiring such a dataset is in practice often impossible%There is a regression technique called k-nearest neighbors suited for such a purpose 
+. Our model must therefore deliver reliable performance even when trained on a limited number of data points.
 
 % However, acquiring such an extensive dataset is often impractical, not to mention that even if obtained regression would then be inefficient for predictive purposes. Therefore, our model must strike a balance, delivering reliable performance even when trained on a limited number of data points.
 
-Ridge regression is a method which aims to address these issues from OLS, by taking into account the size of the values in the regression parameter $\boldsymbol{\beta}$. The cost function is now defined as
+Ridge regression is a method which aims to address this by taking into account the size of the values in the regression parameter $\boldsymbol{\beta}$. The cost function is now defined as
 \begin{align*}
     C \left( \boldsymbol{X}, \boldsymbol{\beta} \right) &= \frac{1}{n} \lVert\boldsymbol{y} - \boldsymbol{\tilde{y}} \rVert_2^2 + \lambda \lVert \boldsymbol{\beta} \rVert_2^2 \\
     &= \frac{1}{n} \left( \boldsymbol{y} - \boldsymbol{X\beta} \right)^2 + \lambda \boldsymbol{\beta}^2
@@ -192,13 +198,16 @@ Ridge regression is a method which aims to address these issues from OLS, by tak
 %     =& \frac{1}{n}\vert\vert \boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\vert\vert_2^2+\lambda\vert\vert \boldsymbol{\beta}\vert\vert_2^2
 % \end{align*}
 
-The right addend ($\lambda\lVert \boldsymbol{\beta} \rVert_2^2$) is called the regularization term. It penalizes large regression coefficients, discouraging the model from assigning excessive importance to any single feature. This skews our predictions closer to zero. Resulting in higher bias, but lower variance on training sets.
+The right addend ($\lambda\lVert \boldsymbol{\beta} \rVert_2^2$) is called the regularization term, and we require that $\lVert \boldsymbol{\beta} \rVert_2^2 \leq t$ for some finite constant $t > 0$. It penalizes large regression coefficients, discouraging the model from assigning excessive importance to any single feature. This skews our predictions closer to zero. Resulting in higher bias, but lower variance.
 
 The strength of the regularization is determined by $\lambda$. When $\lambda=0$, we recover OLS regression. By increasing the value of the hyperparameter $\lambda$, we enforce stronger penalization on large coefficient values, effectively skewing our predictions more towards zero. The optimal value of $\lambda$ can be determined through resampling techniques.
 
-Given a $\lambda$ our optimal regression parameter $\boldsymbol{\hat{\beta}}$ satisfies
+Given a $\lambda$ our optimal regression parameter $\boldsymbol{\hat{\beta}}$ minimizes the cost function. That is
+% \begin{equation*}
+%     \frac{1}{n} \left( \boldsymbol{y} - \boldsymbol{X} \boldsymbol{\hat{\beta}} \right)^2 + \lambda \boldsymbol{\hat{\beta}}^2 = \min_{\boldsymbol{\beta} \in \mathbb{R}^p} \frac{1}{n} \left( \boldsymbol{y} - \boldsymbol{X} \boldsymbol{\beta} \right)^2 + \lambda \boldsymbol{\beta}^2
+% \end{equation*}
 \begin{equation*}
-    \frac{1}{n} \left( \boldsymbol{y} - \boldsymbol{X} \boldsymbol{\hat{\beta}} \right)^2 + \lambda \boldsymbol{\hat{\beta}}^2 = \min_{\boldsymbol{\beta} \in \mathbb{R}^p} \frac{1}{n} \left( \boldsymbol{y} - \boldsymbol{X} \boldsymbol{\beta} \right)^2 + \lambda \boldsymbol{\beta}^2
+    \boldsymbol{\hat{\beta}} = \argmin_{\boldsymbol{\beta} \in \mathbb{R}^p} \frac{1}{n} \left( \boldsymbol{y} - \boldsymbol{X} \boldsymbol{\beta} \right)^2 + \lambda \boldsymbol{\beta}^2
 \end{equation*}
 The right hand side multiplies out to
 \begin{equation*}
@@ -216,24 +225,94 @@ which again is a non-negative quadratic, meaning the minimum exists. We proceed 
 Again, we apply the pseudoinverse when finding $(\boldsymbol{X}^T \boldsymbol{X} + \lambda \boldsymbol{I})^{-1}$. This gives us that the optimal parameter $\boldsymbol{\hat{\beta}}$ for ridge regression is given by
 \begin{equation*}
     \boldsymbol{\hat{\beta}}_\text{Ridge} = (\boldsymbol{X}^T \boldsymbol{X} + \lambda \boldsymbol{I})^{-1} \boldsymbol{X}^T \boldsymbol{y}.
-\end{equation*}
+\end{equation*} 
+
+
+
 
 \subsection{Lasso}
-LASSO is an abbreviating of Least Absolute Shrinkage and Selection Operator, and performs both regularization as in Ridge regression, and variable selection. Here, the cost function is defined as
+LASSO is an abbreviation of Least Absolute Shrinkage and Selection Operator, and performs both regularization as in Ridge regression, and predictor selection.
+
+Here, the cost function is defined as
 \begin{align*}
-    C \left( \boldsymbol{X}, \boldsymbol{\beta} \right) &= \frac{1}{n} \lVert \boldsymbol{y} - \boldsymbol{X\beta} \rVert_2^2 + \lVert \boldsymbol{\beta} \rVert_1.
+    C \left( \boldsymbol{X}, \boldsymbol{\beta} \right) &= \frac{1}{n} \lVert \boldsymbol{y} - \boldsymbol{X\beta} \rVert_2^2 + \lambda \lVert \boldsymbol{\beta} \rVert_1 \\
+    &= \frac{1}{n} \left( \boldsymbol{y} - \boldsymbol{X\beta} \right)^2 + \lambda \sum_i |\beta_i|.
 \end{align*}
+%Predictor selection happens when we add a constraint on the size of the penalty
+To see why predictor selection happens with Lasso regression it's help full to have a look at a simple model with two features and two corresponding $\beta$ values
+%\begin{align*}
+ %   \lVert \boldsymbol{\beta} \rVert_1 \leq s, \hspace{10mm} 0\leq s
+%\end{align*}
+%such that the OLS solution is not within the space of suitable $\beta$. This is most easily explained by looking at a simpler model with two features and two corresponding $\beta$ values
+
+% Chillern, tror jeg skjønner litt mer nå
+%Hei jeg er også med :D
+% Bildet er fra hastie et.al.! (sånn cirkus)
+\begin{center}
+    % \includegraphics[width=95mm]{lasso_ridge_contour.png}
+    \includegraphics[width=\textwidth]{lasso_ridge_contour.png}
+    % Include caption, figure num, source, ...
+\end{center}
+
+
+Here, $\boldsymbol{\hat{\beta}}$ is the OLS solution, along with the contour lines for for other values of $\boldsymbol{\beta}$. As we relax the constraint $s$, we grow the ``diamond" generated by the constrained $l_1$ norm until it meets with the target ellipse, and the corners of the diamond are more likely to intersect before the edges. This is especially the case when working higher dimensions, as the corners stick out further \cite{Murphy2012}. This is not the case with the constrained $l_2$ norm, as it has no ``corners" along the axes.
+
+Due to the nature of the $l_1$ norm, there exists no neat analytical solution, as absolute values do not perform nicely during derivation. We get that
+\begin{align*}
+    \frac{\partial}{\partial \boldsymbol{\beta}} \left( \frac{1}{n} \left( \boldsymbol{y} - \boldsymbol{X\beta} \right)^2 + \lambda \sum_i |\beta_i| \right) &= 0 \\
+    -2 \boldsymbol{X}^T \boldsymbol{y} + 2 \boldsymbol{X}^T \boldsymbol{X\beta} + \lambda \sgn(\boldsymbol{\beta}) &= 0 \\
+    2 \boldsymbol{X}^T \boldsymbol{X\beta} + \lambda \sgn(\boldsymbol{\beta}) &= -2 \boldsymbol{X}^T \boldsymbol{y},
+\end{align*}
+which we've yet to find a closed, generalised, form of.
+
+\subsection{Scaling}
+Scaling data is an essential concept in regression modeling, particularly in regularized regression. The process involves adjusting the values of numeric features in your dataset to a common scale, ensuring each feature has comparable magnitudes.
+This standardization or normalization of the features can prove highly beneficial in several ways.
+
+One of the primary advantages of data scaling is in the realm of computational performance. As there exists no analytical solution for Lasso regression, we instead approximate it numerically. This is done through coordinate decent, which converges faster when the features are scaled.
+%looking for source for the above statement. Explaining it seemd difficult
+
+Another important advantage of scaling is the ease it brings in model interpretation. When the ranges of different features vary widely, it's hard to compare the weights that a model assigns to individual features. However, with scaling, the weights can be interpreted on a comparable basis, providing meaningful insights \cite{james2021introduction}.
+
+To see how scale impacts the accuracy of regularized regression let $\boldsymbol{\hat{\beta}}$ denote the OLS solution to some design matrix X. Then multiply column $j$ in our design matrix by 1000. The value of $\hat{\beta}_j$ to our new OLS problem will have shrunk by the same factor of 1000. In these two problems the relationship between our response variable ($\boldsymbol{y}$) and explanatory variable ($X_j$) is the same, but regularized regression treat them very differently. As in the first case the penalty of including our explanatory variable is 1000 times larger \cite{james2021introduction}. Thus the importance of features with a small variance, but high predictive power will be underestimated, and features with large variance, but small predictive power will be overestimated.
+
+Scaling is performed through the formula
+\begin{equation*}
+    \Tilde{x}_{i,j} = \frac{x_{i,j}}{\sqrt{\frac{1}{n} \sum_{i=0}^{n-1} \left( x_{i,j} - \Bar{x}_j \right)^2 }},
+\end{equation*}
+where 
+\begin{equation*}
+    \bar{x}_j = \frac{1}{n} \sum_{i=0}^{n-1} x_{i,j}
+\end{equation*}
+is the mean value of the column. Thus, all of the scaled predictors will have a standard deviation of one \cite{james2021introduction}.
+% Seksjon om SVD?
+
+\subsection{Bias-Variance tradeoff}
+
+\subsection{Resampling}
+Resampling techniques alow us to estimate the mean error and variance of a models predictions. This is done by repeatedly training and evaluating the model on different datasets. The mean  evaluations 
+
+
+
+\subsection{Model evaluation and selection}
+
 
 \newpage
 \section{Method}
-The data we use for this project is Franke's Function
+To begin testing the differences between the different regression methods and apply them to the topographic data, we first need a data set. This will make it easier to refine the implementation of the different regression methods. We first start by producing our own data set. To do this, we use Franke's function. A two-dimensional function often used for testing interpolation and fitting algorithms. The function is defined as 
 \begin{equation*}
     \begin{split}
         f(x,y) & = \frac{3}{4}\exp\left(-\frac{(9x-2)^2}{4} - \frac{(9y-2)^2}{4}\right) + \frac{3}{4}\exp\left(-\frac{(9x+1)^2}{49} - \frac{(9y+1)}{10}\right) \\
         & + \frac{1}{2}\exp\left(-\frac{(9x-7)^2}{4} - \frac{(9y-3)^2}{4}\right) - \frac{1}{5}\exp\left(-(9x-4)^2 - (9y-7)^2\right)
     \end{split}
 \end{equation*}
-where $x,y \in [0,1]$
+where $x,y \in [0,1]$. To make the data more random, we add in some noise to the function. This gives us
+\begin{equation*}
+    z = f(x,y) + \alpha \cdot N(0,1)
+\end{equation*}
+where $N(0,1)$ is the normal distribution and $\alpha$ is a constant such that $\alpha \in [0,1]$. Implemented in Python, $x$ and $y$ are both numpy arrays with length $n$.
+
+% På ridge, kan vi ikke bruke np.logspace for å lage lambdaene, sånn at vi får fin graf?
 \section{Results}
 
 \section{Discussion}
