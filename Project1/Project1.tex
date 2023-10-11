@@ -1,5 +1,5 @@
 \documentclass{article}
-%hvem faen er krampedunk?
+
 % \documentclass[aps,rmp,reprint,amsmath,amssymb,graphicx,longbibliography]{article}
 \usepackage[utf8]{inputenc}
 \usepackage{graphicx}
@@ -16,7 +16,7 @@
 % \addbibresource{refs.bib}
 \usepackage{caption}
 \usepackage{subcaption}
-\usepackage{minted}
+\usepackage[outputdir=../]{minted}
 
 % \usepackage{longbibliography}
 
@@ -30,10 +30,12 @@
 \DeclareMathOperator*{\Bias}{Bias}
 \DeclareMathOperator*{\Var}{Var}
 
-\title{Regression analysis and resampling methods applied to the Franke's Function}
+
+\title{Regression analysis and resampling methods applied to Franke's Function}
 \author{Femtehjell, Hoel, Otterlei and Steeneveldt}
 
 \date{September 2023}
+
 
 % Sample for adding code to text:
 % \inputminted[frame=lines,
@@ -57,6 +59,13 @@ apsrev41Control%
 
 \begin{document}
 
+\setminted[python]{frame=lines,
+    framesep=2mm,
+    linenos,
+    fontsize=\footnotesize,
+    mathescape=true,
+    escapeinside=||
+}
 
 \maketitle
 \begin{figure}[H]
@@ -67,11 +76,10 @@ apsrev41Control%
 \tableofcontents
 \newpage
 
-\section*{Abstract}
-
-In this project, we aim to gain valuable insights from a dataset of terrain data using various regression methods such as Ordinary Least Squares (OLS), Ridge, and LASSO. To achieve this, we utilize two-variable polynomials at varying orders and carefully tune hyperparameters such as $\lambda$ for Ridge and LASSO methods. Additionally, we employ advanced resampling techniques such as non-parametric bootstrap and k-fold cross-validation. These techniques help us accurately assess the models' performance by dividing the data into test and training subsets and evaluating the performance multiple times by training the model with the training subset and evaluating with the testing subset.
-
-To measure the performance of our regression methods, we use well-established metrics such as Mean Squared Error (MSE) and R2 score. Initially, we validate the methods on a well-known smooth function, the Franke function with Gaussian noise, before adapting and re-tuning the same methods for the more complicated terrain data. Our analysis reveals that Ridge regression provides the best fit for the terrain data.
+% \section*{Abstract}
+\begin{abstract} 
+    In this project, we aim to employ various regression methods, including Ordinary Least Squares, Ridge, and LASSO, to analyze a set of terrain data and Franke's function. We explore the use of two-variable polynomials of varying orders and optimize hyperparameters, such as $\lambda$, for Ridge and LASSO. To assess the effectiveness of the models, we utilize resampling techniques such as non-parametric bootstrap and k-fold cross-validation. These techniques allow us to evaluate each model's performance by dividing the data into test and training subsets and training the model multiple times on the training subset while evaluating it on the testing subset. Although our ultimate goal is to identify the best model and evaluate its performance, we also explore and compare several regression techniques to gain valuable insights into their strengths and weaknesses.
+\end{abstract}
 
 \section{Introduction}
 Machine learning has become wildly popular in the last decade. It is now used to some degree in all aspects of society and keeps growing in popularity. The most popular of the different machine learning models are deep learning, which is based on neural network and the base layer of neural networks theory is regression methods. This project will look into the theory of different regression methods and re-sampling techniques. Specifically, the project will look how to use linear regression, ridge and lasso regression to model polynomials of different degrees and how they differ in output.
@@ -242,15 +250,12 @@ Here, the cost function is defined as
     &= \frac{1}{n} \left( \boldsymbol{y} - \boldsymbol{X\beta} \right)^2 + \lambda \sum_i |\beta_i|.
 \end{align*}
 %Predictor selection happens when we add a constraint on the size of the penalty
-To see why predictor selection happens with Lasso regression it's help full to have a look at a simple model with two features and two corresponding $\beta$ values
+To see why predictor selection happens with Lasso regression it's helpful to have a look at a simple model with two features and two corresponding $\beta$ values
 %\begin{align*}
  %   \lVert \boldsymbol{\beta} \rVert_1 \leq s, \hspace{10mm} 0\leq s
 %\end{align*}
 %such that the OLS solution is not within the space of suitable $\beta$. This is most easily explained by looking at a simpler model with two features and two corresponding $\beta$ values
 
-% Chillern, tror jeg skjønner litt mer nå
-%Hei jeg er også med :D
-% Bildet er fra hastie et.al.! (sånn cirkus)
 \begin{center}
     % \includegraphics[width=95mm]{lasso_ridge_contour.png}
     \includegraphics[width=\textwidth]{lasso_ridge_contour.png}
@@ -258,9 +263,9 @@ To see why predictor selection happens with Lasso regression it's help full to h
 \end{center}
 
 
-Here, $\boldsymbol{\hat{\beta}}$ is the OLS solution, along with the contour lines for for other values of $\boldsymbol{\beta}$. As we relax the constraint $s$, we grow the ``diamond" generated by the constrained $l_1$ norm until it meets with the target ellipse, and the corners of the diamond are more likely to intersect before the edges. This is especially the case when working higher dimensions, as the corners stick out further \cite[p.~432--436]{Murphy2012}. This is not the case with the constrained $l_2$ norm, as it has no ``corners" along the axes.
+Here, $\boldsymbol{\hat{\beta}}$ is the OLS solution, along with the contour lines for other values of $\boldsymbol{\beta}$. As we relax the constraint $s$, we grow the ``diamond" generated by the constrained $\ell_1$ norm until it meets with the target ellipse, and the corners of the diamond are more likely to intersect before the edges. This is especially the case when working higher dimensions, as the corners stick out further \cite[p.~432--436]{Murphy2012}. This is not the case with the constrained $\ell_2$ norm, as it has no ``corners" along the axes.
 
-Due to the nature of the $l_1$ norm, there exists no neat analytical solution, as absolute values do not perform nicely during derivation. We get that
+Due to the nature of the $\ell_1$ norm, there exists no neat analytical solution, as absolute values do not perform nicely during derivation. We get that
 \begin{align*}
     \frac{\partial}{\partial \boldsymbol{\beta}} \left( \frac{1}{n} \left( \boldsymbol{y} - \boldsymbol{X\beta} \right)^2 + \lambda \sum_i |\beta_i| \right) &= 0 \\
     -2 \boldsymbol{X}^T \boldsymbol{y} + 2 \boldsymbol{X}^T \boldsymbol{X\beta} + \lambda \sgn(\boldsymbol{\beta}) &= 0 \\
@@ -319,9 +324,10 @@ Combining this with our previous result gives us finally that
 \end{equation*}
 
 The $\sigma^2$ term is called the irreducible error \cite[p.~223]{Hastie2009}, and cannot be improved by our models. Ideally, we want to choose a method such that we have both low variance and low bias. However, typically as the complexity of our model increases, the variance increases. Conversely, the same applies in the other direction. As the complexity is decreased, we see a higher bias and a lower variance. This is called the Bias-Variance tradeoff \cite[p.~223]{Hastie2009}.
+ 
 
 \subsection{Resampling}
-Resampling methods allow us to repeatedly draw random samples from our training data, in order to learn more about our model. This allows us to better estimate the variance of the model, granting us information we would not have had, should we have trained on the entirety of our data at once. The two most commonly used methods of resampling is cross-validation and bootstrapping \cite[p.~197]{james2021introduction}.
+Resampling methods allow us to repeatedly draw random samples from our training data, in order to learn more about our model. This allows us to better estimate the error and variance of the model, granting us information we would not have had, should we have trained on the entirety of our data at once. The two most commonly used methods of resampling is cross-validation and bootstrapping \cite[p.~197]{james2021introduction}.
 
 \subsubsection{Cross-validation}
 Cross-validation consists of splitting our initial dataset into multiple sets. To motivate this, we first consider the validation set approach. This consists of splitting our data into one training set, and one for testing or \textit{validation}. This allows us to estimate how well our model will perform after training on future data. Note that splitting our data can cause the estimated test error rate to vary widely, as we split our data randomly. It can also cause us to overestimate our test error, as models tend to perform better when trained on more data, and we are in this case only training on a subset of the total data we have available \cite[p.~198--200]{james2021introduction}.
@@ -332,28 +338,92 @@ The upside of this method is that the mean squared error estimate were we exclud
 
 A more sophisticated approach which alleviates some of the previous problems, is called K-Fold cross-validation. In this method, we split our data into $k$ roughly equal parts. We then reserve each fold as a validation set, training our model on the remaining $k-1$ folds. This has the benefit of being less computationally expensive, as we are only training our model $k$ times, while also having a lower variance. If our folds contain too few points, our model might suffer from high bias. We therefore typically choose either $k = 5$ or $k = 10$ as a compromise \cite[p.~243]{Hastie2009}.
 
+Our estimated error for predicting unseen data is then
+\begin{equation*}
+    \text{Err}_{\text{CV}}= \frac{1}{K} \sum_{i=1}^{K}
+    MSE(\boldsymbol{y_i},\boldsymbol{f}_{\kappa(i)}(\boldsymbol{x_i})) = \frac{1}{K} \sum_{i=1}^{K} \text{FoldErr}_{\text{i}}
+\end{equation*}
+
+The sample variance of our model cost is given by:
+
+\begin{equation*} \text{Var}_{\text{CV}} = \frac{1}{K - 1} \sum_{i=1}^{K}( \text{FoldErr}_{\text{i}} - \text{Err}_{\text{CV}})^2
+\end{equation*}
+
+
+%the above part blends more nicely to discussion on bootstrap
+
 \subsubsection{Bootstrapping}
-Bootstrapping consists of generating new datasets by repeatedly drawing random values from our original data, with replacement. Each new dataset will be of the same size as the original. We generate $B$ datasets this way, refitting our model for each. We can then analyze how our model behaves for each of the datasets, allowing us to learn more about how our model performs. 
+Instead of cross-validation we could use the bootstrap to asses our model. The bootstrap resampling technique allows us to estimate the sampling distribution of any statistic. If our training data is $\boldsymbol{X} = (x_1, x_2 .... x_N)$ we draw $N$ samples with replacement from $X$ uniformly B times creating $\boldsymbol{Z}_1, \boldsymbol{Z}_2 .... \boldsymbol{Z}_B$ new training sets. The error of prediction of unseen data can then be estimated by 
 
-% Trenger mer
+\begin{equation*}
+    \text{Err}_{\text{boot}_1} =  \frac{1}{B} \sum_{b=1}^B \frac{1}{N} \sum_{i = 1}^N (y_i - f_b(x_i))^2
+\end{equation*}
 
-\subsection{Model evaluation and selection}
+Where $f_b(x_i)$ is our prediction for $x_i$ by the model fit $\boldsymbol{Z}_b$. Unfortunately, this is not a particularly good estimator because bootstrap samples used to produce $f_b(x_i)$ may have contained $x_i$ \cite[p.~270]{Hastie2009}. To rectify this problem, the leave-one-out bootstrap estimator offers an improvement by emulating cross-validation.
 
+\begin{equation*}
+    \text{Err}_{\text{boot}_2} =  \frac{1}{B} \sum_{b=1}^B \frac{1}{|C^{-i}|} \sum_{i \in C^{-i}} (y_i - f_b(x_i))^2
+\end{equation*}
+
+Where $C^{-i}$ is the set of indices of bootstrap sample b that do not contain
+observation $i$. However this estimate is upward biased. To combat this we can use that the average number of distinct observations in each boostrap sample is about 0.632N (\cite[p.~270]{Hastie2009}) which gives the .632 bootsrap
+\begin{equation*}
+    \text{Err}_{\text{boot}_{.632}} = .368\bar{\text{err}} + .632 \text{Err}_{\text{boot}_2}
+\end{equation*}
+Where
+\begin{equation*}
+    \bar{\text{err}} = \frac{1}{N} \sum_{i=1}^{N} (y_i - f(x_i))
+\end{equation*}
+That is the training error of our model trained on all the data. Yet, as our degree of overfitting increases the more this estimate becomes optimisticaly biased, since $\bar{\text{err}}$ approaches 0.
+This leads us to the $.632+$ estimator
+
+\begin{equation*}
+    \text{Err}_{\text{boot}_{.632+}} = (1-w)\bar{\text{err}} + w \text{Err}_{\text{boot}_2}
+\end{equation*}
+\begin{equation*}
+    w  = \frac{0.632}{1-0.368R} \hspace{7mm} R = \frac{\text{Err}_{\text{boot}_2}- \bar{\text{err}}}{\gamma - \bar{\text{err}}}
+\end{equation*}
+Where $\gamma$ is the no-information error rate. That is the error of all combinations of input-output on a model trained on all our training data
+\begin{equation*}
+    \gamma = \frac{1}{N^2} \sum_{i= 1}^{N}\sum_{j = 1}^{N} (y_i - f(x_j))^2
+\end{equation*}
+The $.632+$ bootstrap estimate is most useful when the sample size is small, or when the data is imbalanced or noisy and is rarely used for large sample sizes, as it gets very computationally expensive \cite[p. ~271]{Hastie2009}.
+
+\subsection{Model assessment and selection}
+The goal of our project is to identify the best model that accurately predicts the target variable on unseen data. Two commonly used metrics for measuring the accuracy of a model are the Mean Squared Error (MSE) and the $R^2$ score.
+
+MSE is defined as the average of the squared difference between the predicted and actual values for all data points in the testing set, as shown below:
+
+$$MSE = \frac{1}{N}\sum_{i=1}^{N}(y_i - \hat{y}_i)^2$$
+
+where $y_i$ is the actual value, $\hat{y}_i$ is the predicted value, and $N$ is the total number of data points.
+
+The $R^2$ score, also known as the coefficient of determination, measures how well the model fits the data relative to the baseline model. It is calculated as:
+
+$$R^2 = 1 - \frac{\sum_{i=1}^{N}(y_i - \hat{y}i)^2}{\sum{i=1}^{n}(y_i - \bar{y})^2}$$
+
+where $y_i$ is the actual value, $\hat{y}_i$ is the predicted value, $\bar{y}$ is the mean of the actual values, and $n$ is the total number of data points. The numerator represents the residual sum of squares, and the denominator represents the total sum of squares. Essentially, $R^2$ measures the proportion of the variance in the target variable that can be explained by the model, with higher scores indicating a better fit.
+
+In our project, we primarily rely on the MSE metric to compare and evaluate different models. While both metrics are commonly used to evaluate models, neither one is inherently better than the other. The choice of which metric to use depends on the project's specific requirements and goals.
+
+When attempting to minimize the MSE of our predictions on unseen data it is tempting to simply perform a train-test split and see which models produces the lowest MSE on the test data. This could be fine for model selection, that is picking the best model. However, this will undoubtedly lead to some fitting of the test data, giving us an overly optimistic model assessment.
+
+Instead we will utilize our resampling techniques for tuning and selecting the best model then train the model on all of our training data, before finally evaluating it's performance on truly unseen data to estimate how well it performs.
 
 \newpage
 \section{Method}
-To begin testing the differences between the different regression methods and apply them to the topographic data, we first need a data set. This will make it easier to refine the implementation of the different regression methods. We first start by producing our own data set. To do this, we use Franke's function. A two-dimensional function often used for testing interpolation and fitting algorithms. It consists of two gaussian peaks, and is therefore apt for our use case. The function is defined as 
+\subsection{Data sets}
+We are interested in using linear regression in order to predict topographical data, with samples gathered from the United States Geographical Survey of different areas in Norway. In order to verify that our models work, we will start by generating our own data sets using Franke's function.
+
+\subsection{Two-dimensional polynomial regression}
+Franke's function is given by
 \begin{equation*}
     \begin{split}
         f(x,y) & = \frac{3}{4}\exp\left(-\frac{(9x-2)^2}{4} - \frac{(9y-2)^2}{4}\right) + \frac{3}{4}\exp\left(-\frac{(9x+1)^2}{49} - \frac{(9y+1)}{10}\right) \\
         & + \frac{1}{2}\exp\left(-\frac{(9x-7)^2}{4} - \frac{(9y-3)^2}{4}\right) - \frac{1}{5}\exp\left(-(9x-4)^2 - (9y-7)^2\right)
     \end{split}
 \end{equation*}
-where $x,y \in [0,1]$. To make the data more random, we add in some noise to the function, by drawing normally distributed values $\varepsilon \sim N(0,1)$. This gives us
-\begin{equation*}
-    z = f(x,y) + \alpha \cdot \varepsilon
-\end{equation*}
-where $\alpha$ is a constant such that $\alpha \in [0,1]$. Implemented in Python, $\boldsymbol{x}$, $\boldsymbol{y}$ and $\boldsymbol{\varepsilon}$ are all numpy arrays with length $n$.
+for $x, y \in [0, 1]$, and consists of two gaussian peaks and is thus apt for our use in estimating topographical data.
 
 As $f: [0,1] \times [0, 1] \to \mathbb{R}$ is a continuous function, and the set of all polynomials $\mathcal{P}$ is dense in $C([0,1] \times [0,1], \mathbb{R})$, we know by the Stone-Weierstrass Theorem that there exists a sequence of polynomials $\{p_n\}$ converging uniformly to $f$ \cite[p.~116--129]{lindstrom2017spaces}. In our case, this means that it is sensible to try to construct a polynomial which estimates our function $f$. As a polynomial function $p: \mathbb{R}^2 \to \mathbb{R}$ is a function
 \begin{equation*}
@@ -369,8 +439,123 @@ The number of parameters for a polynomial degree of $N$ is then the sum of the c
 \end{equation*}
 meaning that the complexity of our model increases quadratically as we increase the polynomial degree.
 
+In order to generate our data set, we draw $N$ values of $x,y \sim U(0, 1)$ using \verb|uniform| from the \verb|numpy.random| module in python. This generates pseudo-random values, and in order to simplify the verification process, we set a fixed seed for the random values. In order to simulate the random noise present in real world data, we will be adding an error term $\varepsilon \sim N(0,1)$ to each of our data points using \verb|randn|.
+
+\subsection{Scaling}
+As our values of $x$ and $y$ lie in $[0, 1]$, our explanatory variables might have vastly different scales. Suppose we are using polynomials of degree up to $5$. If our value of $x_i$ lies even in the middle of our interval, i.e. $x_i = 0.5$, then $x_i^5 = 0.03125$. We thus have to scale in order to get good results from ridge and lasso regression. To achieve this, we use \verb|StandardScaling| from \verb|sklearn.preproccesing|.
+
+\subsection{Creating our design matrix}
+In order to set up our design matrix with the polynomial explanatory variables, we initialize our matrix with the number of rows equal to the number of data points and length equal to the number of $\boldsymbol{\beta}$ parameters we calculated earlier. The code looks as following:
+\begin{minted}{python}
+def create_X(x: np.array, y: np.array, n: int) -> np.array:
+    """Create the design matrix up to dimension n.
+
+    inputs:
+        x (np.array): Data points for x.
+        y (np.array): Data points for y.
+        n (int): Maximum polynomial degree.
+    returns:
+        (np.array) Design matrix for 2D polynomial regression.
+    """
+    if len(x.shape) > 1:
+        x = np.ravel(x)
+        y = np.ravel(y)
+
+    N = len(x)
+    lgth = (n + 1) * (n + 2) // 2
+    X = np.ones((N, lgth))
+    for i in range(1, n + 1):
+        q = i * (i + 1) // 2
+        for k in range(i + 1):
+            X[:, q + k] = (x ** (i - k)) * (y**k)
+
+    return X
+\end{minted}
+
+This, in effect, calculates all the desired combinations of $x^n y^m$ as stated previously.
+
+
+\subsection{Ordinary least squares}
+We implemented the analytical solution $\boldsymbol{\hat{\beta}}$ we found previously for OLS in python using the follow code
+\begin{minted}{python}
+def create_OLS_beta(X: np.array, z: np.array) -> np.array:
+    """Create OLS beta.
+
+    inputs:
+        X (np.array): Design matrix
+        z (np.array): Solution to optimize for
+    returns:
+        Optimal solution (np.array)
+    """
+    return np.linalg.pinv(X.T @ X) @ X.T @ z
+\end{minted}
+
+Note that we use \verb|pinv| from \verb|numpy.linalg| in order to calculate the pseudo-inverse mentioned in the theory section, as we cannot guarantee that $\boldsymbol{X}^T \boldsymbol{X}$ is non-singular.
+
+\subsection{Ridge}
+The code for calculating $\boldsymbol{\hat{\beta}}_\text{Ridge}$ is almost identical as that for OLS. The difference is that the function now takes in a $\lambda$ parameter, and we use $\boldsymbol{X}^T \boldsymbol{X} + \lambda \boldsymbol{I}_p$ inside \verb|pinv|.
+
+\subsection{Lasso}
+As there exists no analytical solution for Lasso, we opted for using the built-in \verb|Lasso| regression from \verb|sklearn.linear_model|. Generating our predictions now look something like
+\begin{minted}{python}
+clf = Lasso(alpha=alpha)
+clf.fit(X_train, z_train)
+
+z_tilde = clf.predict(X_train)
+z_pred_Lasso = clf.predict(X_test)
+\end{minted}
+
+\newpage
+\newpage
+
+To begin testing the differences between the different regression methods and apply them to the topographic data, we first need a data set. This will make it easier to refine the implementation of the different regression methods. We first start by producing our own data set. To do this, we use Franke's function. A two-dimensional function often used for testing interpolation and fitting algorithms. It consists of two gaussian peaks, and is therefore apt for our use case. The function is defined as 
+\begin{equation*}
+    \begin{split}
+        f(x,y) & = \frac{3}{4}\exp\left(-\frac{(9x-2)^2}{4} - \frac{(9y-2)^2}{4}\right) + \frac{3}{4}\exp\left(-\frac{(9x+1)^2}{49} - \frac{(9y+1)}{10}\right) \\
+        & + \frac{1}{2}\exp\left(-\frac{(9x-7)^2}{4} - \frac{(9y-3)^2}{4}\right) - \frac{1}{5}\exp\left(-(9x-4)^2 - (9y-7)^2\right)
+    \end{split}
+\end{equation*}
+where $x,y \in [0,1]$. To make the data more random, we add in some noise to the function, by drawing normally distributed values $\varepsilon \sim N(0,1)$. This gives us
+\begin{equation*}
+    z = f(x,y) + \alpha \cdot \varepsilon
+\end{equation*}
+where $\alpha$ is a constant such that $\alpha \in [0,1]$.
+
+As $f: [0,1] \times [0, 1] \to \mathbb{R}$ is a continuous function, and the set of all polynomials $\mathcal{P}$ is dense in $C([0,1] \times [0,1], \mathbb{R})$, we know by the Stone-Weierstrass Theorem that there exists a sequence of polynomials $\{p_n\}$ converging uniformly to $f$ \cite[p.~116--129]{lindstrom2017spaces}. In our case, this means that it is sensible to try to construct a polynomial which estimates our function $f$. As a polynomial function $p: \mathbb{R}^2 \to \mathbb{R}$ is a function
+\begin{equation*}
+    p(x,y) = \sum_{\substack{0 \leq n \leq N \\ 0 \leq m \leq M}} c_{n,m} x^n y^m,
+\end{equation*}
+we construct our explanatory variables $\boldsymbol{x}_i$ of all combinations $x_i^n y_i^m$ of $n,m \in \mathbb{N}$ such that $0 \leq n + m \leq N$ for some polynomial degree $N$. The regression parameter $\boldsymbol{\beta}$ then corresponds to the weights $c_{n,m}$.
+
+The number of parameters for a polynomial degree of $N$ is then the sum of the combination for how many ways we can write $n+m = d$, for $0\leq n,m \leq d$, $d = 0, 1, \ldots, N$. We get
+\begin{equation*}
+    \text{\# $\boldsymbol{\beta}$ parameters} = \sum_{d = 0}^N \sum_{n = 0}^d 1
+    = \sum_{d = 0}^N d + 1
+    = \frac{(N + 1)(N + 2)}{2},
+\end{equation*}
+meaning that the complexity of our model increases quadratically as we increase the polynomial degree.
+
+Throughout the project, we use packages such as \mintinline{python}{numpy} and \mintinline{python}{scikit-learn} in order to speed up and simplify our code. In order to generate our data points, we use the following method
+\begin{minted}{python}
+import numpy as np
+
+x = np.random.uniform(0, 1, N)
+y = np.random.uniform(0, 1, N)
+
+z_true = FrankeFunction(x, y)
+z = z_true + z_true.mean() * np.random.randn(N) * 0.2
+\end{minted}
+This initialises our data points as \mintinline{python}{numpy}-arrays, allowing for vectorized code.
+
+% For each of our functions, we create 
+
+% Implemented in Python, $\boldsymbol{x}$, $\boldsymbol{y}$ and $\boldsymbol{\varepsilon}$ are all numpy arrays with length $n$. $\ell$
+
 % På ridge, kan vi ikke bruke np.logspace for å lage lambdaene, sånn at vi får fin graf?
 \section{Results}
+\subsection{Results for Franke}
+\subsubsection{Results from Ordinary least squares}
+
 
 \section{Discussion}
 
