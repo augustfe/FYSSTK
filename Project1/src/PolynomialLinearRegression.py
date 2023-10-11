@@ -3,9 +3,11 @@ import numpy as np
 
 from sklearn.model_selection import train_test_split
 from pathlib import Path
+from matplotlib import cm
+from matplotlib.ticker import LinearLocator, FormatStrFormatter
 
 
-np.random.seed(2114)
+np.random.seed(14)
 
 
 class PolynomialLinearRegression:
@@ -59,7 +61,7 @@ class PolynomialLinearRegression:
             self.y_test,
             self.z_train,
             self.z_test,
-        ) = train_test_split(self.x_, self.y_, self.z_)
+        ) = train_test_split(self.x_, self.y_, self.z_, test_size=0.2)
 
     def generate_data(
         self, N: int, alph: float = 0.2
@@ -72,15 +74,17 @@ class PolynomialLinearRegression:
         returns:
             x, y, z
         """
-        x_ = np.random.uniform(0, 1, N)
-        y_ = np.random.uniform(0, 1, N)
+        x_ = np.sort(np.random.uniform(0, 1, N))
+        y_ = np.sort(np.random.uniform(0, 1, N))
 
-        x, y = np.meshgrid(x_, y_)
-        x = x.flatten().reshape(-1, 1)
-        y = y.flatten().reshape(-1, 1)
+        self.x_raw, self.y_raw = np.meshgrid(x_, y_)
+        x = self.x_raw.flatten().reshape(-1, 1)
+        y = self.y_raw.flatten().reshape(-1, 1)
 
-        z = self.FrankeFunction(x, y) + alph * np.random.randn(N * N).reshape(-1, 1)
-        z = z.flatten().reshape(-1, 1)
+        self.z_raw = self.FrankeFunction(self.x_raw, self.y_raw)
+        self.z_noise = self.z_raw + alph * np.random.randn(N, N)
+
+        z = self.z_noise.flatten().reshape(-1, 1)
 
         return x, y, z
 
@@ -194,18 +198,14 @@ class PolynomialLinearRegression:
             methodname: (str)
                 Name of method used to generate values
         """
-
-        # fig, ax1 = plt.subplots()
-
         xVals = [i + 1 for i in range(self.maxDim)]
 
         color = "tab:red"
         plt.xlabel("Polynomial degree")
         plt.xticks(xVals)
-        plt.ylabel("MSE score", color=color)
+        plt.ylabel("MSE score")
         plt.plot(xVals, MSEs_train, label="MSE train", color="r")
         plt.plot(xVals, MSEs_test, label="MSE test", color="g")
-        # plt.tick_params(axis="y", labelcolor=color)
 
         minTestMSE = np.argmin(MSEs_test)
         plt.scatter(
@@ -224,15 +224,14 @@ class PolynomialLinearRegression:
         plt.clf()
 
         color = "tab:blue"
-        plt.ylabel("R2", color=color)
-        plt.plot(xVals, R2s, label="R2 score", color=color)
-        # plt.tick_params(axis="y", labelcolor=color)
+        plt.ylabel("$R^2$")
+        plt.plot(xVals, R2s, label="$R^2$ score", color=color)
 
         maxR2 = np.argmax(R2s)
-        plt.scatter(maxR2 + 1, R2s[maxR2], marker="x", label="Maximum R2")
+        plt.scatter(maxR2 + 1, R2s[maxR2], marker="x", label="Maximum $R^2$")
 
         plt.legend()
-        plt.title(f"R2 Scores by polynomial degree for {methodname}")
+        plt.title(f"$R^2$ Scores by polynomial degree for {methodname}")
 
         if self.savePlots:
             plt.savefig(self.figs / f"{methodname}_{self.maxDim}_R2.png", dpi=300)
@@ -265,7 +264,59 @@ class PolynomialLinearRegression:
         self.plotBeta(betas, methodname)
         self.plotScores(MSETrain, MSETest, R2Scores, methodname)
 
+    def plotFranke(self):
+        fig = plt.figure(figsize=plt.figaspect(0.5))
+
+        ax = fig.add_subplot(1, 2, 1, projection="3d")
+        surf = ax.plot_surface(
+            self.x_raw,
+            self.y_raw,
+            self.z_raw,
+            cmap=cm.coolwarm,
+            linewidth=0,
+            antialiased=False,
+        )
+
+        # Customize the z axis.
+        ax.set_zlim(-0.10, 1.40)
+        ax.zaxis.set_major_locator(LinearLocator(10))
+        ax.zaxis.set_major_formatter(FormatStrFormatter("%.02f"))
+        ax.set_title("No noise")
+
+        # Add a color bar which maps values to colors.
+        fig.colorbar(surf, shrink=0.5, aspect=10)
+
+        ax = fig.add_subplot(1, 2, 2, projection="3d")
+        surf = ax.plot_surface(
+            self.x_raw,
+            self.y_raw,
+            self.z_noise,
+            cmap=cm.coolwarm,
+            linewidth=0,
+            antialiased=False,
+        )
+
+        # Customize the z axis.
+        ax.set_zlim(-0.10, 1.40)
+        ax.zaxis.set_major_locator(LinearLocator(10))
+        ax.zaxis.set_major_formatter(FormatStrFormatter("%.02f"))
+        ax.set_title("With noise")
+
+        # Add a color bar which maps values to colors.
+        fig.colorbar(surf, shrink=0.5, aspect=10)
+
+        fig.suptitle("Frankes function")
+
+        plt.tight_layout()
+
+        if self.savePlots:
+            plt.savefig(self.figs / "FrankesFunction.png", dpi=300)
+        if self.showPlots:
+            plt.show()
+        plt.clf()
+
 
 if __name__ == "__main__":
-    PLR = PolynomialLinearRegression(100, 0.2, 5)
+    PLR = PolynomialLinearRegression(75, 0.1, 15)
+    PLR.plotFranke()
     PLR.OLS()
