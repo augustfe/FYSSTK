@@ -1,13 +1,14 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
-plt.rcParams['font.family'] = 'Calibri'
 
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
 from pathlib import Path
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
 
+plt.rcParams["font.family"] = "sans-serif"
 
 np.random.seed(14)
 
@@ -266,6 +267,54 @@ class PolynomialLinearRegression:
         self.plotBeta(betas, methodname)
         self.plotScores(MSETrain, MSETest, R2Scores, methodname)
 
+    def create_ridge_beta(
+        self, X: np.ndarray, z: np.array, lmbd: float = 0
+    ) -> np.array:
+        """Create ridge beta.
+
+        inputs:
+            X (n x n matrix): Design matrix
+            z (np.array): Solution to optimize for
+            lmbd (float): lambda value for ridge
+        returns:
+            Optimal solution (np.array)
+        """
+        Identity = np.identity(X.shape[1])
+        return np.linalg.pinv(X.T @ X + lmbd * Identity) @ X.T @ z
+
+    def Ridge(self, nLambdas: int):
+        methodname = "RIDGE"
+        betas = []
+        minLmbda = -3
+        maxLmbda = 5
+        lmbdas = np.logspace(minLmbda, maxLmbda, nLambdas)
+        MSETrain = np.zeros((self.maxDim, nLambdas))
+        MSETest = np.zeros((self.maxDim, nLambdas))
+        R2Scores = np.zeros((self.maxDim, nLambdas))
+
+        scaler = StandardScaler()
+
+        for dim in range(self.maxDim):
+            for i, lmbda in enumerate(lmbdas):
+                X_train = self.create_X(self.x_train, self.y_train, dim)
+                X_test = self.create_X(self.x_test, self.y_test, dim)
+
+                scaler.fit(X_train)
+                scaler.transform(X_train)
+                scaler.transform(X_test)
+
+                beta = self.create_ridge_beta(X_train, self.z_train, lmbda)
+                # betas.append(beta)
+
+                z_tilde = X_train @ beta
+                z_pred = X_test @ beta
+
+                MSETrain[dim, i] = self.MSE(self.z_train, z_tilde)
+                MSETest[dim, i] = self.MSE(self.z_test, z_pred)
+                R2Scores[dim, i] = self.R2Score(self.z_test, z_pred)
+
+        self.lambda_heat_map(MSETest, lmbdas, methodname)
+
     def plotFranke(self):
         fig = plt.figure(figsize=plt.figaspect(0.5))
 
@@ -317,7 +366,7 @@ class PolynomialLinearRegression:
             plt.show()
         plt.clf()
 
-    def lambda_heat_map(self, MSE_test, lambdas, method):
+    def lambda_heat_map(self, MSE_test, lmbdas, method):
         """
         Function for making a heatmap given lambdas and MSE_test
         Have to make sure that number of degrees is equal to number of
@@ -325,31 +374,47 @@ class PolynomialLinearRegression:
         """
 
         # Define polynomial degrees and lambda values
-        degrees = np.arange(1, len(MSE_test[0]) + 1)
+        degrees = np.arange(1, len(MSE_test) + 1)
 
-        fig, ax = plt.subplots(figsize=(10, 8))
+        fig, ax = plt.subplots()  # figsize=(10, 8))
 
-        ax = sns.heatmap(MSE_test, cmap="coolwarm", linecolor='black', linewidths=0.8, annot=True, fmt=".4f", cbar=True, annot_kws={"fontsize": 8})
+        ax = sns.heatmap(
+            MSE_test,
+            cmap="coolwarm",
+            # linecolor="black",
+            # linewidths=0.8,
+            annot=True,
+            fmt=".4f",
+            cbar=True,
+            annot_kws={"fontsize": 8},
+            xticklabels=[f"{lmbda:.1f}" for lmbda in np.log10(lmbdas)],
+            yticklabels=degrees,
+        )
 
         # Set x and y-axis labels
-        ax.set_xticks(np.arange(0.5, len(lambdas) + 0.5), ['{:1.0e}'.format(l) for l in lambdas])
-        ax.set_yticks(np.arange(0.5, len(degrees) + 0.5), degrees)
-        ax.set_xlabel('$log_{10}\lambda$')
-        ax.set_ylabel('Polynomial Degree') #fontsize=?
-
+        # ax.set_xticks(
+        #     np.arange(0.5, len(lambdas) + 0.5), [f"{lmbda:1.0e}" for lmbda in lambdas]
+        # )
+        # ax.set_yticks(np.arange(0.5, len(degrees) + 0.5), degrees)
+        ax.set_xlabel(r"$log_{10} \lambda$")
+        ax.set_ylabel("Polynomial Degree")  # fontsize=?
 
         # Set title
-        ax.set_title('MSE heatmap', fontweight='bold', fontsize=20, pad=25) #fontsize=? fontweihgt='bold'
+        ax.set_title(
+            "MSE heatmap", fontweight="bold", fontsize=20, pad=25
+        )  # fontsize=? fontweihgt='bold'
+
+        fig.tight_layout()
 
         if self.savePlots:
             plt.savefig(self.figs / f"Heatmap_{method}.png", dpi=300)
-        if selg.showPlots:
+        if self.showPlots:
             plt.show()
         plt.clf()
 
 
-
 if __name__ == "__main__":
     PLR = PolynomialLinearRegression(30, 0.2, 15)
-    PLR.plotFranke()
-    PLR.OLS()
+    # PLR.plotFranke()
+    # PLR.OLS()
+    PLR.Ridge(15)
