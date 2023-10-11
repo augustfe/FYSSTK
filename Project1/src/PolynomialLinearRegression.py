@@ -1,5 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import seaborn as sns
+plt.rcParams['font.family'] = 'Calibri'
 
 from sklearn.model_selection import train_test_split
 from pathlib import Path
@@ -315,8 +317,39 @@ class PolynomialLinearRegression:
             plt.show()
         plt.clf()
 
+    def lambda_heat_map(self, MSE_test, lambdas, method):
+        """
+        Function for making a heatmap given lambdas and MSE_test
+        Have to make sure that number of degrees is equal to number of
+        lambdas - 1 or else it will look kind of wierd.
+        """
+
+        # Define polynomial degrees and lambda values
+        degrees = np.arange(1, len(MSE_test[0]) + 1)
+
+        fig, ax = plt.subplots(figsize=(10, 8))
+
+        ax = sns.heatmap(MSE_test, cmap="coolwarm", linecolor='black', linewidths=0.8, annot=True, fmt=".4f", cbar=True, annot_kws={"fontsize": 8})
+
+        # Set x and y-axis labels
+        ax.set_xticks(np.arange(0.5, len(lambdas) + 0.5), ['{:1.0e}'.format(l) for l in lambdas])
+        ax.set_yticks(np.arange(0.5, len(degrees) + 0.5), degrees)
+        ax.set_xlabel('$log_{10}\lambda$')
+        ax.set_ylabel('Polynomial Degree') #fontsize=?
+
+
+        # Set title
+        ax.set_title('MSE heatmap', fontweight='bold', fontsize=20, pad=25) #fontsize=? fontweihgt='bold'
+
+        if self.savePlots:
+            plt.savefig(self.figs / f"Heatmap_{method}.png", dpi=300)
+        if selg.showPlots:
+            plt.show()
+        plt.clf()
+
+
 
 if __name__ == "__main__":
-    PLR = PolynomialLinearRegression(75, 0.1, 15)
+    PLR = PolynomialLinearRegression(30, 0.2, 15)
     PLR.plotFranke()
     PLR.OLS()
