@@ -1,6 +1,5 @@
 # here we can write our funcs such that we take a sklear model as input
-from HomeCookedModels import OLS, Ridge
-from sklearn.linear_model import Lasso
+from Models import OLS, Ridge, Lasso
 import numpy as np
 from metrics import *
 from sklearn.utils import resample

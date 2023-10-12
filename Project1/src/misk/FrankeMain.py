@@ -3,13 +3,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 
-from sklearn.linear_model import Lasso
 from sklearn.model_selection import train_test_split
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
 from OLSRegression import OLS_train_test, plot_Bias_VS_Varaince
 from resampling import *
 from metrics import *
-from HomeCookedModels import OLS, Ridge
+from Models import OLS, Ridge, Lasso
 from FrankeData import FrankeData
 from RegularizedRegression import heatmap_no_resampling
 from globals import *

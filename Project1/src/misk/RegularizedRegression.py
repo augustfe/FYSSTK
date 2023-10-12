@@ -1,5 +1,5 @@
 import numpy as np
-from HomeCookedModels import Ridge
+from Models import Ridge
 from heatmap import create_heatmap
 import matplotlib.pyplot as plt
 import numpy as np

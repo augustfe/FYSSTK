@@ -1,9 +1,8 @@
-from HomeCookedModels import OLS, Ridge
+from Models import OLS, Ridge, Lasso
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 
-from sklearn.linear_model import Lasso
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import cross_val_score, KFold
 from sklearn.preprocessing import StandardScaler
