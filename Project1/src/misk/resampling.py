@@ -5,6 +5,7 @@ from metrics import *
 from sklearn.utils import resample
 from globals import *
 from sklearn.model_selection import cross_val_score, KFold
+from tqdm import tqdm
 
 
 def bootstrap_degrees(data, n_boostraps, model=OLS()):
@@ -18,7 +19,7 @@ def bootstrap_degrees(data, n_boostraps, model=OLS()):
     bias = np.zeros(n_degrees)
     variance = np.zeros(n_degrees)
 
-    for j, dim in enumerate(polyDegrees):
+    for j, dim in tqdm(enumerate(polyDegrees)):
         X_train = model.create_X(data.x_train, data.y_train, dim)
         X_test = model.create_X(data.x_test, data.y_test, dim)
 
@@ -36,7 +37,6 @@ def bootstrap_degrees(data, n_boostraps, model=OLS()):
 
     return error, bias, variance
 
-
 def bootstrap_lambdas(data, n_boostraps, model=Ridge()):
     """
     performs bootstrap on polydegrees and hyperparamater lambds
@@ -50,7 +50,9 @@ def bootstrap_lambdas(data, n_boostraps, model=Ridge()):
     bias = np.zeros((n_degrees, n_lambds))
     variance = np.zeros((n_degrees, n_lambds))
 
-    for i, dim in enumerate(polyDegrees):
+    #for i, dim in tqdm(enumerate(polyDegrees)):
+    for i in tqdm(range(maxDim)):
+        dim = i + 1
         X_train = model.create_X(data.x_train, data.y_train, dim)
         X_test = model.create_X(data.x_test, data.y_test, dim)
 
@@ -82,7 +84,7 @@ def sklearn_cross_val(data, nfolds, model=OLS()):
     error = np.zeros(n_degrees)
     variance = np.zeros(n_degrees)
 
-    for i, degree in enumerate(polyDegrees):
+    for i, degree in tqdm(enumerate(polyDegrees)):
         X = model.create_X(data.x, data.y, degree)
 
         scores = cross_val_score(
@@ -106,7 +108,7 @@ def kfold_score_degrees(data, kfolds: int, model=OLS()):
 
     Kfold = KFold(n_splits=kfolds)
 
-    for i, degree in enumerate(polyDegrees):
+    for i, degree in tqdm(enumerate(polyDegrees)):
         scores = np.zeros(kfolds)
 
         X = model.create_X(data.x_, data.y_, degree)
@@ -140,7 +142,7 @@ def sklearn_cross_val_lambdas(data, kfolds, modelType=Ridge):
     error = np.zeros((n_degrees, n_lambds))
     variance = np.zeros((n_degrees, n_lambds))
     dummy_model = Model() #only needed because of where create X is
-    for i, degree in enumerate(polyDegrees):
+    for i, degree in tqdm(enumerate(polyDegrees)):
         X = dummy_model.create_X(data.x_, data.y_, degree)
         for j, lambd in enumerate(lambds):
             model = modelType(lambd)
@@ -166,7 +168,7 @@ def HomeMade_cross_val_lambdas(data, kfolds: int = 5, model=Ridge()):
 
     Kfold = KFold(n_splits=kfolds)
 
-    for i, degree in enumerate(polyDegrees):
+    for i, degree in tqdm(enumerate(polyDegrees)):
         scores = np.zeros(kfolds)
 
         X = model.create_X(data.x_, data.y_, degree)
