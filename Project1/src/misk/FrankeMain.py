@@ -14,7 +14,7 @@ from RegularizedRegression import heatmap_no_resampling
 from globals import *
 
 
-data = FrankeData(33, 0.2, maxDim)
+data = FrankeData(60, 0.2, maxDim)
 
 # make franke plot
 #data.plotFranke()
@@ -24,7 +24,7 @@ data = FrankeData(33, 0.2, maxDim)
 
 # Same analysis for lasso and Ridge as THE Classic
 heatmap_no_resampling(data, model = Ridge())
-#heatmap_no_resampling(data, model = Lasso())
+heatmap_no_resampling(data, model = Lasso())
 
 
 # bias variance for OLS using boostrap

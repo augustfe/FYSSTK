@@ -60,7 +60,7 @@ class Lasso(Model):
 
     def fit(self, X, y, lambd: float = 1.0):
         self.lambd = lambd
-        self.lasso_model = Lass(alpha=lambd)
+        self.lasso_model = Lass(alpha=lambd, max_iter=100000)
         self.lasso_model.fit(X, y)
         self.beta = np.hstack((self.lasso_model.intercept_, self.lasso_model.coef_))
         self.fitted = True

@@ -3,8 +3,7 @@ import numpy as np
 
 def MSE(y: np.array, y_pred: np.array) -> float:
     "Calculate mean squared error"
-    n = np.size(y)
-    return np.sum((y - y_pred) ** 2) / n
+    return np.mean((y-y_pred)**2)
 
 
 def R2Score(y: np.array, y_pred: np.array) -> float:
