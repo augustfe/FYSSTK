@@ -10,36 +10,64 @@ class Model:
             return X @ self.beta
         else:
             raise ValueError("Model can not predict before being fitted")
+    @staticmethod
+    def create_X(x: np.array, y: np.array, n: int) -> np.ndarray:
+        "Create design matrix"
+        if len(x.shape) > 1:
+            x = np.ravel(x)
+            y = np.ravel(y)
+
+        N = len(x)
+        lgth = (n + 1) * (n + 2) // 2
+        X = np.ones((N, lgth))
+        for i in range(1, n + 1):
+            q = i * (i + 1) // 2
+            for k in range(i + 1):
+                X[:, q + k] = (x ** (i - k)) * (y**k)
+
+        return X
 
 
 class Ridge(Model):
-    def __init__(self, lambd: int = 1):
+    def __init__(self):
+        super().__init__()
         self.modelName = "Ridge"
-        self.lambd = lambd
+        self.lambd = None
 
-    def fit(self, X, y):
+    def fit(self, X, y, lambd: int = 1):
+        self.lambd = lambd
         Identity = np.identity(X.shape[1])
         self.beta = np.linalg.pinv(X.T @ X + self.lambd * Identity) @ X.T @ y
         self.fitted = True
         return self.beta
 
-
 class OLS(Model):
     def __init__(self):
+        super().__init__()
         self.name = "OLS"
+
     def fit(self, X, y):
         self.beta = np.linalg.pinv(X.T @ X) @ X.T @ y
         self.fitted = True
         return self.beta
 
 class Lasso(Model):
-    def __init__(self, lambd: float = 1.0):
+    def __init__(self):
+        super().__init__()
         self.modelName = "Lasso"
+        self.lambd = None
+        self.lasso_model = None
+
+    def fit(self, X, y, lambd: float = 1.0):
         self.lambd = lambd
         self.lasso_model = Lass(alpha=lambd)
-
-    def fit(self, X, y):
         self.lasso_model.fit(X, y)
         self.beta = np.hstack((self.lasso_model.intercept_, self.lasso_model.coef_))
         self.fitted = True
         return self.beta
+
+    def predict(self, X):
+        if self.fitted:
+            return self.lasso_model.predict(X)
+        else:
+            raise ValueError("Model can not predict before being fitted")

@@ -10,7 +10,7 @@ from metrics import *
 from globals import *
 
 
-def heatmap_no_resampling(data, modelType=Ridge, title=None):
+def heatmap_no_resampling(data, model=Ridge(), title=None):
     nlambds = lambds.size
 
     MSETrain = np.zeros((maxDim, nlambds))
@@ -22,15 +22,14 @@ def heatmap_no_resampling(data, modelType=Ridge, title=None):
     for dim in range(maxDim):
         for i, lmbda in enumerate(lambds):
 
-            X_train = data.create_X(data.x_train, data.y_train, dim)
-            X_test = data.create_X(data.x_test, data.y_test, dim)
+            X_train = model.create_X(data.x_train, data.y_train, dim)
+            X_test = model.create_X(data.x_test, data.y_test, dim)
 
             scaler.fit(X_train)
             scaler.transform(X_train)
             scaler.transform(X_test)
 
-            model = modelType(lmbda)
-            beta = model.fit(X_train, data.z_train)
+            beta = model.fit(X_train, data.z_train, lmbda)
             # betas.append(beta)
 
             z_tilde = model.predict(X_train)
@@ -40,11 +39,11 @@ def heatmap_no_resampling(data, modelType=Ridge, title=None):
             MSETest[dim, i] = MSE(data.z_test, z_pred)
             R2Scores[dim, i] = R2Score(data.z_test, z_pred)
     if title == None:
-        title = f"{modelType}"
+        title = model.modelName
     create_heatmap(MSETest, lambds, title)
 
 
-def heatmap_boostrap(data, modelType=Ridge, title=None):
+def heatmap_boostrap(data, model=Ridge(), title=None):
     nlambds = lambds.size
 
     MSETrain = np.zeros((maxDim, nlambds))
@@ -54,8 +53,8 @@ def heatmap_boostrap(data, modelType=Ridge, title=None):
     scaler = StandardScaler()
     for i, lmbda in enumerate(lambds):
         for dim in range(maxDim):
-            X_train = data.create_X(data.x_train, data.y_train, dim)
-            X_test = data.create_X(data.x_test, data.y_test, dim)
+            X_train = model.create_X(data.x_train, data.y_train, dim)
+            X_test = model.create_X(data.x_test, data.y_test, dim)
 
             scaler.fit(X_train)
             scaler.transform(X_train)
@@ -73,7 +72,7 @@ def heatmap_boostrap(data, modelType=Ridge, title=None):
             MSETest[dim, i] = MSE(data.z_test, z_pred)
             R2Scores[dim, i] = R2Score(data.z_test, z_pred)
     if title == None:
-        title = f"{modelType}"
+        title = modelType.modelName
     create_heatmap(MSETest, lambds, title)
 
 

@@ -17,8 +17,8 @@ def bootstrap_polydegrees(data, polyDegrees, n_boostraps, model=OLS()):
     variance = np.zeros(n_degrees)
 
     for j, dim in enumerate(polyDegrees):
-        X_train = data.create_X(data.x_train, data.y_train, dim)
-        X_test = data.create_X(data.x_test, data.y_test, dim)
+        X_train = model.create_X(data.x_train, data.y_train, dim)
+        X_test = model.create_X(data.x_test, data.y_test, dim)
 
         z_test, z_train = data.z_test, data.z_train
         z_pred = np.empty((z_test.shape[0], n_boostraps))
@@ -35,7 +35,7 @@ def bootstrap_polydegrees(data, polyDegrees, n_boostraps, model=OLS()):
     return error, bias, variance
 
 
-def boostrap_lambdas(data, modelType=Ridge):
+def boostrap_lambdas(data, model=Ridge()):
     """
     performs boostrap on polydegrees and hyperparamater lambds
     for regularized regression
@@ -48,8 +48,8 @@ def boostrap_lambdas(data, modelType=Ridge):
     variance = np.zeros((n_degrees, n_lambds))
 
     for i, dim in enumerate(polyDegrees):
-        X_train = data.create_X(data.x_train, data.y_train, dim)
-        X_test = data.create_X(data.x_test, data.y_test, dim)
+        X_train = model.create_X(data.x_train, data.y_train, dim)
+        X_test = model.create_X(data.x_test, data.y_test, dim)
 
         z_test, z_train = data.z_test, data.z_train
 
@@ -57,10 +57,9 @@ def boostrap_lambdas(data, modelType=Ridge):
         for i, lambd in enumerate(lambds):
 
             z_pred = np.empty((z_test.shape[0], n_boostraps))
-            model = modelType(lambd)
             for k in range(n_boostraps):
                 X_, z_ = resample(X_train, z_train)
-                model.fit(X_, z_)
+                model.fit(X_, z_, lambd)
                 z_pred[:, k] = model.predict(X_test).ravel()
 
             error[i, j] = mean_MSE(z_test, z_pred)
@@ -80,7 +79,7 @@ def sklearn_cross_val(data, polyDegrees: list[int], nfolds, model=OLS()):
     variance = np.zeros(n_degrees)
 
     for i, degree in enumerate(polyDegrees):
-        X = data.create_X(data.x, data.y, degree)
+        X = model.create_X(data.x, data.y, degree)
 
         scores = cross_val_score(
             model, X, data.z, scoring="neg_mean_squared_error", cv=nfolds
@@ -105,7 +104,7 @@ def kfold_score_degrees(data, polyDegrees: list[int], kfolds: int, model=OLS()):
     for i, degree in enumerate(polyDegrees):
         scores = np.zeros(kfolds)
 
-        X = data.create_X(data.x_, data.y_, degree)
+        X = model.create_X(data.x_, data.y_, degree)
 
         for j, (train_i, test_i) in enumerate(Kfold.split(X)):
 
@@ -125,7 +124,7 @@ def kfold_score_degrees(data, polyDegrees: list[int], kfolds: int, model=OLS()):
     return error, variance
 
 
-def sklearn_cross_val_lambdas(data, polyDegrees: list[int], nfolds, modelType=Ridge):
+def sklearn_cross_val_lambdas(data, polyDegrees: list[int], nfolds, model=Ridge()):
     """
     sklearn cross val for polydegrees and lambda
     """
@@ -135,7 +134,7 @@ def sklearn_cross_val_lambdas(data, polyDegrees: list[int], nfolds, modelType=Ri
     variance = np.zeros((n_degrees, n_lambds))
 
     for i, degree in enumerate(polyDegrees):
-        X = data.create_X(data.x_, data.y_, degree)
+        X = model.create_X(data.x_, data.y_, degree)
         for j, lambd in enumerate(lambds):
             model = modelType(lambd)
             scores = cross_val_score(
@@ -162,7 +161,7 @@ def kfold_score_degrees(data, polyDegrees: list[int], kfolds: int, modelType=Rid
     for i, degree in enumerate(polyDegrees):
         scores = np.zeros(kfolds)
 
-        X = data.create_X(data.x_, data.y_, degree)
+        X = model.create_X(data.x_, data.y_, degree)
 
         for j, lambd in enumerate(lambds):
             model = modelType(lambd)

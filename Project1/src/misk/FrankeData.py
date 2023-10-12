@@ -98,23 +98,6 @@ class FrankeData:
         term4 = -0.2 * np.exp(-((9 * x - 4) ** 2) - (9 * y - 7) ** 2)
         return term1 + term2 + term3 + term4
 
-    @staticmethod
-    def create_X(x: np.array, y: np.array, n: int) -> np.ndarray:
-        "Create design matrix"
-        if len(x.shape) > 1:
-            x = np.ravel(x)
-            y = np.ravel(y)
-
-        N = len(x)
-        lgth = (n + 1) * (n + 2) // 2
-        X = np.ones((N, lgth))
-        for i in range(1, n + 1):
-            q = i * (i + 1) // 2
-            for k in range(i + 1):
-                X[:, q + k] = (x ** (i - k)) * (y**k)
-
-        return X
-
     def plotFranke(self):
         fig = plt.figure(figsize=plt.figaspect(0.5))
 

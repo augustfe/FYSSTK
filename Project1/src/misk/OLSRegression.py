@@ -87,10 +87,10 @@ def OLS_train_test(data, savePlots=False, showPlots=True):
     R2Scores = np.zeros(data.maxDim)
 
     for dim in range(data.maxDim):
-        X_train = data.create_X(data.x_train, data.y_train, dim)
-        X_test = data.create_X(data.x_test, data.y_test, dim)
-
         model = OLS()
+        X_train = model.create_X(data.x_train, data.y_train, dim)
+        X_test = model.create_X(data.x_test, data.y_test, dim)
+
 
         beta = model.fit(X_train, data.z_train)
         betas.append(beta)
