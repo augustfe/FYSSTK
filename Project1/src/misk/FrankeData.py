@@ -3,9 +3,10 @@ import numpy as np
 import seaborn as sns
 
 from sklearn.model_selection import train_test_split
-from globals import*
+from globals import *
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
+
 
 class FrankeData:
     """
@@ -14,6 +15,7 @@ class FrankeData:
     Also it's simple to create a similiar class for the terrain
     data.
     """
+
     def __init__(
         self,
         numPoints: int,

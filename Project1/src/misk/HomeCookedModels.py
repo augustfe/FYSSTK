@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class Model:
     def __init__(self):
         self.fitted = False
@@ -10,6 +11,7 @@ class Model:
         else:
             raise ValueError("Model can not predict before being fitted")
 
+
 class Ridge(Model):
     def __init__(self, lambd: int = 1):
         self.lambd = lambd
@@ -19,6 +21,7 @@ class Ridge(Model):
         self.beta = np.linalg.pinv(X.T @ X + self.lambd * Identity) @ X.T @ y
         self.fitted = True
         return self.beta
+
 
 class OLS(Model):
     def fit(self, X, y):

@@ -12,11 +12,16 @@ from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
 from resampling import bootstrap_polydegrees
 from plotBetas import plotBeta
-from metrics import*
-from globals import*
+from metrics import *
+from globals import *
+
 
 def plotScores(
-    data, MSEs_train: np.array, MSEs_test: np.array, R2s: np.array, methodname: str = "OLS"
+    data,
+    MSEs_train: np.array,
+    MSEs_test: np.array,
+    R2s: np.array,
+    methodname: str = "OLS",
 ) -> None:
     """
     Plots MSE_train, MSE_test, and R2 values as a function of polynomial degree
@@ -75,7 +80,8 @@ def plotScores(
         plt.show()
     plt.clf()
 
-def OLS_train_test(data, savePlots = False, showPlots = True):
+
+def OLS_train_test(data, savePlots=False, showPlots=True):
     betas = []
     MSETrain = np.zeros(data.maxDim)
     MSETest = np.zeros(data.maxDim)
@@ -117,9 +123,9 @@ def plot_Bias_VS_Varaince(data):
     n_boostraps = 400
     polyDegrees = range(maxDim)
     error, bias, variance = bootstrap_polydegrees(data, polyDegrees, n_boostraps, OLS())
-    #print(error)
-    #print(bias)
-    #print(variance)
+    # print(error)
+    # print(bias)
+    # print(variance)
 
     plt.plot(polyDegrees, error, label="Error")
     plt.plot(polyDegrees, bias, label="bias")

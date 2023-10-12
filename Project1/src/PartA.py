@@ -6,7 +6,9 @@ from sklearn.model_selection import train_test_split
 from OLS import OLS
 
 
-def OLSofFranke(N: int = 500, maxDim: int = 9) -> tuple[list[float], list[float], list[float]]:
+def OLSofFranke(
+    N: int = 500, maxDim: int = 9
+) -> tuple[list[float], list[float], list[float]]:
     """
     Fits a linear regression model to the Franke function using Ordinary Least Squares (OLS), for each
     polynomial degree in the given polyDegrees. Returns a tuple containing the lists MSEs_train,
@@ -95,7 +97,7 @@ def plotScores(
 if __name__ == "__main__":
     np.random.seed(2018)
     scores = OLSofFranke()
-    #plotScores(*scores)
+    # plotScores(*scores)
 """
 If we just increase the number of points our model
 won't overfit. This is true for all regression models

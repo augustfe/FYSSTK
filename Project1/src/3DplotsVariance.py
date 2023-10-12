@@ -12,9 +12,6 @@ from sklearn.model_selection import cross_val_score
 from util import FrankeFunction
 
 
-
-
-
 def plot_prediction_vs_true(N: int = 300, polyDegrees: list[int] = [1, 4, 15]) -> None:
     """
     Plots model prediction vs true FrankeFunction using OLS with degrees given
@@ -35,7 +32,6 @@ def plot_prediction_vs_true(N: int = 300, polyDegrees: list[int] = [1, 4, 15]) -
     z_true = FrankeFunction(x, y)
 
     z = z_true + z_true.mean() * np.random.randn(N) * 0.30
-
 
     # Loop over the different polynomial degrees to fit and plot the models
     for i in range(len(polyDegrees)):
@@ -62,8 +58,10 @@ def plot_prediction_vs_true(N: int = 300, polyDegrees: list[int] = [1, 4, 15]) -
             X, Y, Z, cmap=cm.coolwarm, linewidth=0, antialiased=False, alpha=0.5
         )
 
-        #make model
-        polynomial_features = PolynomialFeatures(degree=polyDegrees[i], include_bias=False)
+        # make model
+        polynomial_features = PolynomialFeatures(
+            degree=polyDegrees[i], include_bias=False
+        )
         linear_regression = LinearRegression()
         pipeline = Pipeline(
             [
@@ -71,12 +69,16 @@ def plot_prediction_vs_true(N: int = 300, polyDegrees: list[int] = [1, 4, 15]) -
                 ("linear_regression", linear_regression),
             ]
         )
-        #fit model
+        # fit model
         pipeline.fit(np.column_stack((x, y)), z)
 
         # get cross-val scores
         scores = cross_val_score(
-            pipeline, np.column_stack((x, y)), z, scoring="neg_mean_squared_error", cv=10
+            pipeline,
+            np.column_stack((x, y)),
+            z,
+            scoring="neg_mean_squared_error",
+            cv=10,
         )
 
         # To lazy to make use train_test_split
@@ -88,12 +90,18 @@ def plot_prediction_vs_true(N: int = 300, polyDegrees: list[int] = [1, 4, 15]) -
 
         # Plot the model
         surf = ax.plot_surface(
-            X_test, Y_test, Z_pred, cmap=cm.BrBG, linewidth=0, antialiased=False, alpha=0.5
+            X_test,
+            Y_test,
+            Z_pred,
+            cmap=cm.BrBG,
+            linewidth=0,
+            antialiased=False,
+            alpha=0.5,
         )
 
         # Scatter plot the x,y training values to see what we workin with
         ax.scatter(x, y, z, c="black", s=10)
-        #add varaince and mean of model in title of plot
+        # add varaince and mean of model in title of plot
         plt.title(
             "Degree: {}\nMSE = {:.2e}(+/- {:.2e})".format(
                 polyDegrees[i], -scores.mean(), scores.std()
@@ -104,6 +112,7 @@ def plot_prediction_vs_true(N: int = 300, polyDegrees: list[int] = [1, 4, 15]) -
         fig.colorbar(surf, shrink=0.5, aspect=5)
 
         plt.show()
+
 
 if __name__ == "__main__":
     np.random.seed(2018)

@@ -2,9 +2,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 
-from globals import*
+from globals import *
 
-def plotBeta(betas, title, methodname = "OLS"):
+
+def plotBeta(betas, title, methodname="OLS"):
     """
     Plots the beta values of a linear regression model for different polynomial degrees.
 

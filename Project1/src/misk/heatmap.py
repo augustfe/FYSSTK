@@ -45,7 +45,6 @@ def create_heatmap(MSE_test, lambds, title):
     ax.set_xlabel(r"$log_{10} \lambda$")
     ax.set_ylabel("Polynomial Degree")  # fontsize=?
 
-
     # Set title
     ax.set_title(
         title, fontweight="bold", fontsize=20, pad=25

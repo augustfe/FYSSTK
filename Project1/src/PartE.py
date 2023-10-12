@@ -17,7 +17,7 @@ def hastieFig():
     """
 
     # if N is too large MSE_train won't diverge
-    #N = 190, and maxDim = 8 looks deeecent!
+    # N = 190, and maxDim = 8 looks deeecent!
     scores = OLSofFranke(N=190, maxDim=8)
 
     MSE_train = scores[0]
@@ -87,12 +87,11 @@ def plot_Bias_VS_Varaince():
         Optional, default is 1000. Number of random samples to generate using bootstrapping.
 
     """
-    #N = 230, n_boostraps = 200, maxdegree = 10 looks pretty good
-    #450, 400, 13 also deecent
+    # N = 230, n_boostraps = 200, maxdegree = 10 looks pretty good
+    # 450, 400, 13 also deecent
     N = 450
     n_boostraps = 400
     maxdegree = 13
-
 
     # Make data set.
     x = np.random.uniform(0, 1, N)
@@ -113,9 +112,8 @@ def plot_Bias_VS_Varaince():
     plt.show()
 
 
-
 if __name__ == "__main__":
     np.random.seed(2017)
-    #hastieFig()
+    # hastieFig()
 
     plot_Bias_VS_Varaince()

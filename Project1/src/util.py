@@ -51,6 +51,7 @@ def ScaleandCenterData(X: np.ndarray, scale: bool = False) -> np.ndarray:
 
     return X
 
+
 def get_variance(z_pred: np.ndarray):
     return np.mean(np.var(z_pred, axis=1, keepdims=True))
 

@@ -6,10 +6,11 @@ import numpy as np
 
 from sklearn.linear_model import Lasso
 from sklearn.preprocessing import StandardScaler
-from metrics import*
-from globals import*
+from metrics import *
+from globals import *
 
-def heatmap_no_resampling(data, modelType = Ridge, title = None):
+
+def heatmap_no_resampling(data, modelType=Ridge, title=None):
     nlambds = lambds.size
 
     MSETrain = np.zeros((maxDim, nlambds))
@@ -43,7 +44,7 @@ def heatmap_no_resampling(data, modelType = Ridge, title = None):
     create_heatmap(MSETest, lambds, title)
 
 
-def heatmap_boostrap(data, modelType = Ridge, title = None):
+def heatmap_boostrap(data, modelType=Ridge, title=None):
     nlambds = lambds.size
 
     MSETrain = np.zeros((maxDim, nlambds))
@@ -61,7 +62,7 @@ def heatmap_boostrap(data, modelType = Ridge, title = None):
             scaler.transform(X_test)
 
             model = modelType(lmbda)
-            #here we got to boostrap our model
+            # here we got to boostrap our model
             beta = model.fit(X_train, data.z_train)
             # betas.append(beta)
 
@@ -75,7 +76,10 @@ def heatmap_boostrap(data, modelType = Ridge, title = None):
         title = f"{modelType}"
     create_heatmap(MSETest, lambds, title)
 
+
 def heatmap_HomeMade_cross_val():
     return
+
+
 def heatmap_sklearn_cross_val():
     return
