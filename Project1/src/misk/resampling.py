@@ -1,8 +1,10 @@
 #here we can write our funcs such that we take a sklear model as input
-from HomeCookedModels import OLS
+from HomeCookedModels import OLS, Ridge
+from sklearn.linear_model import Lasso
 import numpy as np
 from metrics import*
 from sklearn.utils import resample
+from globals import*
 
 
 def bootstrap(data, polyDegrees, n_boostraps, model = OLS()):
@@ -32,18 +34,16 @@ def bootstrap(data, polyDegrees, n_boostraps, model = OLS()):
 
         return error, bias, variance
 
-def sklearn_cross_val(x, y, z, polyDegrees: list[int], nfolds, model = OLS()):
+def sklearn_cross_val(data, polyDegrees: list[int], nfolds, model = OLS()):
     n_degrees = len(polyDegrees)
 
     error = np.zeros(n_degrees)
     variance = np.zeros(n_degrees)
 
     for i,degree in enumerate(polyDegrees):
-        X = create_X(x, y, degree)
+        X = data.create_X(data.x, data.y, degree)
 
-        model.fit(X, z)
-
-        scores = cross_val_score(model, X, z,
+        scores = cross_val_score(model, X, data.z,
                                  scoring="neg_mean_squared_error", cv=nfolds)
         error[i] = -scores.mean()
         variance[i] = scores.std()
@@ -77,5 +77,21 @@ def kfold_score_degrees(data, polyDegrees: list[int], kfolds: int, model = OLS()
 
         error[i] = scores.mean()
         variance[i] = scores.std()
+    return error, variance
+
+def sklearn_cross_val_lambdas(data, polyDegrees: list[int], nfolds, model = Ridge()):
+    n_degrees = len(polyDegrees)
+    n_lambds = len(lambds)
+    error = np.zeros((n_degrees, n_lambds))
+    variance = np.zeros((n_degrees, n_lambds))
+
+    for i,degree in enumerate(polyDegrees):
+        X = data.create_X(x, y, degree)
+        for j,lambd in enumerate(lambds):
+
+            scores = cross_val_score(model, X, z,
+                                     scoring="neg_mean_squared_error", cv=nfolds)
+            error[i,j] = -scores.mean()
+            variance[i,j] = scores.std()
 
     return error, variance

@@ -2,15 +2,24 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 
-from sklearn.linear_model import Lasso
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-from pathlib import Path
-from matplotlib import cm
-from matplotlib.ticker import LinearLocator, FormatStrFormatter
 from globals import*
 
 def plotBeta(betas, title, methodname = "OLS"):
+    """
+    Plots the beta values of a linear regression model for different polynomial degrees.
+
+    Parameters
+    ----------
+    betas : List[List[float]]
+        A list of beta values for different polynomial degrees.
+        The list should be of length n_poly_degrees, where each element is a numpy array of shape (n_features, 1)
+        containing the estimated beta values.
+    title : str
+        A string containing the title for the plot.
+    methodname : str, optional
+        A string containing the name of the method used to calculate beta values, by default "OLS".
+
+    """
     dims = range(len(betas))
     for dim in dims:
         for beta in betas[dim]:

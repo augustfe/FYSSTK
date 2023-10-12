@@ -114,8 +114,8 @@ def plot_Bias_VS_Varaince(data):
         Optional, default is 1000. Number of random samples to generate using bootstrapping.
 
     """
-    n_boostraps = 100
-    polyDegrees = range(1, data.maxDim+1)
+    n_boostraps = 400
+    polyDegrees = range(data.maxDim)
     error, bias, variance = bootstrap(data, polyDegrees, n_boostraps, OLS())
 
     plt.plot(polyDegrees, error, label="Error")

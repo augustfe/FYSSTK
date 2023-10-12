@@ -23,7 +23,7 @@ def sklearn_cross_val_OLS(x, y, z, polyDegrees: list[int], nfolds):
 
         linear_regression = LinearRegression()
 
-        linear_regression.fit(X, z)
+        #linear_regression.fit(X, z)
 
         scores = cross_val_score(linear_regression, X, z,
                                  scoring="neg_mean_squared_error", cv=nfolds)

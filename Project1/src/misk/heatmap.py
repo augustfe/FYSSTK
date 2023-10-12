@@ -1,23 +1,27 @@
 import numpy as np
-import globals
 import matplotlib.pyplot as plt
-import numpy as np
 import seaborn as sns
-
-from sklearn.linear_model import Lasso
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-from pathlib import Path
-from matplotlib import cm
-from matplotlib.ticker import LinearLocator, FormatStrFormatter
 from globals import *
 
 
 def create_heatmap(MSE_test, lambds, title):
     """
-    Function for making a heatmap given lambdas and MSE_test
-    Have to make sure that number of degrees is equal to number of
-    lambdas - 1 or else it will look kind of wierd.
+    Creates a heatmap plot of the test set MSE given the results of the model for different polynomial degrees and lambda values.
+
+    Parameters
+    ----------
+    MSE_test : np.array
+        A 2D numpy array of shape (n_poly_degrees, n_lambdas) with test set MSE values for different polynomial degrees and lambda values.
+    lambds : np.array
+        A 1D numpy array of lambda values for regularization.
+    title : str
+        A string containing the title for the heatmap plot.
+
+    Returns
+    -------
+    None
+        The function displays a heatmap plot using Seaborn and Matplotlib.
+
     """
 
     # Define polynomial degrees and lambda values

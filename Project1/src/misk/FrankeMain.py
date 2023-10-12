@@ -15,9 +15,18 @@ from RegularizedRegression import heatmap_no_resampling
 
 
 data = FrankeData(21, 0.2, 13)
+
+#make franke plot
 #data.plotFranke(showPlots = True, savePlots = False)
 
+#THE CLASSIC
 #OLS_train_test(data, showPlots = True, savePlots = False)
-#plot_Bias_VS_Varaince(data)
-heatmap_no_resampling(data, modelType = Ridge, title="Ridge")
-heatmap_no_resampling(data, modelType = Lasso, title="Lasso")
+
+#Same analysis for lasso and Ridge as THE Classic
+#heatmap_no_resampling(data, modelType = Ridge, title="Ridge")
+#heatmap_no_resampling(data, modelType = Lasso, title="Lasso")
+
+#bias variance for OLS using boostrap
+plot_Bias_VS_Varaince(data)
+
+#need to do f. That is compare boostrap and cross val

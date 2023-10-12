@@ -2,12 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 
-from sklearn.linear_model import Lasso
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-from pathlib import Path
-from matplotlib import cm
-from matplotlib.ticker import LinearLocator, FormatStrFormatter
 from globals import*
 
 class FrankeData:
@@ -162,7 +157,7 @@ class FrankeData:
         plt.tight_layout()
 
         if savePlots:
-            plt.savefig(self.figs / "FrankesFunction.png", dpi=300)
+            plt.savefig(figsPath / "FrankesFunction.png", dpi=300)
         if showPlots:
             plt.show()
         plt.clf()
