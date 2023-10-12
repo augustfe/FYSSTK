@@ -103,13 +103,13 @@ def kfold_score_degrees(data, kfolds: int, model=OLS()):
     """
     HomeCooked cross-val using Kfold. Only for polynomial degrees.
     """
-    polyDegrees = range(1,maxdim+1)
+    polyDegrees = range(1,maxDim+1)
     n_degrees = len(polyDegrees)
 
     error = np.zeros(n_degrees)
     variance = np.zeros(n_degrees)
 
-    Kfold = KFold(n_splits=kfolds)
+    Kfold = KFold(n_splits=kfolds, shuffle=True)
 
     for i, degree in tqdm(enumerate(polyDegrees)):
         scores = np.zeros(kfolds)
@@ -117,11 +117,10 @@ def kfold_score_degrees(data, kfolds: int, model=OLS()):
         X = model.create_X(data.x_, data.y_, degree)
 
         for j, (train_i, test_i) in enumerate(Kfold.split(X)):
-
             X_train = X[train_i]
             X_test = X[test_i]
-            z_test = data.z_[test_i]
             z_train = data.z_[train_i]
+            z_test = data.z_[test_i]
 
             model.fit(X_train, z_train)
 
@@ -129,6 +128,7 @@ def kfold_score_degrees(data, kfolds: int, model=OLS()):
 
             scores[j] = MSE(z_pred, z_test)
 
+        print(scores)
         error[i] = scores.mean()
         variance[i] = scores.std()
     return error, variance
@@ -172,7 +172,7 @@ def HomeMade_cross_val_lambdas(data, kfolds: int = 5, model=Ridge()):
     error = np.zeros((n_degrees, n_lambds))
     variance = np.zeros((n_degrees, n_lambds))
 
-    Kfold = KFold(n_splits=kfolds)
+    Kfold = KFold(n_splits=kfolds, shuffle=True)
 
     for i, degree in tqdm(enumerate(polyDegrees)):
         scores = np.zeros(kfolds)

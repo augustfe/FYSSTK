@@ -143,16 +143,17 @@ def bootstrap_vs_cross_val_OLS(data):
     guessing that plotting the variance, bias and errors in the same plot
     is fine
     """
-    polyDegrees
+    polyDegrees = range(1, maxDim+1)
+    error_kfold, variance_kfold = kfold_score_degrees(data, kfolds=10)
     error_boot, bias_boot, variance_boot = bootstrap_degrees(data, n_boostraps=100)
     #error_CV, varaince_CV = sklearn_cross_val_OLS(x, y, z, polyDegrees, kfolds)
-    error_kfold, variance_kfold = kfold_score_degreess(x, y, z, polyDegrees, kfolds)
-
+    print(error_kfold)
+    print(error_boot)
     # plt.plot(polyDegrees, error_boot, label="Boostrap Error")
     # plt.plot(polyDegrees, variance_boot, label="Boostrap Variance")
-    plt.plot(polyDegrees, error_kfold, "b", label="Kfold Error")
+    plt.plot(polyDegrees, error_kfold, "b", label="Kfold CV Error")
     # plt.plot(polyDegrees, variance_kfold, label="Kfold variance")
-    plt.plot(polyDegrees, error_CV, "r--", label="cross val Error")
+    plt.plot(polyDegrees, error_boot, "r--", label="Boostrap Error")
     plt.legend()
     if savePlots:
         plt.savefig(figsPath / f"Heatmap_{method}.png", dpi=300)
