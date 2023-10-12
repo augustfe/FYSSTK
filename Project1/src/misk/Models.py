@@ -1,6 +1,7 @@
 import numpy as np
 from sklearn.linear_model import Lasso as Lass
 
+
 class Model:
     def __init__(self):
         self.fitted = False
@@ -10,6 +11,7 @@ class Model:
             return X @ self.beta
         else:
             raise ValueError("Model can not predict before being fitted")
+
     @staticmethod
     def create_X(x: np.array, y: np.array, n: int) -> np.ndarray:
         "Create design matrix"
@@ -29,7 +31,7 @@ class Model:
 
 
 class Ridge(Model):
-    def __init__(self, lambd = None):
+    def __init__(self, lambd=None):
         super().__init__()
         self.modelName = "Ridge"
         self.lambd = lambd
@@ -44,6 +46,7 @@ class Ridge(Model):
         self.fitted = True
         return self.beta
 
+
 class OLS(Model):
     def __init__(self):
         super().__init__()
@@ -54,6 +57,7 @@ class OLS(Model):
         self.fitted = True
         return self.beta
 
+
 class Lasso(Model):
     def __init__(self, lambd=None):
         super().__init__()
@@ -61,7 +65,7 @@ class Lasso(Model):
         self.lambd = lambd
         self.lasso_model = None
 
-    def fit(self, X, y, lambd = None):
+    def fit(self, X, y, lambd=None):
         if lambd != None:
             self.lambd = lambd
         if self.lambd == None:

@@ -15,7 +15,7 @@ def bootstrap_degrees(data, n_boostraps, model=OLS()):
     """
     Performs boostrap on different polydegrees
     """
-    polyDegrees = range(1,maxDim+1)
+    polyDegrees = range(1, maxDim + 1)
     n_degrees = len(polyDegrees)
 
     error = np.zeros(n_degrees)
@@ -40,12 +40,13 @@ def bootstrap_degrees(data, n_boostraps, model=OLS()):
 
     return error, bias, variance
 
+
 def bootstrap_lambdas(data, n_boostraps, model=Ridge()):
     """
     performs bootstrap on polydegrees and hyperparamater lambds
     for regularized regression
     """
-    polyDegrees = range(1,maxDim+1)
+    polyDegrees = range(1, maxDim + 1)
     n_degrees = len(polyDegrees)
     n_lambds = lambds.size
 
@@ -53,7 +54,7 @@ def bootstrap_lambdas(data, n_boostraps, model=Ridge()):
     bias = np.zeros((n_degrees, n_lambds))
     variance = np.zeros((n_degrees, n_lambds))
 
-    #for i, dim in tqdm(enumerate(polyDegrees)):
+    # for i, dim in tqdm(enumerate(polyDegrees)):
     for i in tqdm(range(maxDim)):
         dim = i + 1
         X_train = model.create_X(data.x_train, data.y_train, dim)
@@ -81,7 +82,7 @@ def sklearn_cross_val(data, nfolds, model=OLSSKL()):
     """
     sklearn cross val for on polynomial degrees
     """
-    polyDegrees = range(1,maxDim+1)
+    polyDegrees = range(1, maxDim + 1)
     n_degrees = len(polyDegrees)
 
     error = np.zeros(n_degrees)
@@ -103,7 +104,7 @@ def kfold_score_degrees(data, kfolds: int, model=OLS()):
     """
     HomeCooked cross-val using Kfold. Only for polynomial degrees.
     """
-    polyDegrees = range(1,maxDim+1)
+    polyDegrees = range(1, maxDim + 1)
     n_degrees = len(polyDegrees)
 
     error = np.zeros(n_degrees)
@@ -138,14 +139,14 @@ def sklearn_cross_val_lambdas(data, kfolds, model=RidgeSKL()):
     """
     sklearn cross val for polydegrees and lambda
     """
-    polyDegrees = range(1,maxDim+1)
+    polyDegrees = range(1, maxDim + 1)
 
     n_degrees = len(polyDegrees)
     n_lambds = len(lambds)
     error = np.zeros((n_degrees, n_lambds))
     variance = np.zeros((n_degrees, n_lambds))
 
-    dummy_model = Model() #only needed because of where create X is
+    dummy_model = Model()  # only needed because of where create X is
 
     for i, degree in tqdm(enumerate(polyDegrees)):
         X = dummy_model.create_X(data.x_, data.y_, degree)
@@ -165,7 +166,7 @@ def HomeMade_cross_val_lambdas(data, kfolds: int = 5, model=Ridge()):
     """
     HomeCooked cross-val using Kfold. for polydegrees and lambda.
     """
-    polyDegrees = range(1,maxDim+1)
+    polyDegrees = range(1, maxDim + 1)
     n_degrees = len(polyDegrees)
     n_lambds = lambds.size
 

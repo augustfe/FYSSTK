@@ -91,7 +91,6 @@ def OLS_train_test(data, savePlots=False, showPlots=True):
         X_train = model.create_X(data.x_train, data.y_train, dim)
         X_test = model.create_X(data.x_test, data.y_test, dim)
 
-
         beta = model.fit(X_train, data.z_train)
         betas.append(beta)
 
@@ -121,10 +120,10 @@ def plot_Bias_VS_Varaince(data, title=None):
     """
     n_boostraps = 400
     error, bias, variance = bootstrap_degrees(data, n_boostraps, OLS())
-    polyDegrees = range(1,maxDim+1)
+    polyDegrees = range(1, maxDim + 1)
 
-    if title==None:
-        title="Bias Variance Tradeoff OLS"
+    if title == None:
+        title = "Bias Variance Tradeoff OLS"
 
     plt.plot(polyDegrees, error, label="Error")
     plt.plot(polyDegrees, bias, label="bias")
@@ -137,16 +136,17 @@ def plot_Bias_VS_Varaince(data, title=None):
         plt.show()
     plt.clf()
 
+
 def bootstrap_vs_cross_val_OLS(data):
     """
     Here we wish to compare our bootstrap to cross val.
     guessing that plotting the variance, bias and errors in the same plot
     is fine
     """
-    polyDegrees = range(1, maxDim+1)
+    polyDegrees = range(1, maxDim + 1)
     error_kfold, variance_kfold = kfold_score_degrees(data, kfolds=10)
     error_boot, bias_boot, variance_boot = bootstrap_degrees(data, n_boostraps=100)
-    #error_CV, varaince_CV = sklearn_cross_val_OLS(x, y, z, polyDegrees, kfolds)
+    # error_CV, varaince_CV = sklearn_cross_val_OLS(x, y, z, polyDegrees, kfolds)
     print(error_kfold)
     print(error_boot)
     # plt.plot(polyDegrees, error_boot, label="Boostrap Error")

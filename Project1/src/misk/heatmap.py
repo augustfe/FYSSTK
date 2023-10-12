@@ -4,7 +4,7 @@ import seaborn as sns
 from globals import *
 
 
-def create_heatmap(MSE_test, lambds = lambds, title = None):
+def create_heatmap(MSE_test, lambds=lambds, title=None):
     """
     Creates a heatmap plot of the test set MSE given the results of the model for different polynomial degrees and lambda values.
 

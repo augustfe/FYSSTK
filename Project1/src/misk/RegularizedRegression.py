@@ -4,7 +4,11 @@ from heatmap import create_heatmap
 import matplotlib.pyplot as plt
 import numpy as np
 
-from resampling import bootstrap_lambdas, sklearn_cross_val_lambdas, HomeMade_cross_val_lambdas
+from resampling import (
+    bootstrap_lambdas,
+    sklearn_cross_val_lambdas,
+    HomeMade_cross_val_lambdas,
+)
 from sklearn.linear_model import Lasso as LassoSKL
 from sklearn.linear_model import Ridge as RidgeSKL
 from sklearn.linear_model import LinearRegression as OLSSKL
@@ -35,10 +39,10 @@ def heatmap_no_resampling(data, model=Ridge(), title=None):
             beta = model.fit(X_train, data.z_train, lmbda)
             # betas.append(beta)
 
-            #z_tilde = model.predict(X_train)
+            # z_tilde = model.predict(X_train)
             z_pred = model.predict(X_test)
 
-            #MSETrain[dim, i] = MSE(data.z_train, z_tilde)
+            # MSETrain[dim, i] = MSE(data.z_train, z_tilde)
             MSETest[dim, i] = MSE(data.z_test, z_pred)
             R2Scores[dim, i] = R2Score(data.z_test, z_pred)
     if title == None:
@@ -46,7 +50,7 @@ def heatmap_no_resampling(data, model=Ridge(), title=None):
     create_heatmap(MSETest, lambds, title)
 
 
-def heatmap_bootstrap(data, model=Ridge(), var = False, title=None):
+def heatmap_bootstrap(data, model=Ridge(), var=False, title=None):
     n_boostraps = 100
     error, bias, variance = bootstrap_lambdas(data, n_boostraps, Ridge())
     if title == None:
@@ -57,8 +61,8 @@ def heatmap_bootstrap(data, model=Ridge(), var = False, title=None):
         create_heatmap(error, lambds, title)
 
 
-def heatmap_HomeMade_cross_val(data, model = Ridge(), var = False, title=None):
-    error, variance = HomeMade_cross_val_lambdas(data, kfolds = 5, model=model)
+def heatmap_HomeMade_cross_val(data, model=Ridge(), var=False, title=None):
+    error, variance = HomeMade_cross_val_lambdas(data, kfolds=5, model=model)
     if title == None:
         title = model.modelName
     if var:
@@ -67,7 +71,7 @@ def heatmap_HomeMade_cross_val(data, model = Ridge(), var = False, title=None):
         create_heatmap(error, lambds, title)
 
 
-def heatmap_sklearn_cross_val(data, model = RidgeSKL(), var = False, title=None):
+def heatmap_sklearn_cross_val(data, model=RidgeSKL(), var=False, title=None):
     error, variance = sklearn_cross_val_lambdas(data, kfolds=5, model=model)
     if title == None:
         title = model.__class__.__name__

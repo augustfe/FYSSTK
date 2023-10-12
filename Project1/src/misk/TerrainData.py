@@ -14,7 +14,6 @@ from resampling import *
 
 
 class TerrainData:
-
     def __init__(
         self,
         terrainData: np.array,
@@ -47,12 +46,10 @@ class TerrainData:
             self.y_train,
             self.y_test,
             self.z_train,
-            self.z_test
+            self.z_test,
         ) = train_test_split(self.x_, self.y_, self.t_, test_size=0.2)
 
-    def ready_data(
-        self, N: int
-    ) -> tuple[np.array, np.array, np.array]:
+    def ready_data(self, N: int) -> tuple[np.array, np.array, np.array]:
         """
         Preprocess the terrain data
 
@@ -72,16 +69,15 @@ class TerrainData:
         y_len = w // N
         x_len = l // N
 
-        x_ = np.sort(np.linspace(0, 1, N+1))
-        y_ = np.sort(np.linspace(0, 1, N+1))
+        x_ = np.sort(np.linspace(0, 1, N + 1))
+        y_ = np.sort(np.linspace(0, 1, N + 1))
 
         self.x_raw, self.y_raw = np.meshgrid(x_, y_)
         x = self.x_raw.flatten().reshape(-1, 1)
         y = self.y_raw.flatten().reshape(-1, 1)
 
         self.t_data = self.terrainData[::y_len, ::x_len]
-        self.scaled_t_data = (
-            self.t_data - np.mean(self.t_data))/np.std(self.t_data)
+        self.scaled_t_data = (self.t_data - np.mean(self.t_data)) / np.std(self.t_data)
         t = self.scaled_t_data.flatten().reshape(-1, 1)
 
         return x, y, t
@@ -106,15 +102,15 @@ class TerrainData:
     def plotContour(self):
 
         plt.contour(self.x_raw, self.y_raw, self.t_data)
-        plt.title('Terrain plot')
-        plt.xlabel('X')
-        plt.ylabel('Y')
+        plt.title("Terrain plot")
+        plt.xlabel("X")
+        plt.ylabel("Y")
         plt.show()
 
 
 if __name__ == "__main__":
 
-    terrain1 = imread('../../DataFiles/SRTM_data_Norway_1.tif')
+    terrain1 = imread("../../DataFiles/SRTM_data_Norway_1.tif")
     terrain = np.asarray(terrain1)
 
     my_terrain = TerrainData(terrain, 100, 15)

@@ -14,7 +14,7 @@ class FrankeData:
     That way we can use the exact same data for all methods.
     Also it's simple to create a similiar class for the terrain
     data.
-    
+
     """
 
     def __init__(
