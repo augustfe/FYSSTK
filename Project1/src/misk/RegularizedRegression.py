@@ -56,7 +56,7 @@ def heatmap_bootstrap(data, model=Ridge(), var = False, title=None):
 
 
 def heatmap_HomeMade_cross_val(data, model = Ridge(), var = False, title=None):
-    error, variance = HomeMade_cross_val_lambdas(data, model)
+    error, variance = HomeMade_cross_val_lambdas(data, kfolds = 5, model=model)
     if title == None:
         title = model.modelName
     if var:
@@ -66,7 +66,7 @@ def heatmap_HomeMade_cross_val(data, model = Ridge(), var = False, title=None):
 
 
 def heatmap_sklearn_cross_val(data, model = Ridge(), var = False, title=None):
-    error, variance = HomeMade_cross_val_lambdas(data, model)
+    error, variance = HomeMade_cross_val_lambdas(data, kfolds=5, model=model)
     if title == None:
         title = model.modelName
     if var:

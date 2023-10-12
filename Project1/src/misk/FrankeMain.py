@@ -32,5 +32,5 @@ data = FrankeData(60, 0.2, maxDim)
 
 # need to do f. That is compare boostrap and cross val
 #heatmap_bootstrap(data)
-heatmap_sklearn_cross_val(data)
-#heatmap_HomeMade_cross_val(data)
+#heatmap_sklearn_cross_val(data)
+heatmap_HomeMade_cross_val(data)

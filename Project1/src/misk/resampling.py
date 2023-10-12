@@ -129,7 +129,7 @@ def kfold_score_degrees(data, kfolds: int, model=OLS()):
     return error, variance
 
 
-def sklearn_cross_val_lambdas(data, nfolds, modelType=Ridge):
+def sklearn_cross_val_lambdas(data, kfolds, modelType=Ridge):
     """
     sklearn cross val for polydegrees and lambda
     """
@@ -145,7 +145,7 @@ def sklearn_cross_val_lambdas(data, nfolds, modelType=Ridge):
         for j, lambd in enumerate(lambds):
             model = modelType(lambd)
             scores = cross_val_score(
-                model, X, data.z_, scoring="neg_mean_squared_error", cv=nfolds
+                model, X, data.z_, scoring="neg_mean_squared_error", cv=kfolds
             )
             error[i, j] = -scores.mean()
             variance[i, j] = scores.std()
@@ -153,7 +153,7 @@ def sklearn_cross_val_lambdas(data, nfolds, modelType=Ridge):
     return error, variance
 
 
-def HomeMade_cross_val_lambdas(data, kfolds: int, model=Ridge()):
+def HomeMade_cross_val_lambdas(data, kfolds: int = 5, model=Ridge()):
     """
     HomeCooked cross-val using Kfold. for polydegrees and lambda.
     """
