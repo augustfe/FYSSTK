@@ -1,15 +1,17 @@
 # here we can write our funcs such that we take a sklear model as input
-from Models import OLS, Ridge, Lasso
+from Models import OLS, Ridge, Lasso, Model
 import numpy as np
 from metrics import *
 from sklearn.utils import resample
 from globals import *
+from sklearn.model_selection import cross_val_score, KFold
 
 
-def bootstrap_polydegrees(data, polyDegrees, n_boostraps, model=OLS()):
+def bootstrap_degrees(data, n_boostraps, model=OLS()):
     """
     Performs boostrap on different polydegrees
     """
+    polyDegrees = range(1,maxDim+1)
     n_degrees = len(polyDegrees)
 
     error = np.zeros(n_degrees)
@@ -35,11 +37,12 @@ def bootstrap_polydegrees(data, polyDegrees, n_boostraps, model=OLS()):
     return error, bias, variance
 
 
-def boostrap_lambdas(data, model=Ridge()):
+def bootstrap_lambdas(data, model=Ridge()):
     """
-    performs boostrap on polydegrees and hyperparamater lambds
+    performs bootstrap on polydegrees and hyperparamater lambds
     for regularized regression
     """
+    polyDegrees = range(1,maxDim+1)
     n_degrees = len(polyDegrees)
     n_lambds = lambds.size
 
@@ -69,10 +72,11 @@ def boostrap_lambdas(data, model=Ridge()):
     return error, bias, variance
 
 
-def sklearn_cross_val(data, polyDegrees: list[int], nfolds, model=OLS()):
+def sklearn_cross_val(data, nfolds, model=OLS()):
     """
     sklearn cross val for on polynomial degrees
     """
+    polyDegrees = range(1,maxDim+1)
     n_degrees = len(polyDegrees)
 
     error = np.zeros(n_degrees)
@@ -90,10 +94,11 @@ def sklearn_cross_val(data, polyDegrees: list[int], nfolds, model=OLS()):
     return error, variance
 
 
-def kfold_score_degrees(data, polyDegrees: list[int], kfolds: int, model=OLS()):
+def kfold_score_degrees(data, kfolds: int, model=OLS()):
     """
     HomeCooked cross-val using Kfold. Only for polynomial degrees.
     """
+    polyDegrees = range(1,maxdim+1)
     n_degrees = len(polyDegrees)
 
     error = np.zeros(n_degrees)
@@ -124,17 +129,19 @@ def kfold_score_degrees(data, polyDegrees: list[int], kfolds: int, model=OLS()):
     return error, variance
 
 
-def sklearn_cross_val_lambdas(data, polyDegrees: list[int], nfolds, model=Ridge()):
+def sklearn_cross_val_lambdas(data, nfolds, modelType=Ridge):
     """
     sklearn cross val for polydegrees and lambda
     """
+    polyDegrees = range(1,maxDim+1)
+
     n_degrees = len(polyDegrees)
     n_lambds = len(lambds)
     error = np.zeros((n_degrees, n_lambds))
     variance = np.zeros((n_degrees, n_lambds))
-
+    dummy_model = Model() #only needed because of where create X is
     for i, degree in enumerate(polyDegrees):
-        X = model.create_X(data.x_, data.y_, degree)
+        X = dummy_model.create_X(data.x_, data.y_, degree)
         for j, lambd in enumerate(lambds):
             model = modelType(lambd)
             scores = cross_val_score(
@@ -146,10 +153,11 @@ def sklearn_cross_val_lambdas(data, polyDegrees: list[int], nfolds, model=Ridge(
     return error, variance
 
 
-def kfold_score_degrees(data, polyDegrees: list[int], kfolds: int, modelType=Ridge):
+def HomeMade_cross_val_lambdas(data, kfolds: int, model=Ridge()):
     """
     HomeCooked cross-val using Kfold. for polydegrees and lambda.
     """
+    polyDegrees = range(1,maxDim+1)
     n_degrees = len(polyDegrees)
     n_lambds = lambds.size
 
@@ -164,7 +172,6 @@ def kfold_score_degrees(data, polyDegrees: list[int], kfolds: int, modelType=Rid
         X = model.create_X(data.x_, data.y_, degree)
 
         for j, lambd in enumerate(lambds):
-            model = modelType(lambd)
             for k, (train_i, test_i) in enumerate(Kfold.split(X)):
 
                 X_train = X[train_i]
@@ -172,7 +179,7 @@ def kfold_score_degrees(data, polyDegrees: list[int], kfolds: int, modelType=Rid
                 z_test = data.z_[test_i]
                 z_train = data.z_[train_i]
 
-                model.fit(X_train, z_train)
+                model.fit(X_train, z_train, lambd)
 
                 z_pred = model.predict(X_test)
 

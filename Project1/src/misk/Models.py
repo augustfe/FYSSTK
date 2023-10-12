@@ -29,13 +29,16 @@ class Model:
 
 
 class Ridge(Model):
-    def __init__(self):
+    def __init__(self, lambd = None):
         super().__init__()
         self.modelName = "Ridge"
-        self.lambd = None
-
-    def fit(self, X, y, lambd: int = 1):
         self.lambd = lambd
+
+    def fit(self, X, y, lambd: int = None):
+        if lambd != None:
+            self.lambd = lambd
+        if self.lambd == None:
+            raise ValueError("No lambda provided")
         Identity = np.identity(X.shape[1])
         self.beta = np.linalg.pinv(X.T @ X + self.lambd * Identity) @ X.T @ y
         self.fitted = True
@@ -52,13 +55,18 @@ class OLS(Model):
         return self.beta
 
 class Lasso(Model):
-    def __init__(self):
+    def __init__(self, lambd=None):
         super().__init__()
         self.modelName = "Lasso"
-        self.lambd = None
+        self.lambd = lambd
         self.lasso_model = None
 
-    def fit(self, X, y, lambd: float = 1.0):
+    def fit(self, X, y, lambd = None):
+        if lambd != None:
+            self.lambd = lambd
+        if self.lambd == None:
+            raise ValueError("No lambda/alpha provided")
+
         self.lambd = lambd
         self.lasso_model = Lass(alpha=lambd, max_iter=100000)
         self.lasso_model.fit(X, y)

@@ -4,7 +4,7 @@ import seaborn as sns
 from globals import *
 
 
-def create_heatmap(MSE_test, lambds, title):
+def create_heatmap(MSE_test, lambds = lambds, title = None):
     """
     Creates a heatmap plot of the test set MSE given the results of the model for different polynomial degrees and lambda values.
 
@@ -46,6 +46,9 @@ def create_heatmap(MSE_test, lambds, title):
     ax.set_ylabel("Polynomial Degree")  # fontsize=?
 
     # Set title
+    if title == None:
+        title = "MSE"
+
     ax.set_title(
         title, fontweight="bold", fontsize=20, pad=25
     )  # fontsize=? fontweihgt='bold'
@@ -53,7 +56,7 @@ def create_heatmap(MSE_test, lambds, title):
     fig.tight_layout()
 
     if savePlots:
-        plt.savefig(figsPath / f"Heatmap_{method}.png", dpi=300)
+        plt.savefig(figsPath / f"Heatmap_{title}.png", dpi=300)
     if showPlots:
         plt.show()
     plt.clf()

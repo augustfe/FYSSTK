@@ -9,7 +9,7 @@ from sklearn.preprocessing import StandardScaler
 from pathlib import Path
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
-from resampling import bootstrap_polydegrees
+from resampling import bootstrap_degrees, kfold_score_degrees
 from plotBetas import plotBeta
 from metrics import *
 from globals import *
@@ -106,7 +106,7 @@ def OLS_train_test(data, savePlots=False, showPlots=True):
     plotScores(data, MSETrain, MSETest, R2Scores, "OLS")
 
 
-def plot_Bias_VS_Varaince(data):
+def plot_Bias_VS_Varaince(data, title=None):
     """
     Plots variance, error(MSE), and bias using bootstrapping as resampling technique.
 
@@ -120,17 +120,45 @@ def plot_Bias_VS_Varaince(data):
 
     """
     n_boostraps = 400
-    polyDegrees = range(maxDim)
-    error, bias, variance = bootstrap_polydegrees(data, polyDegrees, n_boostraps, OLS())
-    # print(error)
-    # print(bias)
-    # print(variance)
+    error, bias, variance = bootstrap_degrees(data, n_boostraps, OLS())
+    polyDegrees = range(1,maxDim+1)
+
+    if title==None:
+        title="Bias Variance Tradeoff OLS"
 
     plt.plot(polyDegrees, error, label="Error")
     plt.plot(polyDegrees, bias, label="bias")
     plt.plot(polyDegrees, variance, label="Variance")
+    plt.title(title)
     plt.legend()
-    plt.show()
+    if savePlots:
+        plt.savefig(figsPath / f"{title}.png", dpi=300)
+    if showPlots:
+        plt.show()
+    plt.clf()
+
+def bootstrap_vs_cross_val_OLS(data):
+    """
+    Here we wish to compare our bootstrap to cross val.
+    guessing that plotting the variance, bias and errors in the same plot
+    is fine
+    """
+    polyDegrees
+    error_boot, bias_boot, variance_boot = bootstrap_degrees(data, n_boostraps=100)
+    #error_CV, varaince_CV = sklearn_cross_val_OLS(x, y, z, polyDegrees, kfolds)
+    error_kfold, variance_kfold = kfold_score_degreess(x, y, z, polyDegrees, kfolds)
+
+    # plt.plot(polyDegrees, error_boot, label="Boostrap Error")
+    # plt.plot(polyDegrees, variance_boot, label="Boostrap Variance")
+    plt.plot(polyDegrees, error_kfold, "b", label="Kfold Error")
+    # plt.plot(polyDegrees, variance_kfold, label="Kfold variance")
+    plt.plot(polyDegrees, error_CV, "r--", label="cross val Error")
+    plt.legend()
+    if savePlots:
+        plt.savefig(figsPath / f"Heatmap_{method}.png", dpi=300)
+    if showPlots:
+        plt.show()
+    plt.clf()
 
 
 if __name__ == "__main__":
