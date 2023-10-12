@@ -45,7 +45,8 @@ def heatmap_no_resampling(data, model=Ridge(), title=None):
 
 
 def heatmap_bootstrap(data, model=Ridge(), var = False, title=None):
-    error, bias, variance = bootstrap_lambdas(data, Ridge())
+    n_boostraps = 100
+    error, bias, variance = bootstrap_lambdas(data, n_boostraps, Ridge())
     if title == None:
         title = model.modelName
     if var:

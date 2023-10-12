@@ -10,7 +10,7 @@ from resampling import *
 from metrics import *
 from Models import OLS, Ridge, Lasso
 from FrankeData import FrankeData
-from RegularizedRegression import heatmap_no_resampling
+from RegularizedRegression import heatmap_no_resampling, heatmap_bootstrap, heatmap_sklearn_cross_val, heatmap_HomeMade_cross_val
 from globals import *
 
 
@@ -31,6 +31,6 @@ data = FrankeData(60, 0.2, maxDim)
 #plot_Bias_VS_Varaince(data)
 
 # need to do f. That is compare boostrap and cross val
-bootstrap_lambdas(data)
-#heatmap_sklearn_cross_val(data)
+#heatmap_bootstrap(data)
+heatmap_sklearn_cross_val(data)
 #heatmap_HomeMade_cross_val(data)

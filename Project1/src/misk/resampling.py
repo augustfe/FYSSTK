@@ -37,7 +37,7 @@ def bootstrap_degrees(data, n_boostraps, model=OLS()):
     return error, bias, variance
 
 
-def bootstrap_lambdas(data, model=Ridge()):
+def bootstrap_lambdas(data, n_boostraps, model=Ridge()):
     """
     performs bootstrap on polydegrees and hyperparamater lambds
     for regularized regression
@@ -57,7 +57,7 @@ def bootstrap_lambdas(data, model=Ridge()):
         z_test, z_train = data.z_test, data.z_train
 
         z_test = z_test.reshape(z_test.shape[0], 1)
-        for i, lambd in enumerate(lambds):
+        for j, lambd in enumerate(lambds):
 
             z_pred = np.empty((z_test.shape[0], n_boostraps))
             for k in range(n_boostraps):
