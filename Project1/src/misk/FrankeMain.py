@@ -12,12 +12,13 @@ from metrics import*
 from HomeCookedModels import OLS, Ridge
 from FrankeData import FrankeData
 from RegularizedRegression import heatmap_no_resampling
+from globals import*
 
 
-data = FrankeData(21, 0.2, 13)
+data = FrankeData(33, 0.2, maxDim)
 
 #make franke plot
-#data.plotFranke(showPlots = True, savePlots = False)
+data.plotFranke()
 
 #THE CLASSIC
 #OLS_train_test(data, showPlots = True, savePlots = False)

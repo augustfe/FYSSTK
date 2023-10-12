@@ -4,6 +4,8 @@ import seaborn as sns
 
 from sklearn.model_selection import train_test_split
 from globals import*
+from matplotlib import cm
+from matplotlib.ticker import LinearLocator, FormatStrFormatter
 
 class FrankeData:
     """

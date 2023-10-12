@@ -42,6 +42,7 @@ def heatmap_no_resampling(data, modelType = Ridge, title = None):
         title = f"{modelType}"
     create_heatmap(MSETest, lambds, title)
 
+
 def heatmap_boostrap(data, modelType = Ridge, title = None):
     nlambds = lambds.size
 

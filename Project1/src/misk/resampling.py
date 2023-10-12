@@ -7,20 +7,18 @@ from sklearn.utils import resample
 from globals import*
 
 
-def bootstrap(data, polyDegrees, n_boostraps, model = OLS()):
+def bootstrap_polydegrees(data, polyDegrees, n_boostraps, model = OLS()):
     n_degrees = len(polyDegrees)
 
     error = np.zeros(n_degrees)
     bias = np.zeros(n_degrees)
     variance = np.zeros(n_degrees)
-
+    
     for j, dim in enumerate(polyDegrees):
         X_train = data.create_X(data.x_train, data.y_train, dim)
         X_test = data.create_X(data.x_test, data.y_test, dim)
 
         z_test, z_train = data.z_test, data.z_train
-
-        z_test = z_test.reshape(z_test.shape[0], 1)
         z_pred = np.empty((z_test.shape[0], n_boostraps))
 
         for i in range(n_boostraps):
@@ -32,7 +30,38 @@ def bootstrap(data, polyDegrees, n_boostraps, model = OLS()):
         bias[j] = get_bias(z_test, z_pred)
         variance[j] = get_variance(z_pred)
 
-        return error, bias, variance
+    return error, bias, variance
+
+
+def boostrap_lambdas(data, modelType=Ridge):
+    n_degrees = len(polyDegrees)
+    n_lambds = lambds.size
+
+    error = np.zeros((n_degrees,n_lambds))
+    bias = np.zeros((n_degrees,n_lambds))
+    variance = np.zeros((n_degrees,n_lambds))
+
+    for i, dim in enumerate(polyDegrees):
+        X_train = data.create_X(data.x_train, data.y_train, dim)
+        X_test = data.create_X(data.x_test, data.y_test, dim)
+
+        z_test, z_train = data.z_test, data.z_train
+
+        z_test = z_test.reshape(z_test.shape[0], 1)
+        for i,lambd in enumerate(lambds):
+
+            z_pred = np.empty((z_test.shape[0], n_boostraps))
+            model = modelType(lambd)
+            for k in range(n_boostraps):
+                X_, z_ = resample(X_train, z_train)
+                model.fit(X_,z_)
+                z_pred[:, k] = model.predict(X_test).ravel()
+
+            error[i,j] = mean_MSE(z_test, z_pred)
+            bias[i,j] = get_bias(z_test, z_pred)
+            variance[i,j] = get_variance(z_pred)
+
+    return error, bias, variance
 
 def sklearn_cross_val(data, polyDegrees: list[int], nfolds, model = OLS()):
     n_degrees = len(polyDegrees)

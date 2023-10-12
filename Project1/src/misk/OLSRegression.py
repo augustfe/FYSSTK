@@ -10,7 +10,7 @@ from sklearn.preprocessing import StandardScaler
 from pathlib import Path
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
-from resampling import bootstrap
+from resampling import bootstrap_polydegrees
 from plotBetas import plotBeta
 from metrics import*
 from globals import*
@@ -115,8 +115,11 @@ def plot_Bias_VS_Varaince(data):
 
     """
     n_boostraps = 400
-    polyDegrees = range(data.maxDim)
-    error, bias, variance = bootstrap(data, polyDegrees, n_boostraps, OLS())
+    polyDegrees = range(maxDim)
+    error, bias, variance = bootstrap_polydegrees(data, polyDegrees, n_boostraps, OLS())
+    #print(error)
+    #print(bias)
+    #print(variance)
 
     plt.plot(polyDegrees, error, label="Error")
     plt.plot(polyDegrees, bias, label="bias")
