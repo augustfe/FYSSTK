@@ -10,10 +10,10 @@ from sklearn.preprocessing import StandardScaler
 from pathlib import Path
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
+from globals import *
 
-lambds = globals.lambds
 
-def create_heatmap(self, MSE_test, lambds, title):
+def create_heatmap(MSE_test, lambds, title):
     """
     Function for making a heatmap given lambdas and MSE_test
     Have to make sure that number of degrees is equal to number of
@@ -49,4 +49,8 @@ def create_heatmap(self, MSE_test, lambds, title):
 
     fig.tight_layout()
 
-    plt.show()
+    if savePlots:
+        plt.savefig(figsPath / f"Heatmap_{method}.png", dpi=300)
+    if showPlots:
+        plt.show()
+    plt.clf()

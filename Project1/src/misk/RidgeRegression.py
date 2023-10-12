@@ -1,7 +1,7 @@
 import numpy as np
 import globals
-from Ridge import Ridge
-import create_heatmap from heatmap
+from HomeCookedModels import Ridge
+from heatmap import create_heatmap
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
@@ -12,8 +12,8 @@ from sklearn.preprocessing import StandardScaler
 from pathlib import Path
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
-
-def Ridge(data):
+from metrics import*
+def Ridge_no_resampling(data):
     lambds = globals.lambds
     maxDim = globals.maxDim
     nlambds = lambds.size
@@ -33,23 +33,22 @@ def Ridge(data):
             scaler.fit(X_train)
             scaler.transform(X_train)
             scaler.transform(X_test)
-
-            beta = data.create_ridge_beta(X_train, data.z_train, lmbda)
-            model = Ridge
+            model = Ridge(lmbda)
+            beta = model.fit(X_train, data.z_train)
             # betas.append(beta)
 
-            z_tilde = X_train @ beta
-            z_pred = X_test @ beta
+            z_tilde = model.predict(X_train)
+            z_pred = model.predict(X_test)
 
-            MSETrain[dim, i] = data.MSE(data.z_train, z_tilde)
-            MSETest[dim, i] = data.MSE(data.z_test, z_pred)
-            R2Scores[dim, i] = data.R2Score(data.z_test, z_pred)
-    title = ""
-    create_heatmap(MSETest, lmbdas, title)
+            MSETrain[dim, i] = MSE(data.z_train, z_tilde)
+            MSETest[dim, i] = MSE(data.z_test, z_pred)
+            R2Scores[dim, i] = R2Score(data.z_test, z_pred)
+    title = "Ridge"
+    create_heatmap(MSETest, lambds, title)
 
-def Ridge_bootstrap:
+
+def Ridge_bootstrap():
     return
 
-def Ridge_cross_val:
+def Ridge_cross_val():
     return
-    

@@ -41,4 +41,4 @@ def Lasso(data, nLambdas: int):
             MSETest[dim, i] = data.MSE(data.z_test, z_pred)
             R2Scores[dim, i] = data.R2Score(data.z_test, z_pred)
     title = "sa"
-    data.lambda_heat_map(MSETest, lmbdas, title)
+    lambda_heat_map(MSETest, lmbdas, title)
