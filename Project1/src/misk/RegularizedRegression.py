@@ -1,21 +1,15 @@
 import numpy as np
-import globals
 from HomeCookedModels import Ridge
 from heatmap import create_heatmap
 import matplotlib.pyplot as plt
 import numpy as np
-import seaborn as sns
 
 from sklearn.linear_model import Lasso
-from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-from pathlib import Path
-from matplotlib import cm
-from matplotlib.ticker import LinearLocator, FormatStrFormatter
 from metrics import*
-def Ridge_no_resampling(data):
-    lambds = globals.lambds
-    maxDim = globals.maxDim
+from globals import*
+
+def heatmap_no_resampling(data, modelType = Ridge, title = None):
     nlambds = lambds.size
 
     MSETrain = np.zeros((maxDim, nlambds))
@@ -33,7 +27,8 @@ def Ridge_no_resampling(data):
             scaler.fit(X_train)
             scaler.transform(X_train)
             scaler.transform(X_test)
-            model = Ridge(lmbda)
+
+            model = modelType(lmbda)
             beta = model.fit(X_train, data.z_train)
             # betas.append(beta)
 
@@ -43,12 +38,12 @@ def Ridge_no_resampling(data):
             MSETrain[dim, i] = MSE(data.z_train, z_tilde)
             MSETest[dim, i] = MSE(data.z_test, z_pred)
             R2Scores[dim, i] = R2Score(data.z_test, z_pred)
-    title = "Ridge"
+    if title == None:
+        title = f"{modelType}"
     create_heatmap(MSETest, lambds, title)
-
-
-def Ridge_bootstrap():
+def heatmap_boostrap():
     return
-
-def Ridge_cross_val():
+def heatmap_HomeMade_cross_val():
+    return
+def heatmap_sklearn_cross_val():
     return

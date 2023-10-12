@@ -8,11 +8,14 @@ from sklearn.preprocessing import StandardScaler
 from pathlib import Path
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
+from globals import*
 
 class FrankeData:
     """
     Pourpuse of this class is to hold all of our data.
-    That way we can use the exact same data for all methods
+    That way we can use the exact same data for all methods.
+    Also it's simple to create a similiar class for the terrain
+    data.
     """
     def __init__(
         self,
@@ -113,7 +116,7 @@ class FrankeData:
 
         return X
 
-    def plotFranke(self, savePlots = False, showPlots = False):
+    def plotFranke(self):
         fig = plt.figure(figsize=plt.figaspect(0.5))
 
         ax = fig.add_subplot(1, 2, 1, projection="3d")

@@ -13,11 +13,10 @@ from matplotlib.ticker import LinearLocator, FormatStrFormatter
 from resampling import bootstrap
 from plotBetas import plotBeta
 from metrics import*
-
+from globals import*
 
 def plotScores(
-    data, MSEs_train: np.array, MSEs_test: np.array, R2s: np.array, methodname: str = "OLS", savePlots = False,
-    showPlots = False,
+    data, MSEs_train: np.array, MSEs_test: np.array, R2s: np.array, methodname: str = "OLS"
 ) -> None:
     """
     Plots MSE_train, MSE_test, and R2 values as a function of polynomial degree
@@ -99,7 +98,7 @@ def OLS_train_test(data, savePlots = False, showPlots = True):
         R2Scores[dim] = R2Score(data.z_test, z_pred)
 
     plotBeta(betas, "OLS")
-    plotScores(data, MSETrain, MSETest, R2Scores, "OLS", savePlots = savePlots, showPlots=showPlots)
+    plotScores(data, MSETrain, MSETest, R2Scores, "OLS")
 
 
 def plot_Bias_VS_Varaince(data):

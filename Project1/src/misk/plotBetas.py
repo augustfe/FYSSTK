@@ -10,7 +10,7 @@ from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
 from globals import*
 
-def plotBeta(betas, title, showPlots = True,savePlots = False, methodname = "OLS"):
+def plotBeta(betas, title, methodname = "OLS"):
     dims = range(len(betas))
     for dim in dims:
         for beta in betas[dim]:
