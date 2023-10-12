@@ -5,7 +5,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from resampling import bootstrap_lambdas, sklearn_cross_val_lambdas, HomeMade_cross_val_lambdas
-from sklearn.linear_model import Lasso
+from sklearn.linear_model import Lasso as LassoSKL
+from sklearn.linear_model import Ridge as RidgeSKL
+from sklearn.linear_model import LinearRegression as OLSSKL
 from sklearn.preprocessing import StandardScaler
 from metrics import *
 from globals import *
@@ -65,10 +67,10 @@ def heatmap_HomeMade_cross_val(data, model = Ridge(), var = False, title=None):
         create_heatmap(error, lambds, title)
 
 
-def heatmap_sklearn_cross_val(data, model = Ridge(), var = False, title=None):
-    error, variance = HomeMade_cross_val_lambdas(data, kfolds=5, model=model)
+def heatmap_sklearn_cross_val(data, model = RidgeSKL(), var = False, title=None):
+    error, variance = sklearn_cross_val_lambdas(data, kfolds=5, model=model)
     if title == None:
-        title = model.modelName
+        title = model.__class__.__name__
     if var:
         create_heatmap(variance, lambds, title)
     else:

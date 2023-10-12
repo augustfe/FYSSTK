@@ -6,6 +6,9 @@ from sklearn.utils import resample
 from globals import *
 from sklearn.model_selection import cross_val_score, KFold
 from tqdm import tqdm
+from sklearn.linear_model import Lasso as LassoSKL
+from sklearn.linear_model import Ridge as RidgeSKL
+from sklearn.linear_model import LinearRegression as OLSSKL
 
 
 def bootstrap_degrees(data, n_boostraps, model=OLS()):
@@ -74,7 +77,7 @@ def bootstrap_lambdas(data, n_boostraps, model=Ridge()):
     return error, bias, variance
 
 
-def sklearn_cross_val(data, nfolds, model=OLS()):
+def sklearn_cross_val(data, nfolds, model=OLSSKL()):
     """
     sklearn cross val for on polynomial degrees
     """
@@ -83,9 +86,9 @@ def sklearn_cross_val(data, nfolds, model=OLS()):
 
     error = np.zeros(n_degrees)
     variance = np.zeros(n_degrees)
-
+    dummy_model = Model()
     for i, degree in tqdm(enumerate(polyDegrees)):
-        X = model.create_X(data.x, data.y, degree)
+        X = dummy_model.create_X(data.x, data.y, degree)
 
         scores = cross_val_score(
             model, X, data.z, scoring="neg_mean_squared_error", cv=nfolds
@@ -131,7 +134,7 @@ def kfold_score_degrees(data, kfolds: int, model=OLS()):
     return error, variance
 
 
-def sklearn_cross_val_lambdas(data, kfolds, modelType=Ridge):
+def sklearn_cross_val_lambdas(data, kfolds, model=RidgeSKL()):
     """
     sklearn cross val for polydegrees and lambda
     """
@@ -141,11 +144,14 @@ def sklearn_cross_val_lambdas(data, kfolds, modelType=Ridge):
     n_lambds = len(lambds)
     error = np.zeros((n_degrees, n_lambds))
     variance = np.zeros((n_degrees, n_lambds))
+
     dummy_model = Model() #only needed because of where create X is
+
     for i, degree in tqdm(enumerate(polyDegrees)):
         X = dummy_model.create_X(data.x_, data.y_, degree)
         for j, lambd in enumerate(lambds):
-            model = modelType(lambd)
+            model.lambd = lambd
+
             scores = cross_val_score(
                 model, X, data.z_, scoring="neg_mean_squared_error", cv=kfolds
             )
