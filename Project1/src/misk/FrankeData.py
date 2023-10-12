@@ -1,14 +1,19 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import seaborn as sns
+
 
 from sklearn.model_selection import train_test_split
-from globals import *
 from matplotlib import cm
+from pathlib import Path
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
 
 
-class FrankeData:
+class Data:
+    def __init__(self):
+        raise NotImplementedError
+
+
+class FrankeData(Data):
     """
     Pourpuse of this class is to hold all of our data.
     That way we can use the exact same data for all methods.
@@ -22,6 +27,9 @@ class FrankeData:
         numPoints: int,
         alphNoise: float,
         maxDim: int,
+        savePlots: bool = False,
+        showPlots: bool = True,
+        figsPath: Path = None,
     ):
         """.
 
@@ -40,6 +48,10 @@ class FrankeData:
         self.N = numPoints
         self.alphNoise = alphNoise
         self.maxDim = maxDim
+
+        self.savePlots = savePlots
+        self.showPlots = showPlots
+        self.figsPath = figsPath
 
         self.x_, self.y_, self.z_ = self.generate_data(self.N, self.alphNoise)
 
@@ -144,8 +156,8 @@ class FrankeData:
 
         plt.tight_layout()
 
-        if savePlots:
-            plt.savefig(figsPath / "FrankesFunction.png", dpi=300)
-        if showPlots:
+        if self.savePlots:
+            plt.savefig(self.figsPath / "FrankesFunction.png", dpi=300)
+        if self.showPlots:
             plt.show()
         plt.clf()

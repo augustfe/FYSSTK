@@ -46,7 +46,7 @@ def create_heatmap(MSE_test, lambds=lambds, title=None):
     ax.set_ylabel("Polynomial Degree")  # fontsize=?
 
     # Set title
-    if title == None:
+    if title is None:
         title = "MSE"
 
     ax.set_title(

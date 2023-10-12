@@ -7,12 +7,14 @@ from sklearn.model_selection import train_test_split
 from sklearn.model_selection import cross_val_score, KFold
 from sklearn.preprocessing import StandardScaler
 from pathlib import Path
+from tqdm import tqdm
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
 from resampling import bootstrap_degrees, kfold_score_degrees
 from plotBetas import plotBeta
-from metrics import *
-from globals import *
+from metrics import MSE, R2Score
+
+# from globals import *
 
 
 def plotScores(
@@ -21,6 +23,9 @@ def plotScores(
     MSEs_test: np.array,
     R2s: np.array,
     methodname: str = "OLS",
+    savePlots: bool = False,
+    showPlots: bool = True,
+    figsPath: Path = None,
 ) -> None:
     """
     Plots MSE_train, MSE_test, and R2 values as a function of polynomial degree
@@ -80,12 +85,13 @@ def plotScores(
     plt.clf()
 
 
-def OLS_train_test(data, savePlots=False, showPlots=True):
+def OLS_train_test(data, **kwargs):
     betas = []
     MSETrain = np.zeros(data.maxDim)
     MSETest = np.zeros(data.maxDim)
     R2Scores = np.zeros(data.maxDim)
 
+    pbar = tqdm(total=data.maxDim, desc="OLS MSEs")
     for dim in range(data.maxDim):
         model = OLS()
         X_train = model.create_X(data.x_train, data.y_train, dim)
@@ -100,12 +106,20 @@ def OLS_train_test(data, savePlots=False, showPlots=True):
         MSETrain[dim] = MSE(data.z_train, z_tilde)
         MSETest[dim] = MSE(data.z_test, z_pred)
         R2Scores[dim] = R2Score(data.z_test, z_pred)
+        pbar.update(1)
 
-    plotBeta(betas, "OLS")
-    plotScores(data, MSETrain, MSETest, R2Scores, "OLS")
+    plotBeta(betas, "OLS", **kwargs)
+    plotScores(data, MSETrain, MSETest, R2Scores, "OLS", **kwargs)
 
 
-def plot_Bias_VS_Varaince(data, title=None):
+def plot_Bias_VS_Variance(
+    data,
+    maxDim: int = 5,
+    title: str = None,
+    savePlots: bool = False,
+    showPlots: bool = False,
+    figsPath: Path = None,
+):
     """
     Plots variance, error(MSE), and bias using bootstrapping as resampling technique.
 
@@ -137,7 +151,13 @@ def plot_Bias_VS_Varaince(data, title=None):
     plt.clf()
 
 
-def bootstrap_vs_cross_val_OLS(data):
+def bootstrap_vs_cross_val_OLS(
+    data,
+    maxDim: int = 5,
+    savePlots: bool = False,
+    showPlots: bool = True,
+    figsPath: Path = None,
+):
     """
     Here we wish to compare our bootstrap to cross val.
     guessing that plotting the variance, bias and errors in the same plot
@@ -147,8 +167,8 @@ def bootstrap_vs_cross_val_OLS(data):
     error_kfold, variance_kfold = kfold_score_degrees(data, kfolds=10)
     error_boot, bias_boot, variance_boot = bootstrap_degrees(data, n_boostraps=100)
     # error_CV, varaince_CV = sklearn_cross_val_OLS(x, y, z, polyDegrees, kfolds)
-    print(error_kfold)
-    print(error_boot)
+    # print(error_kfold)
+    # print(error_boot)
     # plt.plot(polyDegrees, error_boot, label="Boostrap Error")
     # plt.plot(polyDegrees, variance_boot, label="Boostrap Variance")
     plt.plot(polyDegrees, error_kfold, "b", label="Kfold CV Error")
@@ -156,7 +176,7 @@ def bootstrap_vs_cross_val_OLS(data):
     plt.plot(polyDegrees, error_boot, "r--", label="Boostrap Error")
     plt.legend()
     if savePlots:
-        plt.savefig(figsPath / f"Heatmap_{method}.png", dpi=300)
+        plt.savefig(figsPath / f"Heatmap_OLS_{maxDim}.png", dpi=300)
     if showPlots:
         plt.show()
     plt.clf()

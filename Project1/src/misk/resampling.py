@@ -3,6 +3,7 @@ from Models import OLS, Ridge, Lasso, Model
 import numpy as np
 from metrics import *
 from sklearn.utils import resample
+
 from globals import *
 from sklearn.model_selection import cross_val_score, KFold
 from tqdm import tqdm
@@ -21,8 +22,11 @@ def bootstrap_degrees(data, n_boostraps, model=OLS()):
     error = np.zeros(n_degrees)
     bias = np.zeros(n_degrees)
     variance = np.zeros(n_degrees)
-
-    for j, dim in tqdm(enumerate(polyDegrees)):
+    pbar = tqdm(
+        total=len(polyDegrees) * n_boostraps,
+        desc=f"Bootstrap {model.__class__.__name__}",
+    )
+    for j, dim in enumerate(polyDegrees):
         X_train = model.create_X(data.x_train, data.y_train, dim)
         X_test = model.create_X(data.x_test, data.y_test, dim)
 
@@ -33,6 +37,7 @@ def bootstrap_degrees(data, n_boostraps, model=OLS()):
             X_, z_ = resample(X_train, z_train)
             model.fit(X_, z_)
             z_pred[:, i] = model.predict(X_test).ravel()
+            pbar.update(1)
 
         error[j] = mean_MSE(z_test, z_pred)
         bias[j] = get_bias(z_test, z_pred)
@@ -55,7 +60,12 @@ def bootstrap_lambdas(data, n_boostraps, model=Ridge()):
     variance = np.zeros((n_degrees, n_lambds))
 
     # for i, dim in tqdm(enumerate(polyDegrees)):
-    for i in tqdm(range(maxDim)):
+    pbar = tqdm(
+        total=n_degrees * n_lambds * n_boostraps,
+        desc=f"Bootstrap for {model.__class__.__name__}",
+    )
+
+    for i in range(maxDim):
         dim = i + 1
         X_train = model.create_X(data.x_train, data.y_train, dim)
         X_test = model.create_X(data.x_test, data.y_test, dim)
@@ -64,12 +74,12 @@ def bootstrap_lambdas(data, n_boostraps, model=Ridge()):
 
         z_test = z_test.reshape(z_test.shape[0], 1)
         for j, lambd in enumerate(lambds):
-
             z_pred = np.empty((z_test.shape[0], n_boostraps))
             for k in range(n_boostraps):
                 X_, z_ = resample(X_train, z_train)
                 model.fit(X_, z_, lambd)
                 z_pred[:, k] = model.predict(X_test).ravel()
+                pbar.update(1)
 
             error[i, j] = mean_MSE(z_test, z_pred)
             bias[i, j] = get_bias(z_test, z_pred)
@@ -88,11 +98,11 @@ def sklearn_cross_val(data, nfolds, model=OLSSKL()):
     error = np.zeros(n_degrees)
     variance = np.zeros(n_degrees)
     dummy_model = Model()
-    for i, degree in tqdm(enumerate(polyDegrees)):
+    for i, degree in tqdm(enumerate(polyDegrees), total=maxDim):
         X = dummy_model.create_X(data.x, data.y, degree)
 
         scores = cross_val_score(
-            model, X, data.z, scoring="neg_mean_squared_error", cv=nfolds
+            model, X, data.z, scoring="neg_mean_squared_error", cv=nfolds, n_jobs=-1
         )
         error[i] = -scores.mean()
         variance[i] = scores.std()
@@ -112,7 +122,8 @@ def kfold_score_degrees(data, kfolds: int, model=OLS()):
 
     Kfold = KFold(n_splits=kfolds, shuffle=True)
 
-    for i, degree in tqdm(enumerate(polyDegrees)):
+    pbar = tqdm(total=maxDim * kfolds, desc=f"K-Fold {model.__class__.__name__}")
+    for i, degree in enumerate(polyDegrees):
         scores = np.zeros(kfolds)
 
         X = model.create_X(data.x_, data.y_, degree)
@@ -128,8 +139,9 @@ def kfold_score_degrees(data, kfolds: int, model=OLS()):
             z_pred = model.predict(X_test)
 
             scores[j] = MSE(z_pred, z_test)
+            pbar.update(1)
 
-        print(scores)
+        # print(scores)
         error[i] = scores.mean()
         variance[i] = scores.std()
     return error, variance
@@ -148,16 +160,25 @@ def sklearn_cross_val_lambdas(data, kfolds, model=RidgeSKL()):
 
     dummy_model = Model()  # only needed because of where create X is
 
-    for i, degree in tqdm(enumerate(polyDegrees)):
+    pbar = tqdm(
+        total=n_degrees * n_lambds, desc=f"sklearn CV {model.__class__.__name__}"
+    )
+    for i, degree in enumerate(polyDegrees):
         X = dummy_model.create_X(data.x_, data.y_, degree)
         for j, lambd in enumerate(lambds):
-            model.lambd = lambd
+            model.alpha = lambd
 
             scores = cross_val_score(
-                model, X, data.z_, scoring="neg_mean_squared_error", cv=kfolds
+                model,
+                X,
+                data.z_,
+                scoring="neg_mean_squared_error",
+                cv=kfolds,
+                n_jobs=-1,
             )
             error[i, j] = -scores.mean()
             variance[i, j] = scores.std()
+            pbar.update(1)
 
     return error, variance
 
@@ -175,14 +196,17 @@ def HomeMade_cross_val_lambdas(data, kfolds: int = 5, model=Ridge()):
 
     Kfold = KFold(n_splits=kfolds, shuffle=True)
 
-    for i, degree in tqdm(enumerate(polyDegrees)):
+    pbar = tqdm(
+        total=n_degrees * n_lambds * kfolds,
+        desc=f"Homemade CV {model.__class__.__name__}",
+    )
+    for i, degree in enumerate(polyDegrees):
         scores = np.zeros(kfolds)
 
         X = model.create_X(data.x_, data.y_, degree)
 
         for j, lambd in enumerate(lambds):
             for k, (train_i, test_i) in enumerate(Kfold.split(X)):
-
                 X_train = X[train_i]
                 X_test = X[test_i]
                 z_test = data.z_[test_i]
@@ -193,7 +217,8 @@ def HomeMade_cross_val_lambdas(data, kfolds: int = 5, model=Ridge()):
                 z_pred = model.predict(X_test)
 
                 scores[k] = MSE(z_pred, z_test)
-
+                pbar.update(1)
+            print(scores)
             error[i, j] = scores.mean()
             variance[i, j] = scores.std()
     return error, variance

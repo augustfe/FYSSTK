@@ -2,10 +2,18 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 
-from globals import *
+# from globals import *
+from pathlib import Path
 
 
-def plotBeta(betas, title, methodname="OLS"):
+def plotBeta(
+    betas,
+    title,
+    methodname="OLS",
+    savePlots: bool = False,
+    showPlots: bool = True,
+    figsPath: Path = None,
+):
     """
     Plots the beta values of a linear regression model for different polynomial degrees.
 
@@ -40,7 +48,7 @@ def plotBeta(betas, title, methodname="OLS"):
     plt.ylim((-maxBeta, maxBeta))
 
     if savePlots:
-        plt.savefig(figsPath / f"{methodname}_{maxDim}_betas.png", dpi=300)
+        plt.savefig(figsPath / f"{methodname}_{dims[-1]}_betas.png", dpi=300)
     if showPlots:
         plt.show()
     plt.close()

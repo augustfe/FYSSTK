@@ -15,6 +15,7 @@ from sklearn.linear_model import LinearRegression as OLSSKL
 from sklearn.preprocessing import StandardScaler
 from metrics import *
 from globals import *
+from tqdm import tqdm
 
 
 def heatmap_no_resampling(data, model=Ridge(), title=None):
@@ -26,9 +27,12 @@ def heatmap_no_resampling(data, model=Ridge(), title=None):
 
     scaler = StandardScaler()
 
+    pbar = tqdm(
+        total=maxDim * nlambds, desc=f"No resampling {model.__class__.__name__}"
+    )
+
     for dim in range(maxDim):
         for i, lmbda in enumerate(lambds):
-
             X_train = model.create_X(data.x_train, data.y_train, dim)
             X_test = model.create_X(data.x_test, data.y_test, dim)
 
@@ -45,6 +49,7 @@ def heatmap_no_resampling(data, model=Ridge(), title=None):
             # MSETrain[dim, i] = MSE(data.z_train, z_tilde)
             MSETest[dim, i] = MSE(data.z_test, z_pred)
             R2Scores[dim, i] = R2Score(data.z_test, z_pred)
+            pbar.update(1)
     if title == None:
         title = model.modelName
     create_heatmap(MSETest, lambds, title)
@@ -73,7 +78,7 @@ def heatmap_HomeMade_cross_val(data, model=Ridge(), var=False, title=None):
 
 def heatmap_sklearn_cross_val(data, model=RidgeSKL(), var=False, title=None):
     error, variance = sklearn_cross_val_lambdas(data, kfolds=5, model=model)
-    if title == None:
+    if title is None:
         title = model.__class__.__name__
     if var:
         create_heatmap(variance, lambds, title)
