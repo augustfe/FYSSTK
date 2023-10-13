@@ -224,7 +224,7 @@ class PolynomialLinearRegression:
             plt.savefig(self.figs / f"{methodname}_{self.maxDim}_MSE.png", dpi=300)
         if self.showPlots:
             plt.show()
-        plt.clf()
+        plt.close()
 
         color = "tab:blue"
         plt.ylabel("$R^2$")
@@ -240,7 +240,7 @@ class PolynomialLinearRegression:
             plt.savefig(self.figs / f"{methodname}_{self.maxDim}_R2.png", dpi=300)
         if self.showPlots:
             plt.show()
-        plt.clf()
+        plt.close()
 
     def OLS(self):
         methodname = "OLS"
@@ -364,7 +364,7 @@ class PolynomialLinearRegression:
             plt.savefig(self.figs / "FrankesFunction.png", dpi=300)
         if self.showPlots:
             plt.show()
-        plt.clf()
+        plt.close()
 
     def lambda_heat_map(self, MSE_test, lmbdas, method):
         """
@@ -410,7 +410,7 @@ class PolynomialLinearRegression:
             plt.savefig(self.figs / f"Heatmap_{method}.png", dpi=300)
         if self.showPlots:
             plt.show()
-        plt.clf()
+        plt.close()
 
 
 if __name__ == "__main__":
