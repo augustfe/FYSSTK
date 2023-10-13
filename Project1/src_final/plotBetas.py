@@ -27,7 +27,7 @@ def plotBeta(
         for param in beta:
             plt.scatter(i + 1, param, c="r", alpha=0.5)
 
-    plt.title(title)
+    plt.title(f"{title} for {methodname}")
     plt.xticks([dim + 1 for dim in range(len(betas))])
     plt.xlabel("Polynomial degree")
     plt.ylabel(r"$\beta_i$ value")

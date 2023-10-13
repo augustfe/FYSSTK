@@ -21,12 +21,13 @@ maxDim = 13
 lambds = np.logspace(-3, 7, 13)
 figsPath = Path(__file__).parent.parent / "figures"
 
-data = FrankeData(40, 0.2, maxDim, savePlots=False, showPlots=False, figsPath=figsPath)
+data = FrankeData(40, 0.2, maxDim, savePlots=True, showPlots=False, figsPath=figsPath)
 
 
 # make franke plot
-def Franke(save=False):
-    data.plotFranke()
+def Franke():
+    data.plotSurface()
+    # data.plotFranke()
 
 
 # THE CLASSIC
@@ -34,12 +35,23 @@ def Franke(save=False):
 
 def OLSAnalysis() -> None:
     "Run all the plots for Ordinary Least Squares"
-    OLS_train_test(data, showPlots=True, savePlots=False, figsPath=figsPath)
+    OLS_train_test(data, savePlots=True, showPlots=False, figsPath=figsPath, maxDim=5)
+    BVData = FrankeData(
+        20, 0.2, maxDim=25, savePlots=True, showPlots=False, figsPath=figsPath
+    )
     plot_Bias_VS_Variance(
-        data, maxDim=maxDim, showPlots=True, savePlots=False, figsPath=figsPath
+        BVData,
+        maxDim=13,
+        showPlots=False,
+        savePlots=True,
+        figsPath=figsPath,
+        title="Few points Bias Variance Tradeoff",
+    )
+    plot_Bias_VS_Variance(
+        data, maxDim=15, savePlots=True, showPlots=False, figsPath=figsPath
     )
     bootstrap_vs_cross_val_OLS(
-        data, maxDim=maxDim, showPlots=True, savePlots=False, figsPath=figsPath
+        data, maxDim=15, savePlots=True, showPlots=False, figsPath=figsPath
     )
 
 
@@ -64,6 +76,6 @@ def LassoAnalysis() -> None:
 # bootstrap_vs_cross_val
 
 if __name__ == "__main__":
-    Franke(False)
+    Franke()
     OLSAnalysis()
     # RidgeAnalysis()

@@ -66,4 +66,4 @@ def create_heatmap(
         plt.savefig(figsPath / f"Heatmap_{title}.png", dpi=300)
     if showPlots:
         plt.show()
-    plt.clf()
+    plt.close()

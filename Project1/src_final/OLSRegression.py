@@ -21,6 +21,7 @@ def plotScores(
     savePlots: bool = False,
     showPlots: bool = True,
     figsPath: Path = Path(".").parent,
+    maxDim: int = 15,
 ) -> None:
     """Plots MSE_train, MSE_test, and R2 values as a function of polynomial degree.
 
@@ -46,7 +47,7 @@ def plotScores(
         figsPath (Path):
             Where to save files to
     """
-    xVals = [i + 1 for i in range(data.maxDim)]
+    xVals = [i + 1 for i in range(maxDim)]
 
     color = "tab:red"
     plt.xlabel("Polynomial degree")
@@ -66,11 +67,14 @@ def plotScores(
     plt.legend()
 
     if savePlots:
-        plt.savefig(data.figs / f"{methodname}_{data.maxDim}_MSE.png", dpi=300)
+        plt.savefig(figsPath / f"{methodname}_{data.maxDim}_MSE.png", dpi=300)
     if showPlots:
         plt.show()
-    plt.clf()
+    plt.close()
+
     color = "tab:blue"
+    plt.xlabel("Polynomial degree")
+    plt.xticks(xVals)
     plt.ylabel("$R^2$")
     plt.plot(xVals, R2s, label="$R^2$ score", color=color)
 
@@ -84,10 +88,10 @@ def plotScores(
         plt.savefig(figsPath / f"{methodname}_{data.maxDim}_R2.png", dpi=300)
     if showPlots:
         plt.show()
-    plt.clf()
+    plt.close()
 
 
-def OLS_train_test(data: Data, **kwargs) -> None:
+def OLS_train_test(data: Data, maxDim: int, **kwargs) -> None:
     """Validation set for OLS.
 
     inputs:
@@ -95,12 +99,12 @@ def OLS_train_test(data: Data, **kwargs) -> None:
         **kwargs: savePlot, showPlots, figsPath, ...
     """
     betas = []
-    MSETrain = np.zeros(data.maxDim)
-    MSETest = np.zeros(data.maxDim)
-    R2Scores = np.zeros(data.maxDim)
+    MSETrain = np.zeros(maxDim)
+    MSETest = np.zeros(maxDim)
+    R2Scores = np.zeros(maxDim)
 
-    pbar = tqdm(total=data.maxDim, desc="OLS MSEs")
-    for dim in range(data.maxDim):
+    pbar = tqdm(total=maxDim, desc="OLS MSEs")
+    for dim in range(maxDim):
         model = OLS()
         X_train = model.create_X(data.x_train, data.y_train, dim)
         X_test = model.create_X(data.x_test, data.y_test, dim)
@@ -116,8 +120,8 @@ def OLS_train_test(data: Data, **kwargs) -> None:
         R2Scores[dim] = R2Score(data.z_test, z_pred)
         pbar.update(1)
 
-    plotBeta(betas, "OLS", **kwargs)
-    plotScores(data, MSETrain, MSETest, R2Scores, "OLS", **kwargs)
+    plotBeta(betas, r"$\beta$", "OLS", **kwargs)
+    plotScores(data, MSETrain, MSETest, R2Scores, "OLS", maxDim=maxDim, **kwargs)
 
 
 def plot_Bias_VS_Variance(
@@ -153,22 +157,24 @@ def plot_Bias_VS_Variance(
         n_bootstraps (int):
             Optional, default is 1000. Number of random samples to generate using bootstrapping
     """
-    error, bias, variance = bootstrap_degrees(data, n_bootstraps, OLS())
+    error, bias, variance = bootstrap_degrees(data, n_bootstraps, OLS(), maxDim=maxDim)
     polyDegrees = range(1, maxDim + 1)
 
     if title is None:
         title = "Bias Variance Tradeoff OLS"
 
     plt.plot(polyDegrees, error, label="Error")
-    plt.plot(polyDegrees, bias, label="bias")
+    plt.plot(polyDegrees, bias, label="Bias")
     plt.plot(polyDegrees, variance, label="Variance")
+    plt.xlabel("Polynomial degree")
+    plt.xticks(polyDegrees)
     plt.title(title)
     plt.legend()
     if savePlots:
         plt.savefig(figsPath / f"{'_'.join(title.split())}_{maxDim}.png", dpi=300)
     if showPlots:
         plt.show()
-    plt.clf()
+    plt.close()
 
 
 def bootstrap_vs_cross_val_OLS(
@@ -208,16 +214,21 @@ def bootstrap_vs_cross_val_OLS(
             Optional, default is 1000. Number of random samples to generate using bootstrapping
     """
     polyDegrees = range(1, maxDim + 1)
-    error_kfold, variance_kfold = kfold_score_degrees(data, kfolds=kfolds)
+    error_kfold, variance_kfold = kfold_score_degrees(
+        data, kfolds=kfolds, maxDim=maxDim
+    )
     error_boot, bias_boot, variance_boot = bootstrap_degrees(
-        data, n_bootstraps=n_bootstraps
+        data, n_bootstraps=n_bootstraps, maxDim=maxDim
     )
 
     plt.plot(polyDegrees, error_kfold, "b", label="Kfold CV Error")
     plt.plot(polyDegrees, error_boot, "r--", label="Bootstrap Error")
+    plt.title("Bootstrap vs CV for OLS")
+    plt.xlabel("Polynomial degree")
+    plt.ylabel("Error")
     plt.legend()
     if savePlots:
-        plt.savefig(figsPath / f"Heatmap_OLS_{maxDim}.png", dpi=300)
+        plt.savefig(figsPath / f"Bias_vs_Var_OLS_{maxDim}.png", dpi=300)
     if showPlots:
         plt.show()
-    plt.clf()
+    plt.close()

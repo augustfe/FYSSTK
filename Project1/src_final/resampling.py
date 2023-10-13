@@ -25,10 +25,6 @@ def bootstrap_degrees(
     returns:
         (tuple[np.array, np.array, np.array]) of (Error, Bias, Variance)
     """
-    if maxDim is None:
-        print("Warning, maxDim not set")
-        maxDim = 15
-
     polyDegrees = range(1, maxDim + 1)
     n_degrees = len(polyDegrees)
 

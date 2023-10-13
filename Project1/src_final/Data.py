@@ -14,13 +14,7 @@ class Data:
 
 
 class FrankeData(Data):
-    """
-    Pourpuse of this class is to hold all of our data.
-    That way we can use the exact same data for all methods.
-    Also it's simple to create a similiar class for the terrain
-    data.
-
-    """
+    "Class for holding all data relevant to Frank's function."
 
     def __init__(
         self,
@@ -154,7 +148,7 @@ class FrankeData(Data):
         # Add a color bar which maps values to colors.
         fig.colorbar(surf, shrink=0.5, aspect=10)
 
-        fig.suptitle("Frankes function")
+        fig.suptitle("Franke's function")
 
         plt.tight_layout()
 
@@ -162,7 +156,7 @@ class FrankeData(Data):
             plt.savefig(self.figsPath / "FrankesFunction.png", dpi=300)
         if self.showPlots:
             plt.show()
-        plt.clf()
+        plt.close()
 
 
 class TerrainData(Data):
