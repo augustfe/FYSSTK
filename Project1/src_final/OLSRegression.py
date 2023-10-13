@@ -1,15 +1,10 @@
-from Models import OLS, Ridge, Lasso
+from Models import OLS
+from Data import Data
 import matplotlib.pyplot as plt
 import numpy as np
-import seaborn as sns
 
-from sklearn.model_selection import train_test_split
-from sklearn.model_selection import cross_val_score, KFold
-from sklearn.preprocessing import StandardScaler
 from pathlib import Path
 from tqdm import tqdm
-from matplotlib import cm
-from matplotlib.ticker import LinearLocator, FormatStrFormatter
 from resampling import bootstrap_degrees, kfold_score_degrees
 from plotBetas import plotBeta
 from metrics import MSE, R2Score
@@ -18,31 +13,38 @@ from metrics import MSE, R2Score
 
 
 def plotScores(
-    data,
+    data: Data,
     MSEs_train: np.array,
     MSEs_test: np.array,
     R2s: np.array,
     methodname: str = "OLS",
     savePlots: bool = False,
     showPlots: bool = True,
-    figsPath: Path = None,
+    figsPath: Path = Path(".").parent,
 ) -> None:
-    """
-    Plots MSE_train, MSE_test, and R2 values as a function of polynomial degree
+    """Plots MSE_train, MSE_test, and R2 values as a function of polynomial degree.
 
-    Parameters:
-    -----------
-        MSE_train: (np.array)
+    inputs:
+        MSE_train (np.array):
             MSE of traning data and model prediction
 
-        MSE_test: (np.array)
+        MSE_test (np.array):
             MSE of test data and model prediction
 
-        R2: (np.array)
+        R2 (np.array):
             R-squared score of test data and model prediction
 
-        methodname: (str)
+        methodname (str):
             Name of method used to generate values
+
+        savePlots (bool):
+            Whether to save plots
+
+        showPlots (bool):
+            Whether to show plots
+
+        figsPath (Path):
+            Where to save files to
     """
     xVals = [i + 1 for i in range(data.maxDim)]
 
@@ -79,13 +81,19 @@ def plotScores(
     plt.title(f"$R^2$ Scores by polynomial degree for {methodname}")
 
     if savePlots:
-        plt.savefig(data.figs / f"{methodname}_{data.maxDim}_R2.png", dpi=300)
+        plt.savefig(figsPath / f"{methodname}_{data.maxDim}_R2.png", dpi=300)
     if showPlots:
         plt.show()
     plt.clf()
 
 
-def OLS_train_test(data, **kwargs):
+def OLS_train_test(data: Data, **kwargs) -> None:
+    """Validation set for OLS.
+
+    inputs:
+        data (Data): Data to plot with
+        **kwargs: savePlot, showPlots, figsPath, ...
+    """
     betas = []
     MSETrain = np.zeros(data.maxDim)
     MSETest = np.zeros(data.maxDim)
@@ -113,30 +121,42 @@ def OLS_train_test(data, **kwargs):
 
 
 def plot_Bias_VS_Variance(
-    data,
+    data: Data,
     maxDim: int = 5,
     title: str = None,
     savePlots: bool = False,
     showPlots: bool = False,
-    figsPath: Path = None,
+    figsPath: Path = Path(".").parent,
+    n_bootstraps: int = 100,
 ):
+    """Plots variance, error(MSE), and bias using bootstrapping as resampling technique.
+
+    inputs:
+        data (ndarray):
+            A one-dimensional numpy array containing the data set to be analyzed.
+
+        maxDim (int):
+            Maximum number of dimension
+
+        title (str):
+            Title of plot
+
+        savePlots (bool):
+            Whether to save the plots
+
+        showPlots (bool):
+            Whether to show the plots
+
+        figsPath (Path):
+            Path to save figures to
+
+        n_bootstraps (int):
+            Optional, default is 1000. Number of random samples to generate using bootstrapping
     """
-    Plots variance, error(MSE), and bias using bootstrapping as resampling technique.
-
-    Parameters:
-    -----------
-    data : ndarray
-        A one-dimensional numpy array containing the data set to be analyzed.
-
-    num_samples : int
-        Optional, default is 1000. Number of random samples to generate using bootstrapping.
-
-    """
-    n_boostraps = 400
-    error, bias, variance = bootstrap_degrees(data, n_boostraps, OLS())
+    error, bias, variance = bootstrap_degrees(data, n_bootstraps, OLS())
     polyDegrees = range(1, maxDim + 1)
 
-    if title == None:
+    if title is None:
         title = "Bias Variance Tradeoff OLS"
 
     plt.plot(polyDegrees, error, label="Error")
@@ -145,7 +165,7 @@ def plot_Bias_VS_Variance(
     plt.title(title)
     plt.legend()
     if savePlots:
-        plt.savefig(figsPath / f"{title}.png", dpi=300)
+        plt.savefig(figsPath / f"{'_'.join(title.split())}_{maxDim}.png", dpi=300)
     if showPlots:
         plt.show()
     plt.clf()
@@ -157,30 +177,47 @@ def bootstrap_vs_cross_val_OLS(
     savePlots: bool = False,
     showPlots: bool = True,
     figsPath: Path = None,
+    kfolds: int = 10,
+    n_bootstraps: int = 100,
 ):
-    """
-    Here we wish to compare our bootstrap to cross val.
-    guessing that plotting the variance, bias and errors in the same plot
-    is fine
+    """Compare bootstrap and Cross validation scores for OLS
+
+    inputs:
+        data (ndarray):
+            A one-dimensional numpy array containing the data set to be analyzed.
+
+        maxDim (int):
+            Maximum number of dimension
+
+        title (str):
+            Title of plot
+
+        savePlots (bool):
+            Whether to save the plots
+
+        showPlots (bool):
+            Whether to show the plots
+
+        figsPath (Path):
+            Path to save figures to
+
+        kfolds (int):
+            Number of folds to create
+
+        n_bootstraps (int):
+            Optional, default is 1000. Number of random samples to generate using bootstrapping
     """
     polyDegrees = range(1, maxDim + 1)
-    error_kfold, variance_kfold = kfold_score_degrees(data, kfolds=10)
-    error_boot, bias_boot, variance_boot = bootstrap_degrees(data, n_boostraps=100)
-    # error_CV, varaince_CV = sklearn_cross_val_OLS(x, y, z, polyDegrees, kfolds)
-    # print(error_kfold)
-    # print(error_boot)
-    # plt.plot(polyDegrees, error_boot, label="Boostrap Error")
-    # plt.plot(polyDegrees, variance_boot, label="Boostrap Variance")
+    error_kfold, variance_kfold = kfold_score_degrees(data, kfolds=kfolds)
+    error_boot, bias_boot, variance_boot = bootstrap_degrees(
+        data, n_bootstraps=n_bootstraps
+    )
+
     plt.plot(polyDegrees, error_kfold, "b", label="Kfold CV Error")
-    # plt.plot(polyDegrees, variance_kfold, label="Kfold variance")
-    plt.plot(polyDegrees, error_boot, "r--", label="Boostrap Error")
+    plt.plot(polyDegrees, error_boot, "r--", label="Bootstrap Error")
     plt.legend()
     if savePlots:
         plt.savefig(figsPath / f"Heatmap_OLS_{maxDim}.png", dpi=300)
     if showPlots:
         plt.show()
     plt.clf()
-
-
-if __name__ == "__main__":
-    a

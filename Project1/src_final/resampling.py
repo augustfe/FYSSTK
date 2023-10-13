@@ -1,10 +1,10 @@
 # here we can write our funcs such that we take a sklear model as input
 from Models import OLS, Ridge, Lasso, Model
+from Data import Data
 import numpy as np
-from metrics import *
+from metrics import MSE, mean_MSE, get_bias, get_variance
 from sklearn.utils import resample
 
-from globals import *
 from sklearn.model_selection import cross_val_score, KFold
 from tqdm import tqdm
 from sklearn.linear_model import Lasso as LassoSKL
@@ -12,10 +12,23 @@ from sklearn.linear_model import Ridge as RidgeSKL
 from sklearn.linear_model import LinearRegression as OLSSKL
 
 
-def bootstrap_degrees(data, n_boostraps, model=OLS()):
+def bootstrap_degrees(
+    data: Data, n_bootstraps: int, model: Model = OLS(), maxDim: int = None
+) -> tuple[np.array, np.array, np.array]:
+    """Perform bootstrap resampling.
+
+    inputs:
+        data (Data): Data for regression analysis
+        n_bootstraps (int): Number of bootstraps
+        model (Model): Regression model to apply
+        maxDim (int): Maximal polynomial degree
+    returns:
+        (tuple[np.array, np.array, np.array]) of (Error, Bias, Variance)
     """
-    Performs boostrap on different polydegrees
-    """
+    if maxDim is None:
+        print("Warning, maxDim not set")
+        maxDim = 15
+
     polyDegrees = range(1, maxDim + 1)
     n_degrees = len(polyDegrees)
 
@@ -23,7 +36,7 @@ def bootstrap_degrees(data, n_boostraps, model=OLS()):
     bias = np.zeros(n_degrees)
     variance = np.zeros(n_degrees)
     pbar = tqdm(
-        total=len(polyDegrees) * n_boostraps,
+        total=len(polyDegrees) * n_bootstraps,
         desc=f"Bootstrap {model.__class__.__name__}",
     )
     for j, dim in enumerate(polyDegrees):
@@ -31,9 +44,9 @@ def bootstrap_degrees(data, n_boostraps, model=OLS()):
         X_test = model.create_X(data.x_test, data.y_test, dim)
 
         z_test, z_train = data.z_test, data.z_train
-        z_pred = np.empty((z_test.shape[0], n_boostraps))
+        z_pred = np.empty((z_test.shape[0], n_bootstraps))
 
-        for i in range(n_boostraps):
+        for i in range(n_bootstraps):
             X_, z_ = resample(X_train, z_train)
             model.fit(X_, z_)
             z_pred[:, i] = model.predict(X_test).ravel()
@@ -46,14 +59,26 @@ def bootstrap_degrees(data, n_boostraps, model=OLS()):
     return error, bias, variance
 
 
-def bootstrap_lambdas(data, n_boostraps, model=Ridge()):
-    """
-    performs bootstrap on polydegrees and hyperparamater lambds
-    for regularized regression
+def bootstrap_lambdas(
+    data: Data,
+    n_boostraps: int,
+    model: Ridge | Lasso = Ridge(),
+    lmbds: np.array = np.logspace(-3, 5, 10),
+    maxDim: int = 15,
+) -> tuple[np.array, np.array, np.array]:
+    """Perform bootstrap resampling.
+
+    inputs:
+        data (Data): Data for regression analysis
+        n_bootstraps (int): Number of bootstraps
+        model (Model): Regression model to apply
+        maxDim (int): Maximal polynomial degree
+    returns:
+        (tuple[np.array, np.array, np.array]) of (Error, Bias, Variance)
     """
     polyDegrees = range(1, maxDim + 1)
     n_degrees = len(polyDegrees)
-    n_lambds = lambds.size
+    n_lambds = lmbds.size
 
     error = np.zeros((n_degrees, n_lambds))
     bias = np.zeros((n_degrees, n_lambds))
@@ -73,7 +98,7 @@ def bootstrap_lambdas(data, n_boostraps, model=Ridge()):
         z_test, z_train = data.z_test, data.z_train
 
         z_test = z_test.reshape(z_test.shape[0], 1)
-        for j, lambd in enumerate(lambds):
+        for j, lambd in enumerate(lmbds):
             z_pred = np.empty((z_test.shape[0], n_boostraps))
             for k in range(n_boostraps):
                 X_, z_ = resample(X_train, z_train)
@@ -88,9 +113,18 @@ def bootstrap_lambdas(data, n_boostraps, model=Ridge()):
     return error, bias, variance
 
 
-def sklearn_cross_val(data, nfolds, model=OLSSKL()):
-    """
-    sklearn cross val for on polynomial degrees
+def sklearn_cross_val(
+    data: Data, nfolds: int, model: OLSSKL = OLSSKL(), maxDim: int = 15
+) -> tuple[np.array, np.array]:
+    """Perform cross validation with Scikit-learn.
+
+    inputs:
+        data (Data): Data for regression analysis
+        nfolds (int): Number of bootstraps
+        model (Model): Regression model to apply
+        maxDim (int): Maximal polynomial degree
+    returns:
+        (tuple[np.array, np.array, np.array]) of (Error, Variance)
     """
     polyDegrees = range(1, maxDim + 1)
     n_degrees = len(polyDegrees)
@@ -110,9 +144,18 @@ def sklearn_cross_val(data, nfolds, model=OLSSKL()):
     return error, variance
 
 
-def kfold_score_degrees(data, kfolds: int, model=OLS()):
-    """
-    HomeCooked cross-val using Kfold. Only for polynomial degrees.
+def kfold_score_degrees(
+    data: Data, kfolds: int, model: OLS = OLS(), maxDim: int = 15
+) -> tuple[np.array, np.array]:
+    """Perform cross validation.
+
+    inputs:
+        data (Data): Data for regression analysis
+        kfolds (int): Number of bootstraps
+        model (Model): Regression model to apply
+        maxDim (int): Maximal polynomial degree
+    returns:
+        (tuple[np.array, np.array]) of (Error, Variance)
     """
     polyDegrees = range(1, maxDim + 1)
     n_degrees = len(polyDegrees)
@@ -147,14 +190,28 @@ def kfold_score_degrees(data, kfolds: int, model=OLS()):
     return error, variance
 
 
-def sklearn_cross_val_lambdas(data, kfolds, model=RidgeSKL()):
-    """
-    sklearn cross val for polydegrees and lambda
+def sklearn_cross_val_lambdas(
+    data: Data,
+    kfolds: int,
+    model: RidgeSKL | LassoSKL = RidgeSKL(),
+    maxDim: int = 15,
+    lmbds: np.array = np.logspace(-3, 5, 10),
+) -> tuple[np.array, np.array]:
+    """Perform cross validation with Scikit-learn over varying lambda.
+
+    inputs:
+        data (Data): Data for regression analysis
+        kfolds (int): Number of bootstraps
+        model (Model): Regression model to apply
+        maxDim (int): Maximal polynomial degree
+        lmbds (np.array): Regularization weights
+    returns:
+        (tuple[np.array, np.array]) of (Error, Variance)
     """
     polyDegrees = range(1, maxDim + 1)
 
     n_degrees = len(polyDegrees)
-    n_lambds = len(lambds)
+    n_lambds = len(lmbds)
     error = np.zeros((n_degrees, n_lambds))
     variance = np.zeros((n_degrees, n_lambds))
 
@@ -165,7 +222,7 @@ def sklearn_cross_val_lambdas(data, kfolds, model=RidgeSKL()):
     )
     for i, degree in enumerate(polyDegrees):
         X = dummy_model.create_X(data.x_, data.y_, degree)
-        for j, lambd in enumerate(lambds):
+        for j, lambd in enumerate(lmbds):
             model.alpha = lambd
 
             scores = cross_val_score(
@@ -183,13 +240,27 @@ def sklearn_cross_val_lambdas(data, kfolds, model=RidgeSKL()):
     return error, variance
 
 
-def HomeMade_cross_val_lambdas(data, kfolds: int = 5, model=Ridge()):
-    """
-    HomeCooked cross-val using Kfold. for polydegrees and lambda.
+def HomeMade_cross_val_lambdas(
+    data: Data,
+    kfolds: int = 5,
+    model: Ridge | Lasso = Ridge(),
+    maxDim: int = 15,
+    lmbds: np.array = np.logspace(-3, 5, 10),
+) -> tuple[np.array, np.array]:
+    """Perform cross validation over varying lambda.
+
+    inputs:
+        data (Data): Data for regression analysis
+        kfolds (int): Number of bootstraps
+        model (Model): Regression model to apply
+        maxDim (int): Maximal polynomial degree
+        lmbds (np.array): Regularization weights
+    returns:
+        (tuple[np.array, np.array]) of (Error, Variance)
     """
     polyDegrees = range(1, maxDim + 1)
     n_degrees = len(polyDegrees)
-    n_lambds = lambds.size
+    n_lambds = lmbds.size
 
     error = np.zeros((n_degrees, n_lambds))
     variance = np.zeros((n_degrees, n_lambds))
@@ -205,7 +276,7 @@ def HomeMade_cross_val_lambdas(data, kfolds: int = 5, model=Ridge()):
 
         X = model.create_X(data.x_, data.y_, degree)
 
-        for j, lambd in enumerate(lambds):
+        for j, lambd in enumerate(lmbds):
             for k, (train_i, test_i) in enumerate(Kfold.split(X)):
                 X_train = X[train_i]
                 X_test = X[test_i]
