@@ -556,7 +556,7 @@ z_pred_Lasso = clf.predict(X_test)
 \section{Results}
 \subsection{Results for Franke}
 We started with asserting how well our model performs when trained on Franke's function. Our data looked as following, after generating our values in $x$ and $y$ direction from the uniform distribution between $0$ and $1$. We then structured our data as a mesh grid. The random noise was added with $0.2 \cdot \varepsilon_{i,j} \sim N(0, 1)$.
-\begin{figure}[h]
+\begin{figure}[htbp]
     % \includegraphics[width=95mm]{lasso_ridge_contour.png}
     \centering
     \includegraphics[width=\textwidth]{Franke/FrankesFunction.png}
@@ -564,37 +564,75 @@ We started with asserting how well our model performs when trained on Franke's f
     % Include caption, figure num, source, ...
 \end{figure}
 
+\newpage
 \subsubsection{Results from Ordinary least squares}
-\begin{figure}[h]
+The same data was used for each plot, unless otherwise specified.
+\begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth*2/3]{Franke/OLS_5_betas.png}
-    \caption{Values of $\boldsymbol{\beta}$ up to polynomial degree of $5$}
+    \caption{Values of $\boldsymbol{\beta}$ from ordinary least squares for polynomial degree up to 5.}
     \label{fig:OLS5Beta}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth*2/3]{/Franke/OLS_13_MSE.png}
-    \caption{MSE for OLS up to polynomial degree of 13.}
+    \caption{MSE for ordinary least squares of polynomial degree up to 5.}
     \label{fig:OLS5MSE}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth*2/3]{/Franke/OLS_13_R2.png}
-    \caption{$R^2$ for OLS up to polynomial degree of 13.}
+    \caption{$R^2$ for ordinary least squares of polynomial degree up to 5.}
     \label{fig:OLS5R2}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[htbp]
     \centering
-    \includegraphics[width=\textwidth*2/3]{/Franke/Bias_vs_Var_OLS_15.png}
-    \caption{Bias variance tradeoff for OLS up to polynomial degree of 15.}
+    \includegraphics[width=\textwidth*2/3]{Project1/figures/Franke/Bias_Variance_Tradeoff_OLS_15.png}
+    \caption{Bias variance tradeoff for OLS up to polynomial degree of 15. Resampling with bootstrap.}
     \label{fig:BVtradeoff}
 \end{figure}
 
-\subsubsection{Results from Ridge}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth*2/3]{Project1/figures/Franke/Few_points_Bias_Variance_Tradeoff_13.png}
+    \caption{Bias variance tradeoff for OLS with 400 points instead of 1600 for polynomial degree up to 15. Resampling with bootstrap.}
+    \label{fig:FewBVtradeoff}
+\end{figure}
 
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth*2/3]{Project1/figures/Franke/Bias_vs_Var_OLS_15.png}
+    \caption{Comparison of MSE for bootstrapping and cross validation for ordinary least squares for polynomial degree up to 15.}
+    \label{fig:BvsCV}
+\end{figure}
+
+\newpage
+\subsubsection{Results from Ridge}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{Project1/figures/Franke/Heatmap_MSE_Ridge_no_resampling.png}
+    \caption{Caption}
+    \label{fig:enter-label}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{Project1/figures/Franke/Heatmap_MSE_Ridge_CV.png}
+    \caption{Caption}
+    \label{fig:enter-label}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{Project1/figures/Franke/Heatmap_MSE_Ridge_CV_from_Scikit-learn.png}
+    \caption{Caption}
+    \label{fig:enter-label}
+\end{figure}
+
+\newpage
 \subsubsection{Results from Lasso}
 
 \subsection{Results for topographical data}
