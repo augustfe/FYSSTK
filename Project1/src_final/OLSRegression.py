@@ -67,7 +67,7 @@ def plotScores(
     plt.legend()
 
     if savePlots:
-        plt.savefig(figsPath / f"{methodname}_{data.maxDim}_MSE.png", dpi=300)
+        plt.savefig(figsPath / f"{methodname}_{maxDim}_MSE.png", dpi=300)
     if showPlots:
         plt.show()
     plt.close()
@@ -85,7 +85,7 @@ def plotScores(
     plt.title(f"$R^2$ Scores by polynomial degree for {methodname}")
 
     if savePlots:
-        plt.savefig(figsPath / f"{methodname}_{data.maxDim}_R2.png", dpi=300)
+        plt.savefig(figsPath / f"{methodname}_{maxDim}_R2.png", dpi=300)
     if showPlots:
         plt.show()
     plt.close()

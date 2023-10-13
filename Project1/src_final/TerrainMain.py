@@ -8,7 +8,7 @@ from OLSRegression import (
     bootstrap_vs_cross_val_OLS,
 )
 from Models import Ridge, Lasso
-from Data import FrankeData
+from Data import TerrainData
 from RegularizedRegression import (
     heatmap_no_resampling,
     heatmap_bootstrap,
@@ -20,13 +20,21 @@ import sklearn.linear_model as sklm
 np.random.seed(32019)
 maxDim = 13
 lmbds = np.logspace(-3, 5, 13)
-figsPath = Path(__file__).parent.parent / "figures" / "Franke"
+figsPath = Path(__file__).parent.parent / "figures" / "Terrain"
 
-data = FrankeData(40, 0.2, maxDim, savePlots=False, showPlots=False, figsPath=figsPath)
+# data = FrankeData(40, 0.2, maxDim, savePlots=False, showPlots=True, figsPath=figsPath)
+data = TerrainData(
+    figsPath.parent.parent / "DataFiles" / "SRTM_data_Norway_1.tif",
+    40,
+    maxDim,
+    savePlots=False,
+    showPlots=True,
+    figsPath=figsPath,
+)
 
 
 # make franke plot
-def Franke():
+def Surface():
     data.plotSurface()
     # data.plotFranke()
 
@@ -36,23 +44,23 @@ def Franke():
 
 def OLSAnalysis() -> None:
     "Run all the plots for Ordinary Least Squares"
-    OLS_train_test(data, savePlots=False, showPlots=False, figsPath=figsPath, maxDim=15)
-    BVData = FrankeData(
-        20, 0.2, maxDim=25, savePlots=False, showPlots=False, figsPath=figsPath
-    )
+    OLS_train_test(data, savePlots=False, showPlots=True, figsPath=figsPath, maxDim=15)
+    # BVData = FrankeData(
+    #     20, 0.2, maxDim=25, savePlots=False, showPlots=True, figsPath=figsPath
+    # )
+    # plot_Bias_VS_Variance(
+    #     BVData,
+    #     maxDim=13,
+    #     showPlots=True,
+    #     savePlots=False,
+    #     figsPath=figsPath,
+    #     title="Few points Bias Variance Tradeoff",
+    # )
     plot_Bias_VS_Variance(
-        BVData,
-        maxDim=13,
-        showPlots=False,
-        savePlots=False,
-        figsPath=figsPath,
-        title="Few points Bias Variance Tradeoff",
-    )
-    plot_Bias_VS_Variance(
-        data, maxDim=15, savePlots=False, showPlots=False, figsPath=figsPath
+        data, maxDim=15, savePlots=False, showPlots=True, figsPath=figsPath
     )
     bootstrap_vs_cross_val_OLS(
-        data, maxDim=15, savePlots=False, showPlots=False, figsPath=figsPath
+        data, maxDim=15, savePlots=False, showPlots=True, figsPath=figsPath
     )
 
 
@@ -65,7 +73,7 @@ def RidgeAnalysis() -> None:
         lmbds=lmbds,
         model=Ridge(),
         savePlots=False,
-        showPlots=False,
+        showPlots=True,
         title="MSE Ridge no resampling",
         figsPath=figsPath,
     )
@@ -76,7 +84,7 @@ def RidgeAnalysis() -> None:
         model=sklm.Ridge(),
         title="MSE Ridge CV from Scikit-learn",
         savePlots=False,
-        showPlots=False,
+        showPlots=True,
         figsPath=figsPath,
     )
     heatmap_HomeMade_cross_val(
@@ -86,7 +94,7 @@ def RidgeAnalysis() -> None:
         model=Ridge(),
         title="MSE Ridge CV",
         savePlots=False,
-        showPlots=False,
+        showPlots=True,
         figsPath=figsPath,
     )
 
@@ -100,22 +108,22 @@ def LassoAnalysis() -> None:
         lmbds=lmbds,
         title="MSE Lasso no resampling",
         savePlots=False,
-        showPlots=False,
+        showPlots=True,
         figsPath=figsPath,
     )
-    BootData = FrankeData(
-        20, 0.2, maxDim=25, savePlots=False, showPlots=False, figsPath=figsPath
-    )
-    heatmap_bootstrap(
-        BootData,
-        model=Lasso(),
-        maxDim=maxDim,
-        lmbds=lmbds,
-        title="MSE Lasso bootstrap",
-        savePlots=False,
-        showPlots=False,
-        figsPath=figsPath,
-    )
+    # BootData = FrankeData(
+    #     20, 0.2, maxDim=25, savePlots=False, showPlots=True, figsPath=figsPath
+    # )
+    # heatmap_bootstrap(
+    #     BootData,
+    #     model=Lasso(),
+    #     maxDim=maxDim,
+    #     lmbds=lmbds,
+    #     title="MSE Lasso bootstrap",
+    #     savePlots=False,
+    #     showPlots=True,
+    #     figsPath=figsPath,
+    # )
 
 
 # bias variance for OLS using boostrap
@@ -125,7 +133,7 @@ def LassoAnalysis() -> None:
 # bootstrap_vs_cross_val
 
 if __name__ == "__main__":
-    Franke()
+    Surface()
     OLSAnalysis()
     RidgeAnalysis()
-    LassoAnalysis()
+    # LassoAnalysis()

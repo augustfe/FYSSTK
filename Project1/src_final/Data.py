@@ -6,6 +6,7 @@ from sklearn.model_selection import train_test_split
 from matplotlib import cm
 from pathlib import Path
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
+from imageio import imread
 
 
 class Data:
@@ -162,9 +163,12 @@ class FrankeData(Data):
 class TerrainData(Data):
     def __init__(
         self,
-        terrainData: np.array,
+        terrainfile: Path,
         numPoints: int,
         maxDim: int,
+        savePlots: bool = False,
+        showPlots: bool = True,
+        figsPath: Path = None,
     ):
         """
 
@@ -180,11 +184,14 @@ class TerrainData(Data):
             Maximal polynomial dimension
 
         """
-        self.terrainData = terrainData
+        self.terrainData = np.asarray(imread(terrainfile))
         self.N = numPoints
         self.maxDim = maxDim
+        self.savePlots = savePlots
+        self.showPlots = showPlots
+        self.figsPath = figsPath
 
-        self.x_, self.y_, self.t_ = self.ready_data(self.N)
+        self.x_, self.y_, self.z_ = self.ready_data(self.N)
 
         (
             self.x_train,
@@ -193,7 +200,7 @@ class TerrainData(Data):
             self.y_test,
             self.z_train,
             self.z_test,
-        ) = train_test_split(self.x_, self.y_, self.t_, test_size=0.2)
+        ) = train_test_split(self.x_, self.y_, self.z_, test_size=0.2)
 
     def ready_data(self, N: int) -> tuple[np.array, np.array, np.array]:
         """
@@ -222,15 +229,66 @@ class TerrainData(Data):
         x = self.x_raw.flatten().reshape(-1, 1)
         y = self.y_raw.flatten().reshape(-1, 1)
 
-        self.t_data = self.terrainData[::y_len, ::x_len]
-        self.scaled_t_data = (self.t_data - np.mean(self.t_data)) / np.std(self.t_data)
-        t = self.scaled_t_data.flatten().reshape(-1, 1)
+        self.z_raw = self.terrainData[::y_len, ::x_len]
+        self.scaled_z = (self.z_raw - np.mean(self.z_raw)) / np.std(self.z_raw)
+        t = self.scaled_z.flatten().reshape(-1, 1)
 
         return x, y, t
 
+    # def plotSurface(self):
+    #     plt.contour(self.x_raw, self.y_raw, self.z_raw)
+    #     plt.title("Terrain plot")
+    #     plt.xlabel("X")
+    #     plt.ylabel("Y")
+    #     plt.show()
+
     def plotSurface(self):
-        plt.contour(self.x_raw, self.y_raw, self.t_data)
-        plt.title("Terrain plot")
-        plt.xlabel("X")
-        plt.ylabel("Y")
-        plt.show()
+        fig = plt.figure(figsize=plt.figaspect(0.5))
+
+        ax = fig.add_subplot(1, 2, 1, projection="3d")
+        surf = ax.plot_surface(
+            self.x_raw,
+            self.y_raw,
+            self.z_raw,
+            cmap=cm.coolwarm,
+            linewidth=0,
+            antialiased=True,
+        )
+
+        # Customize the z axis.
+        # ax.set_zlim(-0.10, 1.40)
+        ax.zaxis.set_major_locator(LinearLocator(10))
+        ax.zaxis.set_major_formatter(FormatStrFormatter("%.02f"))
+        ax.set_title("Not scaled")
+
+        # Add a color bar which maps values to colors.
+        fig.colorbar(surf, shrink=0.5, aspect=10)
+
+        ax = fig.add_subplot(1, 2, 2, projection="3d")
+        surf = ax.plot_surface(
+            self.x_raw,
+            self.y_raw,
+            self.scaled_z,
+            cmap=cm.coolwarm,
+            linewidth=0,
+            antialiased=True,
+        )
+
+        # Customize the z axis.
+        # ax.set_zlim(-0.10, 1.40)
+        ax.zaxis.set_major_locator(LinearLocator(10))
+        ax.zaxis.set_major_formatter(FormatStrFormatter("%.02f"))
+        ax.set_title("Scaled")
+
+        # Add a color bar which maps values to colors.
+        fig.colorbar(surf, shrink=0.5, aspect=10)
+
+        fig.suptitle("Terrain Data")
+
+        plt.tight_layout()
+
+        if self.savePlots:
+            plt.savefig(self.figsPath / "TerrainFigure.png", dpi=300)
+        if self.showPlots:
+            plt.show()
+        plt.close()
