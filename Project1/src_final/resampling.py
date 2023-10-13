@@ -74,15 +74,15 @@ def bootstrap_lambdas(
     """
     polyDegrees = range(1, maxDim + 1)
     n_degrees = len(polyDegrees)
-    n_lambds = lmbds.size
+    n_lmbds = lmbds.size
 
-    error = np.zeros((n_degrees, n_lambds))
-    bias = np.zeros((n_degrees, n_lambds))
-    variance = np.zeros((n_degrees, n_lambds))
+    error = np.zeros((n_degrees, n_lmbds))
+    bias = np.zeros((n_degrees, n_lmbds))
+    variance = np.zeros((n_degrees, n_lmbds))
 
     # for i, dim in tqdm(enumerate(polyDegrees)):
     pbar = tqdm(
-        total=n_degrees * n_lambds * n_boostraps,
+        total=n_degrees * n_lmbds * n_boostraps,
         desc=f"Bootstrap for {model.__class__.__name__}",
     )
 
@@ -207,14 +207,14 @@ def sklearn_cross_val_lambdas(
     polyDegrees = range(1, maxDim + 1)
 
     n_degrees = len(polyDegrees)
-    n_lambds = len(lmbds)
-    error = np.zeros((n_degrees, n_lambds))
-    variance = np.zeros((n_degrees, n_lambds))
+    n_lmbds = len(lmbds)
+    error = np.zeros((n_degrees, n_lmbds))
+    variance = np.zeros((n_degrees, n_lmbds))
 
     dummy_model = Model()  # only needed because of where create X is
 
     pbar = tqdm(
-        total=n_degrees * n_lambds, desc=f"sklearn CV {model.__class__.__name__}"
+        total=n_degrees * n_lmbds, desc=f"sklearn CV {model.__class__.__name__}"
     )
     for i, degree in enumerate(polyDegrees):
         X = dummy_model.create_X(data.x_, data.y_, degree)
@@ -256,15 +256,15 @@ def HomeMade_cross_val_lambdas(
     """
     polyDegrees = range(1, maxDim + 1)
     n_degrees = len(polyDegrees)
-    n_lambds = lmbds.size
+    n_lmbds = lmbds.size
 
-    error = np.zeros((n_degrees, n_lambds))
-    variance = np.zeros((n_degrees, n_lambds))
+    error = np.zeros((n_degrees, n_lmbds))
+    variance = np.zeros((n_degrees, n_lmbds))
 
     Kfold = KFold(n_splits=kfolds, shuffle=True)
 
     pbar = tqdm(
-        total=n_degrees * n_lambds * kfolds,
+        total=n_degrees * n_lmbds * kfolds,
         desc=f"Homemade CV {model.__class__.__name__}",
     )
     for i, degree in enumerate(polyDegrees):
@@ -285,7 +285,7 @@ def HomeMade_cross_val_lambdas(
 
                 scores[k] = MSE(z_pred, z_test)
                 pbar.update(1)
-            print(scores)
+
             error[i, j] = scores.mean()
             variance[i, j] = scores.std()
     return error, variance

@@ -12,6 +12,7 @@ import sklearn.linear_model as sklm
 from sklearn.preprocessing import StandardScaler
 from metrics import MSE, R2Score
 from tqdm import tqdm
+from pathlib import Path
 
 
 def heatmap_no_resampling(
@@ -20,7 +21,9 @@ def heatmap_no_resampling(
     lmbds: np.array = np.logspace(-3, 5, 10),
     model: Model = Ridge(),
     title: str = None,
-    **kwargs,
+    savePlots: bool = False,
+    showPlots: bool = True,
+    figsPath: Path = Path(".").parent,
 ) -> None:
     """Heatmap of lambda vs dimension with no resampling.
 
@@ -31,17 +34,15 @@ def heatmap_no_resampling(
         model (Model): Regression model to apply
         title (str): Title of the resulting plot
     """
-    nlambds = lmbds.size
+    nlmbds = lmbds.size
 
-    # MSETrain = np.zeros((maxDim, nlambds))
-    MSETest = np.zeros((maxDim, nlambds))
-    R2Scores = np.zeros((maxDim, nlambds))
+    # MSETrain = np.zeros((maxDim, nlmbds))
+    MSETest = np.zeros((maxDim, nlmbds))
+    R2Scores = np.zeros((maxDim, nlmbds))
 
     scaler = StandardScaler()
 
-    pbar = tqdm(
-        total=maxDim * nlambds, desc=f"No resampling {model.__class__.__name__}"
-    )
+    pbar = tqdm(total=maxDim * nlmbds, desc=f"No resampling {model.__class__.__name__}")
 
     for dim in range(maxDim):
         for i, lmbda in enumerate(lmbds):
@@ -65,7 +66,14 @@ def heatmap_no_resampling(
 
     if title is None:
         title = f"{model.__class__.__name__} with no resampling."
-    create_heatmap(MSETest, lmbds, title, **kwargs)
+    create_heatmap(
+        MSETest,
+        lmbds,
+        title=title,
+        savePlots=savePlots,
+        showPlots=showPlots,
+        figsPath=figsPath,
+    )
 
 
 def heatmap_bootstrap(
@@ -86,7 +94,9 @@ def heatmap_bootstrap(
         var (bool): Whether to plot variance
     """
     n_boostraps = 100
-    error, bias, variance = bootstrap_lambdas(data, n_boostraps, Ridge(), **kwargs)
+    error, bias, variance = bootstrap_lambdas(
+        data, n_boostraps, Ridge(), lmbds=lmbds**kwargs
+    )
     if title is None:
         title = f"{model.__class__.__name__} with bootstrapping " + (
             "(Variance)" if var else "(Error)"
@@ -100,6 +110,7 @@ def heatmap_bootstrap(
 def heatmap_HomeMade_cross_val(
     data: Data,
     lmbds: np.array = np.logspace(-3, 5, 10),
+    maxDim: int = 15,
     model: Model = Ridge(),
     title: str = None,
     var: bool = False,
@@ -114,7 +125,9 @@ def heatmap_HomeMade_cross_val(
         title (str): Title of the resulting plot
         var (bool): Whether to plot variance
     """
-    error, variance = HomeMade_cross_val_lambdas(data, kfolds=5, model=model)
+    error, variance = HomeMade_cross_val_lambdas(
+        data, kfolds=5, model=model, lmbds=lmbds
+    )
     if title is None:
         title = f"{model.__class__.__name__} with Cross Validation " + (
             "(Variance)" if var else "(Error)"
@@ -128,6 +141,7 @@ def heatmap_HomeMade_cross_val(
 def heatmap_sklearn_cross_val(
     data: Data,
     lmbds: np.array = np.logspace(-3, 5, 10),
+    maxDim: int = 15,
     model: sklm.Ridge | sklm.Lasso = sklm.Ridge(),
     title=None,
     var: bool = False,
@@ -142,7 +156,9 @@ def heatmap_sklearn_cross_val(
         title (str): Title of the resulting plot
         var (bool): Whether to plot variance
     """
-    error, variance = sklearn_cross_val_lambdas(data, kfolds=5, model=model)
+    error, variance = sklearn_cross_val_lambdas(
+        data, kfolds=5, model=model, lmbds=lmbds
+    )
     if title is None:
         title = f"{model.__class__.__name__} with Scikit-learn CV " + (
             "(Variance)" if var else "(Error)"

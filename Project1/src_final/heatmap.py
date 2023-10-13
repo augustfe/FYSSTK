@@ -7,10 +7,10 @@ from pathlib import Path
 def create_heatmap(
     MSE_test,
     lmbds=np.linspace(-3, 5, 10),
+    title: str = None,
     savePlots: bool = False,
     showPlots: bool = True,
     figsPath: Path = Path(".").parent,
-    title: str = None,
 ):
     """Create heatmap of MSE for lambda vs degree.
 
@@ -36,7 +36,7 @@ def create_heatmap(
     # Define polynomial degrees and lambda values
     degrees = np.arange(1, len(MSE_test) + 1)
 
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=plt.figaspect(0.5))
 
     ax = sns.heatmap(
         MSE_test,
@@ -49,7 +49,7 @@ def create_heatmap(
         yticklabels=degrees,
     )
 
-    ax.set_xlabel(r"$log_{10} \lambda$")
+    ax.set_xlabel(r"$\log_{10} \lambda$")
     ax.set_ylabel("Polynomial Degree")
 
     # Set title
@@ -63,7 +63,7 @@ def create_heatmap(
     fig.tight_layout()
 
     if savePlots:
-        plt.savefig(figsPath / f"Heatmap_{title}.png", dpi=300)
+        plt.savefig(figsPath / f"Heatmap_{'_'.join(title.split())}.png", dpi=300)
     if showPlots:
         plt.show()
     plt.close()
