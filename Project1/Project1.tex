@@ -3,6 +3,7 @@
 % \documentclass[aps,rmp,reprint,amsmath,amssymb,graphicx,longbibliography]{article}
 \usepackage[utf8]{inputenc}
 \usepackage{graphicx}
+\graphicspath{ {figures/} }
 \usepackage{float}
 \usepackage{listings}
 \usepackage{amsmath}
@@ -11,7 +12,7 @@
 \usepackage{commath}
 \usepackage{tabularx}
 \usepackage[ruled,vlined]{algorithm2e}
-\graphicspath{{./plots/}}
+% \graphicspath{{./plots/}}
 % \usepackage{biblatex}
 % \addbibresource{refs.bib}
 \usepackage{caption}
@@ -551,56 +552,52 @@ z_pred_Lasso = clf.predict(X_test)
 \end{minted}
 
 \newpage
-\newpage
 
-To begin testing the differences between the different regression methods and apply them to the topographic data, we first need a data set. This will make it easier to refine the implementation of the different regression methods. We first start by producing our own data set. To do this, we use Franke's function. A two-dimensional function often used for testing interpolation and fitting algorithms. It consists of two gaussian peaks, and is therefore apt for our use case. The function is defined as 
-\begin{equation*}
-    \begin{split}
-        f(x,y) & = \frac{3}{4}\exp\left(-\frac{(9x-2)^2}{4} - \frac{(9y-2)^2}{4}\right) + \frac{3}{4}\exp\left(-\frac{(9x+1)^2}{49} - \frac{(9y+1)}{10}\right) \\
-        & + \frac{1}{2}\exp\left(-\frac{(9x-7)^2}{4} - \frac{(9y-3)^2}{4}\right) - \frac{1}{5}\exp\left(-(9x-4)^2 - (9y-7)^2\right)
-    \end{split}
-\end{equation*}
-where $x,y \in [0,1]$. To make the data more random, we add in some noise to the function, by drawing normally distributed values $\varepsilon \sim N(0,1)$. This gives us
-\begin{equation*}
-    z = f(x,y) + \alpha \cdot \varepsilon
-\end{equation*}
-where $\alpha$ is a constant such that $\alpha \in [0,1]$.
-
-As $f: [0,1] \times [0, 1] \to \mathbb{R}$ is a continuous function, and the set of all polynomials $\mathcal{P}$ is dense in $C([0,1] \times [0,1], \mathbb{R})$, we know by the Stone-Weierstrass Theorem that there exists a sequence of polynomials $\{p_n\}$ converging uniformly to $f$ \cite[p.~116--129]{lindstrom2017spaces}. In our case, this means that it is sensible to try to construct a polynomial which estimates our function $f$. As a polynomial function $p: \mathbb{R}^2 \to \mathbb{R}$ is a function
-\begin{equation*}
-    p(x,y) = \sum_{\substack{0 \leq n \leq N \\ 0 \leq m \leq M}} c_{n,m} x^n y^m,
-\end{equation*}
-we construct our explanatory variables $\boldsymbol{x}_i$ of all combinations $x_i^n y_i^m$ of $n,m \in \mathbb{N}$ such that $0 \leq n + m \leq N$ for some polynomial degree $N$. The regression parameter $\boldsymbol{\beta}$ then corresponds to the weights $c_{n,m}$.
-
-The number of parameters for a polynomial degree of $N$ is then the sum of the combination for how many ways we can write $n+m = d$, for $0\leq n,m \leq d$, $d = 0, 1, \ldots, N$. We get
-\begin{equation*}
-    \text{\# $\boldsymbol{\beta}$ parameters} = \sum_{d = 0}^N \sum_{n = 0}^d 1
-    = \sum_{d = 0}^N d + 1
-    = \frac{(N + 1)(N + 2)}{2},
-\end{equation*}
-meaning that the complexity of our model increases quadratically as we increase the polynomial degree.
-
-Throughout the project, we use packages such as \mintinline{python}{numpy} and \mintinline{python}{scikit-learn} in order to speed up and simplify our code. In order to generate our data points, we use the following method
-\begin{minted}{python}
-import numpy as np
-
-x = np.random.uniform(0, 1, N)
-y = np.random.uniform(0, 1, N)
-
-z_true = FrankeFunction(x, y)
-z = z_true + z_true.mean() * np.random.randn(N) * 0.2
-\end{minted}
-This initialises our data points as \mintinline{python}{numpy}-arrays, allowing for vectorized code.
-
-% For each of our functions, we create 
-
-% Implemented in Python, $\boldsymbol{x}$, $\boldsymbol{y}$ and $\boldsymbol{\varepsilon}$ are all numpy arrays with length $n$. $\ell$
-
-% På ridge, kan vi ikke bruke np.logspace for å lage lambdaene, sånn at vi får fin graf?
 \section{Results}
 \subsection{Results for Franke}
-\subsubsection{Results from Ordinary least squares}
+We started with asserting how well our model performs when trained on Franke's function. Our data looked as following, after generating our values in $x$ and $y$ direction from the uniform distribution between $0$ and $1$. We then structured our data as a mesh grid. The random noise was added with $0.2 \cdot \varepsilon_{i,j} \sim N(0, 1)$.
+\begin{figure}[h]
+    % \includegraphics[width=95mm]{lasso_ridge_contour.png}
+    \centering
+    \includegraphics[width=\textwidth]{FrankesFunction.png}
+    \caption{Franke's function with and without noise}
+    % Include caption, figure num, source, ...
+\end{figure}
 
+\subsubsection{Results from Ordinary least squares}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\textwidth*2/3]{OLS_5_betas.png}
+    \caption{Values of $\boldsymbol{\beta}$ up to polynomial degree of $5$}
+    \label{fig:OLS5Beta}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\textwidth*2/3]{OLS_5_MSE.png}
+    \caption{MSE for OLS up to polynomial degree of 5}
+    \label{fig:OLS5MSE}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\textwidth*2/3]{OLS_5_R2.png}
+    \caption{$R^2$ for OLS up to polynomial degree of 5}
+    \label{fig:OLS5R2}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\textwidth*2/3]{Bias Variance Tradeoff OLS.png}
+    \caption{Bias variance tradeoff for OLS up to polynomial degree of 13.}
+    \label{fig:BVtradeoff}
+\end{figure}
+
+\subsubsection{Results from Ridge}
+
+\subsubsection{Results from Lasso}
+
+\subsection{Results for topographical data}
 
 \section{Discussion}
 

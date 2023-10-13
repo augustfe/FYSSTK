@@ -14,13 +14,7 @@ class Data:
 
 
 class FrankeData(Data):
-    """
-    Pourpuse of this class is to hold all of our data.
-    That way we can use the exact same data for all methods.
-    Also it's simple to create a similiar class for the terrain
-    data.
-
-    """
+    "Class for holding all data relevant to Frank's function."
 
     def __init__(
         self,
@@ -75,15 +69,17 @@ class FrankeData(Data):
         returns:
             x, y, z
         """
-        x_ = np.sort(np.random.uniform(0, 1, N))
-        y_ = np.sort(np.random.uniform(0, 1, N))
+        x_ = np.linspace(0, 1, N)
+        y_ = np.linspace(0, 1, N)
+        # x_ = np.sort(np.random.uniform(0, 1, N))
+        # y_ = np.sort(np.random.uniform(0, 1, N))
 
         self.x_raw, self.y_raw = np.meshgrid(x_, y_)
         x = self.x_raw.flatten().reshape(-1, 1)
         y = self.y_raw.flatten().reshape(-1, 1)
 
         self.z_raw = self.FrankeFunction(self.x_raw, self.y_raw)
-        self.z_noise = self.z_raw + alph * np.random.randn(N, N)
+        self.z_noise = self.z_raw + alph * np.random.randn(N, N) * self.z_raw
 
         z = self.z_noise.flatten().reshape(-1, 1)
 
@@ -111,7 +107,7 @@ class FrankeData(Data):
         term4 = -0.2 * np.exp(-((9 * x - 4) ** 2) - (9 * y - 7) ** 2)
         return term1 + term2 + term3 + term4
 
-    def plotFranke(self):
+    def plotSurface(self):
         fig = plt.figure(figsize=plt.figaspect(0.5))
 
         ax = fig.add_subplot(1, 2, 1, projection="3d")
@@ -152,7 +148,7 @@ class FrankeData(Data):
         # Add a color bar which maps values to colors.
         fig.colorbar(surf, shrink=0.5, aspect=10)
 
-        fig.suptitle("Frankes function")
+        fig.suptitle("Franke's function")
 
         plt.tight_layout()
 
@@ -160,4 +156,81 @@ class FrankeData(Data):
             plt.savefig(self.figsPath / "FrankesFunction.png", dpi=300)
         if self.showPlots:
             plt.show()
-        plt.clf()
+        plt.close()
+
+
+class TerrainData(Data):
+    def __init__(
+        self,
+        terrainData: np.array,
+        numPoints: int,
+        maxDim: int,
+    ):
+        """
+
+        Parameters:
+        -----------
+        terrainData: (numpy.Ndarray)
+            Original dataset
+
+        numPoints: (int)
+            Number of points to generate.
+
+        maxDim: (int)
+            Maximal polynomial dimension
+
+        """
+        self.terrainData = terrainData
+        self.N = numPoints
+        self.maxDim = maxDim
+
+        self.x_, self.y_, self.t_ = self.ready_data(self.N)
+
+        (
+            self.x_train,
+            self.x_test,
+            self.y_train,
+            self.y_test,
+            self.z_train,
+            self.z_test,
+        ) = train_test_split(self.x_, self.y_, self.t_, test_size=0.2)
+
+    def ready_data(self, N: int) -> tuple[np.array, np.array, np.array]:
+        """
+        Preprocess the terrain data
+
+        Parameters:
+        -----------
+
+        N: (int)
+            number of points
+
+        Returns:
+
+            x, y, t
+        """
+
+        width, length = self.terrainData.shape
+
+        y_len = width // N
+        x_len = length // N
+
+        x_ = np.sort(np.linspace(0, 1, N + 1))
+        y_ = np.sort(np.linspace(0, 1, N + 1))
+
+        self.x_raw, self.y_raw = np.meshgrid(x_, y_)
+        x = self.x_raw.flatten().reshape(-1, 1)
+        y = self.y_raw.flatten().reshape(-1, 1)
+
+        self.t_data = self.terrainData[::y_len, ::x_len]
+        self.scaled_t_data = (self.t_data - np.mean(self.t_data)) / np.std(self.t_data)
+        t = self.scaled_t_data.flatten().reshape(-1, 1)
+
+        return x, y, t
+
+    def plotSurface(self):
+        plt.contour(self.x_raw, self.y_raw, self.t_data)
+        plt.title("Terrain plot")
+        plt.xlabel("X")
+        plt.ylabel("Y")
+        plt.show()

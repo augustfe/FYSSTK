@@ -15,14 +15,14 @@ def R2Score(y: np.array, y_pred: np.array) -> float:
     return 1 - s1 / s2
 
 
-def get_variance(z_pred: np.ndarray):
+def get_variance(z_pred: np.array):
     return np.mean(np.var(z_pred, axis=1, keepdims=True))
 
 
-def get_bias(z_test, z_pred):
+def get_bias(z_test: np.array, z_pred: np.array):
     z_pred_mean = np.mean(z_pred, axis=1, keepdims=True)
     return MSE(z_test, z_pred_mean)
 
 
-def mean_MSE(z_test, z_pred):
+def mean_MSE(z_test: np.array, z_pred: np.array):
     return np.mean(np.mean((z_test - z_pred) ** 2, axis=1, keepdims=True))
