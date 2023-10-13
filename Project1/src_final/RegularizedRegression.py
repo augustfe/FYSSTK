@@ -45,14 +45,13 @@ def heatmap_no_resampling(
     pbar = tqdm(total=maxDim * nlmbds, desc=f"No resampling {model.__class__.__name__}")
 
     for dim in range(maxDim):
+        X_train = model.create_X(data.x_train, data.y_train, dim)
+        X_test = model.create_X(data.x_test, data.y_test, dim)
+
+        scaler.fit(X_train)
+        scaler.transform(X_train)
+        scaler.transform(X_test)
         for i, lmbda in enumerate(lmbds):
-            X_train = model.create_X(data.x_train, data.y_train, dim)
-            X_test = model.create_X(data.x_test, data.y_test, dim)
-
-            scaler.fit(X_train)
-            scaler.transform(X_train)
-            scaler.transform(X_test)
-
             model.fit(X_train, data.z_train, lmbda)
             # betas.append(beta)
 
@@ -79,6 +78,7 @@ def heatmap_no_resampling(
 def heatmap_bootstrap(
     data: Data,
     lmbds: np.array = np.logspace(-3, 5, 10),
+    maxDim: int = 15,
     model: Model = Ridge(),
     title: str = None,
     var: bool = False,
@@ -93,9 +93,9 @@ def heatmap_bootstrap(
         title (str): Title of the resulting plot
         var (bool): Whether to plot variance
     """
-    n_boostraps = 100
+    n_boostraps = 10
     error, bias, variance = bootstrap_lambdas(
-        data, n_boostraps, Ridge(), lmbds=lmbds**kwargs
+        data, n_boostraps, model, lmbds=lmbds, maxDim=maxDim, **kwargs
     )
     if title is None:
         title = f"{model.__class__.__name__} with bootstrapping " + (

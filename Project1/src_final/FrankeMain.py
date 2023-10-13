@@ -96,8 +96,26 @@ def LassoAnalysis() -> None:
     heatmap_no_resampling(
         data,
         model=Lasso(),
+        maxDim=maxDim,
+        lmbds=lmbds,
+        title="MSE Lasso no resampling",
+        savePlots=False,
+        showPlots=True,
+        figsPath=figsPath,
     )
-    # heatmap_bootstrap(data, model=Lasso())
+    BootData = FrankeData(
+        20, 0.2, maxDim=25, savePlots=True, showPlots=False, figsPath=figsPath
+    )
+    heatmap_bootstrap(
+        BootData,
+        model=Lasso(),
+        maxDim=maxDim,
+        lmbds=lmbds,
+        title="MSE Lasso bootstrap",
+        savePlots=False,
+        showPlots=True,
+        figsPath=figsPath,
+    )
 
 
 # bias variance for OLS using boostrap
@@ -107,7 +125,7 @@ def LassoAnalysis() -> None:
 # bootstrap_vs_cross_val
 
 if __name__ == "__main__":
-    # Franke()
-    # OLSAnalysis()
+    Franke()
+    OLSAnalysis()
     RidgeAnalysis()
     # LassoAnalysis()

@@ -61,6 +61,7 @@ def bootstrap_lambdas(
     model: Ridge | Lasso = Ridge(),
     lmbds: np.array = np.logspace(-3, 5, 10),
     maxDim: int = 15,
+    **kwargs,
 ) -> tuple[np.array, np.array, np.array]:
     """Perform bootstrap resampling.
 
