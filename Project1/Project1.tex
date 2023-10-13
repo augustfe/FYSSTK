@@ -131,9 +131,9 @@ In order to have a basis to work from, we assume that there exists a continuous 
 \end{equation*}
 where $\boldsymbol{\varepsilon} \sim N(0, \sigma^2)$. We are then looking for an approximation of $f$ which gives $\tilde{\boldsymbol{y}}$ such that the MSE $\frac{1}{n} \left( \boldsymbol{y} - \tilde{\boldsymbol{y}} \right)^2$ is minimized. In order to approximate $f$, we consider $n$ samples of $\boldsymbol{y}$ and assume that there are $p$ characteristics which define each of the samples, such that $y_i = f(\boldsymbol{x}_i) + \varepsilon_i$ where $\boldsymbol{x}_i = \left[x_{i,0}, x_{i, 1}, \ldots, x_{i, p-1} \right]$.
 
-We gather this information in a matrix $\boldsymbol{X}$, called the design matrix, such that
+We gather this information in a matrix $\textbf{X}$, called the design matrix, such that
 \begin{equation*}
-    \boldsymbol{X} =
+    \textbf{X} =
     \begin{bmatrix}
         x_{0,0} & x_{0,1} & \ldots & x_{0, p-1} \\
         x_{1,0} & x_{1,1} & \ldots & x_{1, p-1} \\
@@ -156,38 +156,79 @@ We are seeking to find a causal relationship between $\boldsymbol{y}$ and $\bold
     \begin{bmatrix}
         \varepsilon_0 \\ \varepsilon_1 \\ \vdots \\ \varepsilon_{n}
     \end{bmatrix}
-    = \boldsymbol{X} \boldsymbol{\beta} + \boldsymbol{\varepsilon},
+    = \textbf{X} \boldsymbol{\beta} + \boldsymbol{\varepsilon},
 \end{equation*}
-where $f(\boldsymbol{x})$ is now equal to $\boldsymbol{X\beta}$. Our approximation $\boldsymbol{\tilde{y}}$ then becomes $\boldsymbol{\tilde{y}} = \boldsymbol{X\beta}$.
+where $f(\boldsymbol{x})$ is now equal to $\textbf{X} \boldsymbol{\beta}$. Our approximation $\boldsymbol{\tilde{y}}$ then becomes $\boldsymbol{\tilde{y}} = \textbf{X} \boldsymbol{\beta}$.
 
 We call $\boldsymbol{x}_i$ the explanatory variables, $\boldsymbol{\beta}$ the regression parameter, and $\boldsymbol{y}$ the response variable.
 
 Our goal is now to find $\boldsymbol{\hat{\beta}}$ such that $\left( \boldsymbol{y} - \boldsymbol{\tilde{y}} \right)^2$ is minimized, i.e.,
 \begin{equation*}
-    \boldsymbol{\hat{\beta}}  = \argmin_{\boldsymbol{\beta} \in \mathbb{R}^p} \frac{1}{n} \left( \boldsymbol{y} - \boldsymbol{X\beta} \right)^2 = \argmin_{\boldsymbol{\beta} \in \mathbb{R}^p} \frac{1}{n} \left( \boldsymbol{y} - \boldsymbol{X\beta} \right)^T \left( \boldsymbol{y} - \boldsymbol{X\beta} \right).
+    \boldsymbol{\hat{\beta}}  = \argmin_{\boldsymbol{\beta} \in \mathbb{R}^p} \frac{1}{n} \left( \boldsymbol{y} - \textbf{X} \boldsymbol{\beta} \right)^2 = \argmin_{\boldsymbol{\beta} \in \mathbb{R}^p} \frac{1}{n} \left( \boldsymbol{y} - \textbf{X} \boldsymbol{\beta} \right)^T \left( \boldsymbol{y} - \textbf{X} \boldsymbol{\beta} \right).
 \end{equation*}
 As then
 \begin{equation*}
-    \left( \boldsymbol{y} - \boldsymbol{X\beta} \right)^T \left( \boldsymbol{y} - \boldsymbol{X\beta} \right) = \boldsymbol{y}^T \boldsymbol{y} - 2 \boldsymbol{\beta}^T \boldsymbol{X}^T \boldsymbol{y} + \boldsymbol{\beta}^T \boldsymbol{X}^T \boldsymbol{X} \boldsymbol{\beta} 
+    \left( \boldsymbol{y} - \textbf{X} \boldsymbol{\beta} \right)^T \left( \boldsymbol{y} - \textbf{X} \boldsymbol{\beta} \right) = \boldsymbol{y}^T \boldsymbol{y} - 2 \boldsymbol{\beta}^T \textbf{X}^T \boldsymbol{y} + \boldsymbol{\beta}^T \textbf{X}^T \textbf{X} \boldsymbol{\beta} 
 \end{equation*}
 is a non-negative quadratic equation, the minimum must exist. We may therefore find it by equating the partial derivatives with respect to the $p$ components of $\boldsymbol{\beta}$ with zero. In finding the derivative, we can ignore the scaling factor $\frac{1}{n}$
 
 \begin{gather*}
-    \frac{\partial}{\partial \boldsymbol{\beta}} \left( \boldsymbol{y}^T \boldsymbol{y} - 2 \boldsymbol{\beta}^T \boldsymbol{X}^T \boldsymbol{y} + \boldsymbol{\beta}^T \boldsymbol{X}^T \boldsymbol{X} \boldsymbol{\beta} \right) = 0 \\
-    -2 \boldsymbol{X}^T \boldsymbol{y} + 2 \boldsymbol{X}^T \boldsymbol{X \beta} = 0 \\
-    2 \boldsymbol{X}^T \boldsymbol{X \beta} = 2 \boldsymbol{X}^T \boldsymbol{y} \\
-    \boldsymbol{\beta} = \left( \boldsymbol{X}^T \boldsymbol{X} \right)^{-1} \boldsymbol{X}^T \boldsymbol{y}
+    \frac{\partial}{\partial \boldsymbol{\beta}} \left( \boldsymbol{y}^T \boldsymbol{y} - 2 \boldsymbol{\beta}^T \textbf{X}^T \boldsymbol{y} + \boldsymbol{\beta}^T \textbf{X}^T \textbf{X} \boldsymbol{\beta} \right) = 0 \\
+    -2 \textbf{X}^T \boldsymbol{y} + 2 \textbf{X}^T \boldsymbol{X \beta} = 0 \\
+    2 \textbf{X}^T \boldsymbol{X \beta} = 2 \textbf{X}^T \boldsymbol{y} \\
+    \boldsymbol{\beta} = \left( \textbf{X}^T \textbf{X} \right)^{-1} \textbf{X}^T \boldsymbol{y}
 \end{gather*}
 
-When the matrix $\boldsymbol{X}^T \boldsymbol{X}$ is invertible, this solution $\boldsymbol{\hat{\beta}}$ which minimizes the MSE can be found precisely. Often, especially when working numerically, the matrix is singular, so we instead apply the Moore-Penrose generalised inverse defined from the Singular Value Decomposition, often just called the pseudoinverse \cite[p.~74--82]{introNumeric}.
+When the matrix $\textbf{X}^T \textbf{X}$ is invertible, this solution $\boldsymbol{\hat{\beta}}$ which minimizes the MSE can be found precisely. Often, especially when working numerically, the matrix is singular, so we instead apply the Moore-Penrose generalised inverse defined from the Singular Value Decomposition, often just called the pseudoinverse \cite[p.~74--82]{introNumeric}.
 
 
-\subsubsection{Single Value Decomposition}
-% Maybe move this down after Lasso?
-When $\mathbf{X}^T\mathbf{X}$ is not invertible, we can solve this using the method of the SVD algorithm. SVD is defined as
+% \subsubsection{Single Value Decomposition}
+% % Maybe move this down after Lasso?
+% When $\mathbf{X}^T\mathbf{X}$ is not invertible, we can solve this using the method of the SVD algorithm. SVD is defined as
+% \begin{equation*}
+%     \mathbf{A} = \mathbf{U}\mathbf{\Sigma}\mathbf{V}^T
+% \end{equation*}
+
+\subsubsection{Expectation and variance of OLS}
+The expectation value of a single element $y_i$ of $\boldsymbol{y}$ is found as
 \begin{equation*}
-    \mathbf{A} = \mathbf{U}\mathbf{\Sigma}\mathbf{V}^T
+    \mathbb{E}[y_i] = \mathbb{E}\left[ \textbf{X}_{i,*} \boldsymbol{\beta} + \varepsilon_i \right] = \textbf{X}_{i,*} \boldsymbol{\beta} + \mathbb{E}\left[ \varepsilon_i \right] = \textbf{X}_{i,*} \boldsymbol{\beta},
 \end{equation*}
+as only $\varepsilon_i$ is a random variable with expectation $0$, while $\textbf{X}_{i,*} \boldsymbol{\beta}$ is a non-random scalar. The variance of $y_i$ is then found as
+\begin{align*}
+    \Var(y_i) &= \mathbb{E}[y_i^2] - \mathbb{E}[y_i]^2 \\
+    &= \mathbb{E}\left[ (\textbf{X}_{i,*}\boldsymbol{\beta})^2 + 2\varepsilon_i \textbf{X}_{i,*} \boldsymbol{\beta} + \varepsilon_i^2 \right] - (\textbf{X}_{i,*} \boldsymbol{\beta})^2 \\
+    &= (\textbf{X}_{i,*} \boldsymbol{\beta})^2 + 2\mathbb{E}[\varepsilon_i] \textbf{X}_{i,*} \boldsymbol{\beta} + \mathbb{E}[\varepsilon_i^2] - (\textbf{X}_{i,*} \boldsymbol{\beta})^2 \\
+    &= \mathbb{E} [\varepsilon_i^2] = \mathbb{E}[\varepsilon_i^2] - \mathbb{E}[\varepsilon_i]^2 = \Var(\varepsilon_i) \\
+    &= \sigma^2.
+\end{align*}
+
+Thus, we can gather that $y_i \sim N\left( \textbf{X}_{i,*} \boldsymbol{\beta}, \sigma^2 \right)$, and that $\mathbb{E}[\boldsymbol{y}] = \textbf{X} \boldsymbol{\beta}$. In order to analyze how this effects our solutions of $\boldsymbol{\hat{\beta}}$, we performs the same analysis as with $y_i$.
+\begin{align*}
+    \mathbb{E}\left[ \boldsymbol{\hat{\beta}} \right] &= \mathbb{E}\left[ \left( \textbf{X}^T \textbf{X} \right)^{-1} \textbf{X}^T \boldsymbol{y} \right] \\
+    &= \left( \textbf{X}^T \textbf{X} \right)^{-1} \textbf{X}^T \mathbb{E}[\boldsymbol{y}]
+    = \left( \textbf{X}^T \textbf{X} \right)^{-1} \textbf{X}^T \textbf{X}\boldsymbol{\beta} \\
+    &= \boldsymbol{\beta}
+\end{align*}
+Further, we find the variance of $\boldsymbol{\hat{\beta}}$, noting that $\textbf{X}^T\textbf{X}$ is symmetric, as
+\begin{align*}
+    \Var(\boldsymbol{\hat{\beta}}) &= \mathbb{E}[\boldsymbol{\hat{\beta}}^2] - \mathbb{E}[\boldsymbol{\hat{\beta}}]^2 \\
+    &= \mathbb{E}\left[ \left( (\textbf{X}^T \textbf{X})^{-1} \textbf{X}^T \boldsymbol{y} \right) \left( (\textbf{X}^T \textbf{X})^{-1} \textbf{X}^T \boldsymbol{y} \right)^T \right] - \boldsymbol{\beta} \boldsymbol{\beta}^T \\
+    &= \mathbb{E}\left[ (\textbf{X}^T \textbf{X})^{-1} \textbf{X}^T \boldsymbol{y} \boldsymbol{y}^T \textbf{X} (\textbf{X}^T \textbf{X})^{-1} \right] - \boldsymbol{\beta} \boldsymbol{\beta}^T \\
+    &= (\textbf{X}^T \textbf{X})^{-1} \textbf{X}^T \mathbb{E}\left[ \boldsymbol{y}^2 \right] \textbf{X} (\textbf{X}^T \textbf{X})^{-1} - \boldsymbol{\beta} \boldsymbol{\beta}^T
+\end{align*}
+Then as
+\begin{align*}
+    \Var(\boldsymbol{y}) &= \mathbb{E}\left[ \boldsymbol{y}^2 \right] - \mathbb{E}\left[ \boldsymbol{y} \right]^2 \\
+    \mathbb{E}\left[ \boldsymbol{y}^2 \right] &= \Var(\boldsymbol{y}) + \mathbb{E}\left[ \boldsymbol{y} \right]^2 \\
+    \mathbb{E}\left[ \boldsymbol{y}^2 \right] &= \sigma^2 + \textbf{X}\boldsymbol{\beta} \boldsymbol{\beta}^T \textbf{X}^T,
+\end{align*}
+we get that
+\begin{align*}
+    \Var(\boldsymbol{\hat{\beta}}) &= (\textbf{X}^T \textbf{X})^{-1} \textbf{X}^T \left( \sigma^2 + \textbf{X}\boldsymbol{\beta} \boldsymbol{\beta}^T \textbf{X}^T \right) \textbf{X} (\textbf{X}^T \textbf{X})^{-1} - \boldsymbol{\beta} \boldsymbol{\beta}^T \\
+    &= \sigma^2 (\textbf{X}^T \textbf{X})^{-1} + \boldsymbol{\beta} \boldsymbol{\beta}^T - \boldsymbol{\beta} \boldsymbol{\beta}^T \\
+    &= \sigma^2 (\textbf{X}^T \textbf{X})^{-1}
+\end{align*}
 
 \subsection{Ridge}
 When conducting Ordinary Least Squares (OLS) regression, overfitting can be a challenge. Overfitting occurs when our model closely conforms to the training data, not only capturing the genuine underlying pattern but also incorporating the random fluctuations present in our data. This can result in a model that exhibits exceptional performance on the training data it has seen but performs poorly when tasked with predicting unseen data.
@@ -199,14 +240,14 @@ Overfitting is influenced by two closely related factors: the density of our tra
 
 Ridge regression is a method which aims to address this by taking into account the size of the values in the regression parameter $\boldsymbol{\beta}$. The cost function is now defined as
 \begin{align*}
-    C \left( \boldsymbol{X}, \boldsymbol{\beta} \right) &= \frac{1}{n} \lVert\boldsymbol{y} - \boldsymbol{\tilde{y}} \rVert_2^2 + \lambda \lVert \boldsymbol{\beta} \rVert_2^2 \\
-    &= \frac{1}{n} \left( \boldsymbol{y} - \boldsymbol{X\beta} \right)^2 + \lambda \boldsymbol{\beta}^2
+    C \left( \textbf{X}, \boldsymbol{\beta} \right) &= \frac{1}{n} \lVert\boldsymbol{y} - \boldsymbol{\tilde{y}} \rVert_2^2 + \lambda \lVert \boldsymbol{\beta} \rVert_2^2 \\
+    &= \frac{1}{n} \left( \boldsymbol{y} - \textbf{X} \boldsymbol{\beta} \right)^2 + \lambda \boldsymbol{\beta}^2
 \end{align*}
 
 % Ridge regression is a method which aims to address this by utilizing the cost function
 % \begin{align*}
-%     C(\boldsymbol{X},\boldsymbol{\beta})=&\frac{1}{n}\vert\vert \boldsymbol{y}-\boldsymbol{\tilde{y}}\vert\vert_2^2+\lambda\vert\vert \boldsymbol{\beta}\vert\vert_2^2\\
-%     =& \frac{1}{n}\vert\vert \boldsymbol{y}-\boldsymbol{X}\boldsymbol{\beta}\vert\vert_2^2+\lambda\vert\vert \boldsymbol{\beta}\vert\vert_2^2
+%     C(\textbf{X},\boldsymbol{\beta})=&\frac{1}{n}\vert\vert \boldsymbol{y}-\boldsymbol{\tilde{y}}\vert\vert_2^2+\lambda\vert\vert \boldsymbol{\beta}\vert\vert_2^2\\
+%     =& \frac{1}{n}\vert\vert \boldsymbol{y}-\textbf{X}\boldsymbol{\beta}\vert\vert_2^2+\lambda\vert\vert \boldsymbol{\beta}\vert\vert_2^2
 % \end{align*}
 
 The right addend ($\lambda\lVert \boldsymbol{\beta} \rVert_2^2$) is called the regularization term, and we require that $\lVert \boldsymbol{\beta} \rVert_2^2 \leq t$ for some finite constant $t > 0$. It penalizes large regression coefficients, discouraging the model from assigning excessive importance to any single feature. This skews our predictions closer to zero. Resulting in higher bias, but lower variance.
@@ -215,27 +256,27 @@ The strength of the regularization is determined by $\lambda$. When $\lambda=0$,
 
 Given a $\lambda$ our optimal regression parameter $\boldsymbol{\hat{\beta}}$ minimizes the cost function. That is
 % \begin{equation*}
-%     \frac{1}{n} \left( \boldsymbol{y} - \boldsymbol{X} \boldsymbol{\hat{\beta}} \right)^2 + \lambda \boldsymbol{\hat{\beta}}^2 = \min_{\boldsymbol{\beta} \in \mathbb{R}^p} \frac{1}{n} \left( \boldsymbol{y} - \boldsymbol{X} \boldsymbol{\beta} \right)^2 + \lambda \boldsymbol{\beta}^2
+%     \frac{1}{n} \left( \boldsymbol{y} - \textbf{X} \boldsymbol{\hat{\beta}} \right)^2 + \lambda \boldsymbol{\hat{\beta}}^2 = \min_{\boldsymbol{\beta} \in \mathbb{R}^p} \frac{1}{n} \left( \boldsymbol{y} - \textbf{X} \boldsymbol{\beta} \right)^2 + \lambda \boldsymbol{\beta}^2
 % \end{equation*}
 \begin{equation*}
-    \boldsymbol{\hat{\beta}} = \argmin_{\boldsymbol{\beta} \in \mathbb{R}^p} \frac{1}{n} \left( \boldsymbol{y} - \boldsymbol{X} \boldsymbol{\beta} \right)^2 + \lambda \boldsymbol{\beta}^2
+    \boldsymbol{\hat{\beta}} = \argmin_{\boldsymbol{\beta} \in \mathbb{R}^p} \frac{1}{n} \left( \boldsymbol{y} - \textbf{X} \boldsymbol{\beta} \right)^2 + \lambda \boldsymbol{\beta}^2
 \end{equation*}
 The right hand side multiplies out to
 \begin{equation*}
-    \frac{1}{n} \left( \boldsymbol{y}^T \boldsymbol{y} - 2 \boldsymbol{\beta}^T \boldsymbol{X}^T \boldsymbol{y} + \boldsymbol{\beta}^T \boldsymbol{X}^T \boldsymbol{X} \boldsymbol{\beta} \right) + \lambda \boldsymbol{\beta}^T \boldsymbol{\beta},
+    \frac{1}{n} \left( \boldsymbol{y}^T \boldsymbol{y} - 2 \boldsymbol{\beta}^T \textbf{X}^T \boldsymbol{y} + \boldsymbol{\beta}^T \textbf{X}^T \textbf{X} \boldsymbol{\beta} \right) + \lambda \boldsymbol{\beta}^T \boldsymbol{\beta},
 \end{equation*}
 which again is a non-negative quadratic, meaning the minimum exists. We proceed similarly as with OLS, by taking the partial derivatives with respect to each component of $\boldsymbol{\beta}$ and equating it with zero. As $\frac{1}{n}$ is just a scaling factor, we can safely ignore it while finding the derivative.
 \begin{gather*}
-    \frac{\partial}{\partial \boldsymbol{\beta}} \left( \left( \boldsymbol{y} - \boldsymbol{X} \boldsymbol{\beta} \right)^2 + \lambda \boldsymbol{\beta}^2 \right) = 0 \\
-    -2 \boldsymbol{X}^T \boldsymbol{y} + 2 \boldsymbol{X}^T \boldsymbol{X \beta} + 2\lambda \boldsymbol{\beta} = 0 \\
-    \boldsymbol{X}^T \boldsymbol{X \beta} + \lambda \boldsymbol{\beta} = \boldsymbol{X}^T \boldsymbol{y} \\
-    \left(\boldsymbol{X}^T \boldsymbol{X} + \boldsymbol{I}_p \lambda \right) \boldsymbol{\beta} = \boldsymbol{X}^T \boldsymbol{y} \\
-    \boldsymbol{\beta} = \left(\boldsymbol{X}^T \boldsymbol{X} + \boldsymbol{I}_p \lambda \right)^{-1} \boldsymbol{X}^T \boldsymbol{y}
+    \frac{\partial}{\partial \boldsymbol{\beta}} \left( \left( \boldsymbol{y} - \textbf{X} \boldsymbol{\beta} \right)^2 + \lambda \boldsymbol{\beta}^2 \right) = 0 \\
+    -2 \textbf{X}^T \boldsymbol{y} + 2 \textbf{X}^T \boldsymbol{X \beta} + 2\lambda \boldsymbol{\beta} = 0 \\
+    \textbf{X}^T \boldsymbol{X \beta} + \lambda \boldsymbol{\beta} = \textbf{X}^T \boldsymbol{y} \\
+    \left(\textbf{X}^T \textbf{X} + \boldsymbol{I}_p \lambda \right) \boldsymbol{\beta} = \textbf{X}^T \boldsymbol{y} \\
+    \boldsymbol{\beta} = \left(\textbf{X}^T \textbf{X} + \boldsymbol{I}_p \lambda \right)^{-1} \textbf{X}^T \boldsymbol{y}
 \end{gather*}
 
-Again, we apply the pseudoinverse when finding $(\boldsymbol{X}^T \boldsymbol{X} + \lambda \boldsymbol{I})^{-1}$. This gives us that the optimal parameter $\boldsymbol{\hat{\beta}}$ for ridge regression is given by
+Again, we apply the pseudoinverse when finding $(\textbf{X}^T \textbf{X} + \lambda \boldsymbol{I})^{-1}$. This gives us that the optimal parameter $\boldsymbol{\hat{\beta}}$ for ridge regression is given by
 \begin{equation*}
-    \boldsymbol{\hat{\beta}}_\text{Ridge} = (\boldsymbol{X}^T \boldsymbol{X} + \lambda \boldsymbol{I})^{-1} \boldsymbol{X}^T \boldsymbol{y}.
+    \boldsymbol{\hat{\beta}}_\text{Ridge} = (\textbf{X}^T \textbf{X} + \lambda \boldsymbol{I})^{-1} \textbf{X}^T \boldsymbol{y}.
 \end{equation*} 
 
 
@@ -246,8 +287,8 @@ LASSO is an abbreviation of Least Absolute Shrinkage and Selection Operator, and
 
 Here, the cost function is defined as
 \begin{align*}
-    C \left( \boldsymbol{X}, \boldsymbol{\beta} \right) &= \frac{1}{n} \lVert \boldsymbol{y} - \boldsymbol{X\beta} \rVert_2^2 + \lambda \lVert \boldsymbol{\beta} \rVert_1 \\
-    &= \frac{1}{n} \left( \boldsymbol{y} - \boldsymbol{X\beta} \right)^2 + \lambda \sum_i |\beta_i|.
+    C \left( \textbf{X}, \boldsymbol{\beta} \right) &= \frac{1}{n} \lVert \boldsymbol{y} - \textbf{X} \boldsymbol{\beta} \rVert_2^2 + \lambda \lVert \boldsymbol{\beta} \rVert_1 \\
+    &= \frac{1}{n} \left( \boldsymbol{y} - \textbf{X} \boldsymbol{\beta} \right)^2 + \lambda \sum_i |\beta_i|.
 \end{align*}
 %Predictor selection happens when we add a constraint on the size of the penalty
 To see why predictor selection happens with Lasso regression it's helpful to have a look at a simple model with two features and two corresponding $\beta$ values
@@ -265,11 +306,11 @@ To see why predictor selection happens with Lasso regression it's helpful to hav
 
 Here, $\boldsymbol{\hat{\beta}}$ is the OLS solution, along with the contour lines for other values of $\boldsymbol{\beta}$. As we relax the constraint $s$, we grow the ``diamond" generated by the constrained $\ell_1$ norm until it meets with the target ellipse, and the corners of the diamond are more likely to intersect before the edges. This is especially the case when working higher dimensions, as the corners stick out further \cite[p.~432--436]{Murphy2012}. This is not the case with the constrained $\ell_2$ norm, as it has no ``corners" along the axes.
 
-Due to the nature of the $\ell_1$ norm, there exists no neat analytical solution, as absolute values do not perform nicely during derivation. We get that
+Due to the nature of the $\ell_1$ norm, there exists no neat analytical solution, as absolute values do not perform nicely under derivation. We get that
 \begin{align*}
-    \frac{\partial}{\partial \boldsymbol{\beta}} \left( \frac{1}{n} \left( \boldsymbol{y} - \boldsymbol{X\beta} \right)^2 + \lambda \sum_i |\beta_i| \right) &= 0 \\
-    -2 \boldsymbol{X}^T \boldsymbol{y} + 2 \boldsymbol{X}^T \boldsymbol{X\beta} + \lambda \sgn(\boldsymbol{\beta}) &= 0 \\
-    2 \boldsymbol{X}^T \boldsymbol{X\beta} + \lambda \sgn(\boldsymbol{\beta}) &= -2 \boldsymbol{X}^T \boldsymbol{y},
+    \frac{\partial}{\partial \boldsymbol{\beta}} \left( \frac{1}{n} \left( \boldsymbol{y} - \textbf{X} \boldsymbol{\beta} \right)^2 + \lambda \sum_i |\beta_i| \right) &= 0 \\
+    -2 \textbf{X}^T \boldsymbol{y} + 2 \textbf{X}^T \textbf{X} \boldsymbol{\beta} + \lambda \sgn(\boldsymbol{\beta}) &= 0 \\
+    2 \textbf{X}^T \textbf{X} \boldsymbol{\beta} + \lambda \sgn(\boldsymbol{\beta}) &= -2 \textbf{X}^T \boldsymbol{y},
 \end{align*}
 which we've yet to find a closed, generalised, form of.
 
@@ -346,17 +387,17 @@ Our estimated error for predicting unseen data is then
 
 The sample variance of our model cost is given by:
 
-\begin{equation*} \text{Var}_{\text{CV}} = \frac{1}{K - 1} \sum_{i=1}^{K}( \text{FoldErr}_{\text{i}} - \text{Err}_{\text{CV}})^2
+\begin{equation*} \Var_{\text{CV}} = \frac{1}{K - 1} \sum_{i=1}^{K}( \text{FoldErr}_{\text{i}} - \text{Err}_{\text{CV}})^2
 \end{equation*}
 
 
 %the above part blends more nicely to discussion on bootstrap
 
 \subsubsection{Bootstrapping}
-Instead of cross-validation we could use the bootstrap to asses our model. The bootstrap resampling technique allows us to estimate the sampling distribution of any statistic. If our training data is $\boldsymbol{X} = (x_1, x_2 .... x_N)$ we draw $N$ samples with replacement from $X$ uniformly B times creating $\boldsymbol{Z}_1, \boldsymbol{Z}_2 .... \boldsymbol{Z}_B$ new training sets. The error of prediction of unseen data can then be estimated by 
+Instead of cross-validation we could use the bootstrap to asses our model. The bootstrap resampling technique allows us to estimate the sampling distribution of any statistic. If our training data is $\textbf{X} = (x_1, x_2 .... x_N)$ we draw $N$ samples with replacement from $X$ uniformly B times creating $\boldsymbol{Z}_1, \boldsymbol{Z}_2 .... \boldsymbol{Z}_B$ new training sets. The error of prediction of unseen data can then be estimated by 
 
 \begin{equation*}
-    \text{Err}_{\text{boot}_1} =  \frac{1}{B} \sum_{b=1}^B \frac{1}{N} \sum_{i = 1}^N (y_i - f_b(x_i))^2
+    \text{Err}_{\text{boot}_1} =  \frac{1}{B} \sum_{b=1}^B \frac{1}{N} \sum_{i = 0}^{N-1} (y_i - f_b(x_i))^2
 \end{equation*}
 
 Where $f_b(x_i)$ is our prediction for $x_i$ by the model fit $\boldsymbol{Z}_b$. Unfortunately, this is not a particularly good estimator because bootstrap samples used to produce $f_b(x_i)$ may have contained $x_i$ \cite[p.~270]{Hastie2009}. To rectify this problem, the leave-one-out bootstrap estimator offers an improvement by emulating cross-validation.
@@ -366,15 +407,15 @@ Where $f_b(x_i)$ is our prediction for $x_i$ by the model fit $\boldsymbol{Z}_b$
 \end{equation*}
 
 Where $C^{-i}$ is the set of indices of bootstrap sample b that do not contain
-observation $i$. However this estimate is upward biased. To combat this we can use that the average number of distinct observations in each boostrap sample is about 0.632N (\cite[p.~270]{Hastie2009}) which gives the .632 bootsrap
+observation $i$. However this estimate is upward biased. To combat this we can use that the average number of distinct observations in each bootstrap sample is about 0.632N (\cite[p.~270]{Hastie2009}) which gives the .632 bootstrap
 \begin{equation*}
     \text{Err}_{\text{boot}_{.632}} = .368\bar{\text{err}} + .632 \text{Err}_{\text{boot}_2}
 \end{equation*}
 Where
 \begin{equation*}
-    \bar{\text{err}} = \frac{1}{N} \sum_{i=1}^{N} (y_i - f(x_i))
+    \bar{\text{err}} = \frac{1}{N} \sum_{i=0}^{N-1} (y_i - f(x_i))a
 \end{equation*}
-That is the training error of our model trained on all the data. Yet, as our degree of overfitting increases the more this estimate becomes optimisticaly biased, since $\bar{\text{err}}$ approaches 0.
+That is the training error of our model trained on all the data. Yet, as our degree of overfitting increases the more this estimate becomes optimistically biased, since $\bar{\text{err}}$ approaches 0.
 This leads us to the $.632+$ estimator
 
 \begin{equation*}
@@ -385,23 +426,23 @@ This leads us to the $.632+$ estimator
 \end{equation*}
 Where $\gamma$ is the no-information error rate. That is the error of all combinations of input-output on a model trained on all our training data
 \begin{equation*}
-    \gamma = \frac{1}{N^2} \sum_{i= 1}^{N}\sum_{j = 1}^{N} (y_i - f(x_j))^2
+    \gamma = \frac{1}{N^2} \sum_{i= 0}^{N-1}\sum_{j = 0}^{N-1} (y_i - f(x_j))^2
 \end{equation*}
-The $.632+$ bootstrap estimate is most useful when the sample size is small, or when the data is imbalanced or noisy and is rarely used for large sample sizes, as it gets very computationally expensive \cite[p. ~271]{Hastie2009}.
+The $.632+$ bootstrap estimate is most useful when the sample size is small, or when the data is imbalanced or noisy and is rarely used for large sample sizes, as it gets very computationally expensive \cite[p.~271]{Hastie2009}.
 
 \subsection{Model assessment and selection}
 The goal of our project is to identify the best model that accurately predicts the target variable on unseen data. Two commonly used metrics for measuring the accuracy of a model are the Mean Squared Error (MSE) and the $R^2$ score.
 
 MSE is defined as the average of the squared difference between the predicted and actual values for all data points in the testing set, as shown below:
-
-$$MSE = \frac{1}{N}\sum_{i=1}^{N}(y_i - \hat{y}_i)^2$$
-
+\begin{equation*}    
+    MSE = \frac{1}{N}\sum_{i=1}^{N}(y_i - \hat{y}_i)^2
+\end{equation*}
 where $y_i$ is the actual value, $\hat{y}_i$ is the predicted value, and $N$ is the total number of data points.
 
 The $R^2$ score, also known as the coefficient of determination, measures how well the model fits the data relative to the baseline model. It is calculated as:
-
-$$R^2 = 1 - \frac{\sum_{i=1}^{N}(y_i - \hat{y}i)^2}{\sum{i=1}^{n}(y_i - \bar{y})^2}$$
-
+\begin{equation*}
+    R^2 = 1 - \frac{\sum_{i=1}^{N}(y_i - \hat{y}i)^2}{\sum{i=1}^{n}(y_i - \bar{y})^2}
+\end{equation*}
 where $y_i$ is the actual value, $\hat{y}_i$ is the predicted value, $\bar{y}$ is the mean of the actual values, and $n$ is the total number of data points. The numerator represents the residual sum of squares, and the denominator represents the total sum of squares. Essentially, $R^2$ measures the proportion of the variance in the target variable that can be explained by the model, with higher scores indicating a better fit.
 
 In our project, we primarily rely on the MSE metric to compare and evaluate different models. While both metrics are commonly used to evaluate models, neither one is inherently better than the other. The choice of which metric to use depends on the project's specific requirements and goals.
@@ -413,7 +454,11 @@ Instead we will utilize our resampling techniques for tuning and selecting the b
 \newpage
 \section{Method}
 \subsection{Data sets}
-We are interested in using linear regression in order to predict topographical data, with samples gathered from the United States Geographical Survey of different areas in Norway. In order to verify that our models work, we will start by generating our own data sets using Franke's function.
+In this project we focus on the approximation of two datasets using 2D polynomial regression methods: OLS, Ridge, and LASSO regression. To validate the effectiveness of our techniques, we first utilize a self-generated dataset known as the Franke Function, which is a well-established smooth function. Following this validation, we proceed to analyze terrain data from a specific location in Norway, collected by NASA's Shuttle Radar Topography Mission (SRTM).
+
+e are interested in using linear regression in order to predict topographical data, with samples gathered from the United States Geographical Survey of different areas in Norway. In order to verify that our
+
+The entire project is implemented in Python and we have made the code publicly available on our GitHub repository (GitHub repo link) for reference and reproducibility purposes.
 
 \subsection{Two-dimensional polynomial regression}
 Franke's function is given by
@@ -490,10 +535,10 @@ def create_OLS_beta(X: np.array, z: np.array) -> np.array:
     return np.linalg.pinv(X.T @ X) @ X.T @ z
 \end{minted}
 
-Note that we use \verb|pinv| from \verb|numpy.linalg| in order to calculate the pseudo-inverse mentioned in the theory section, as we cannot guarantee that $\boldsymbol{X}^T \boldsymbol{X}$ is non-singular.
+Note that we use \verb|pinv| from \verb|numpy.linalg| in order to calculate the pseudo-inverse mentioned in the theory section, as we cannot guarantee that $\textbf{X}^T \textbf{X}$ is non-singular.
 
 \subsection{Ridge}
-The code for calculating $\boldsymbol{\hat{\beta}}_\text{Ridge}$ is almost identical as that for OLS. The difference is that the function now takes in a $\lambda$ parameter, and we use $\boldsymbol{X}^T \boldsymbol{X} + \lambda \boldsymbol{I}_p$ inside \verb|pinv|.
+The code for calculating $\boldsymbol{\hat{\beta}}_\text{Ridge}$ is almost identical as that for OLS. The difference is that the function now takes in a $\lambda$ parameter, and we use $\textbf{X}^T \textbf{X} + \lambda \boldsymbol{I}_p$ inside \verb|pinv|.
 
 \subsection{Lasso}
 As there exists no analytical solution for Lasso, we opted for using the built-in \verb|Lasso| regression from \verb|sklearn.linear_model|. Generating our predictions now look something like
