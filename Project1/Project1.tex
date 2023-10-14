@@ -488,7 +488,8 @@ meaning that the complexity of our model increases quadratically as we increase 
 In order to generate our data set, we draw $N$ values of $x,y \sim U(0, 1)$ using \verb|uniform| from the \verb|numpy.random| module in python. This generates pseudo-random values, and in order to simplify the verification process, we set a fixed seed for the random values. In order to simulate the random noise present in real world data, we will be adding an error term $\varepsilon \sim N(0,1)$ to each of our data points using \verb|randn|.
 
 \subsection{Scaling}
-As our values of $x$ and $y$ lie in $[0, 1]$, our explanatory variables might have vastly different scales. Suppose we are using polynomials of degree up to $5$. If our value of $x_i$ lies even in the middle of our interval, i.e. $x_i = 0.5$, then $x_i^5 = 0.03125$. We thus have to scale in order to get good results from ridge and lasso regression. To achieve this, we use \verb|StandardScaling| from \verb|sklearn.preproccesing|.
+
+As our values of $x$ and $y$, for both Franke's function and the terrain data,  lie in $[0, 1]$, our explanatory variables might have vastly different scales. Suppose we are using polynomials of degree up to $5$. If our value of $x_i$ lies even in the middle of our interval, i.e. $x_i = 0.5$, then $x_i^5 = 0.03125$. This does not affect OLS regression, however this will cause unwanted bias for regularized regression. We thus have to scale in order to get good results from ridge and lasso regression. To achieve this, we use \verb|StandardScaling| from \verb|sklearn.preproccesing|.
 
 \subsection{Creating our design matrix}
 In order to set up our design matrix with the polynomial explanatory variables, we initialize our matrix with the number of rows equal to the number of data points and length equal to the number of $\boldsymbol{\beta}$ parameters we calculated earlier. The code looks as following:
@@ -550,6 +551,17 @@ clf.fit(X_train, z_train)
 z_tilde = clf.predict(X_train)
 z_pred_Lasso = clf.predict(X_test)
 \end{minted}
+\subsection{Resampling}
+\subsubsection{Cross Validation}
+ In this project, we have utilized both our own method and the \verb|cross_val_score| function from the \verb|sklearn.model_selection| module to perform Cross Validation.
+ 
+The \verb|cross_val_score| function from \verb|sklearn.model_selection| automatically performs the necessary steps to split the data into folds and evaluates the model on each fold using a specified scoring metric, we choose MSE.
+
+In addition to using \verb|cross_val_score|, we have also implemented our own method for splitting the data into folds using the \verb|KFold| splitter from \verb|sklearn.model_selection|. We have sorted our data for plotting purposes and thus we need to set the \verb|shuffle| parameter equal to \verb|True| in our method as well as \verb|cross_val_score| to ensure a randomized order of the data when creating the folds.
+
+
+\subsubsection{Bootstrapping}
+
 
 \newpage
 
