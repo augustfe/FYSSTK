@@ -8,6 +8,8 @@ from pathlib import Path
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
 from imageio import imread
 
+# from sklearn.preprocessing import StandardScaler
+
 
 class Data:
     def __init__(self):
@@ -49,6 +51,7 @@ class FrankeData(Data):
         self.figsPath = figsPath
 
         self.x_, self.y_, self.z_ = self.generate_data(self.N, self.alphNoise)
+        # self.z_scaled = StandardScaler().fit_transform(self.z_)
 
         (
             self.x_train,
@@ -57,7 +60,10 @@ class FrankeData(Data):
             self.y_test,
             self.z_train,
             self.z_test,
-        ) = train_test_split(self.x_, self.y_, self.z_, test_size=0.2)
+        ) = train_test_split(self.x_, self.y_, self.z_, test_size=0.5)
+        # scaler = StandardScaler().fit(self.z_train)
+        # self.z_train_scaled = scaler.transform(self.z_train)
+        # self.z_test_scaled = scaler.transform(self.z_test)
 
     def generate_data(
         self, N: int, alph: float = 0.2
@@ -80,7 +86,7 @@ class FrankeData(Data):
         y = self.y_raw.flatten().reshape(-1, 1)
 
         self.z_raw = self.FrankeFunction(self.x_raw, self.y_raw)
-        self.z_noise = self.z_raw + alph * np.random.randn(N, N) * self.z_raw
+        self.z_noise = self.z_raw + alph * np.random.randn(N, N)  # * self.z_raw.mean()
 
         z = self.z_noise.flatten().reshape(-1, 1)
 

@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from pathlib import Path
+from matplotlib.patches import Rectangle
 
 
 def create_heatmap(
@@ -11,6 +12,8 @@ def create_heatmap(
     savePlots: bool = False,
     showPlots: bool = True,
     figsPath: Path = Path(".").parent,
+    maxDim: int = 15,
+    minDim: int = 1,
 ):
     """Create heatmap of MSE for lambda vs degree.
 
@@ -38,7 +41,7 @@ def create_heatmap(
 
     fig, ax = plt.subplots(figsize=plt.figaspect(0.5))
 
-    ax = sns.heatmap(
+    sns.heatmap(
         MSE_test,
         cmap="coolwarm",
         annot=True,
@@ -48,6 +51,10 @@ def create_heatmap(
         xticklabels=[f"{lmbda:.1f}" for lmbda in np.log10(lmbds)],
         yticklabels=degrees,
     )
+
+    minX, minY = np.unravel_index(MSE_test.argmin(), MSE_test.shape)
+    minIndex = (minY, minX)
+    ax.add_patch(Rectangle(minIndex, 1, 1, fill=False, edgecolor="black", lw=3))
 
     ax.set_xlabel(r"$\log_{10} \lambda$")
     ax.set_ylabel("Polynomial Degree")

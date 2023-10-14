@@ -139,7 +139,7 @@ class Lasso(Model):
 
         return self.beta
 
-    def predict(self, X):
+    def predict(self, X: np.array) -> np.array:
         """Predict values from regression.
 
         inputs:
@@ -149,4 +149,4 @@ class Lasso(Model):
         """
         if not self.fitted:
             raise ValueError("Model can not predict before being fitted")
-        return self.lasso_model.predict(X)
+        return self.lasso_model.predict(X).reshape(-1, 1)

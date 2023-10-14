@@ -5,7 +5,7 @@ from pathlib import Path
 from OLSRegression import (
     OLS_train_test,
     plot_Bias_VS_Variance,
-    bootstrap_vs_cross_val_OLS,
+    bootstrap_vs_cross_val,
 )
 from Models import Ridge, Lasso
 from Data import TerrainData
@@ -59,7 +59,7 @@ def OLSAnalysis() -> None:
     plot_Bias_VS_Variance(
         data, maxDim=15, savePlots=False, showPlots=True, figsPath=figsPath
     )
-    bootstrap_vs_cross_val_OLS(
+    bootstrap_vs_cross_val(
         data, maxDim=15, savePlots=False, showPlots=True, figsPath=figsPath
     )
 

@@ -23,17 +23,17 @@ def plotBeta(
     methodname (str):
         A string containing the name of the method used to calculate beta values.
     """
-    for i, beta in enumerate(betas):
+    for i, beta in enumerate(betas[:5]):
         for param in beta:
             plt.scatter(i + 1, param, c="r", alpha=0.5)
 
     plt.title(f"{title} for {methodname}")
-    plt.xticks([dim + 1 for dim in range(len(betas))])
+    plt.xticks([dim + 1 for dim in range(5)])
     plt.xlabel("Polynomial degree")
     plt.ylabel(r"$\beta_i$ value")
 
     tmp = []
-    for beta in betas:
+    for beta in betas[:5]:
         tmp += list(beta.ravel())
 
     maxBeta = max(abs(min(tmp)), abs(max(tmp))) * 1.2
@@ -41,7 +41,7 @@ def plotBeta(
     plt.ylim((-maxBeta, maxBeta))
 
     if savePlots:
-        plt.savefig(figsPath / f"{methodname}_{len(betas)}_betas.png", dpi=300)
+        plt.savefig(figsPath / f"{methodname}_{5}_betas.png", dpi=300)
     if showPlots:
         plt.show()
     plt.close()

@@ -48,19 +48,27 @@ def heatmap_no_resampling(
         X_train = model.create_X(data.x_train, data.y_train, dim)
         X_test = model.create_X(data.x_test, data.y_test, dim)
 
-        scaler.fit(X_train)
-        scaler.transform(X_train)
-        scaler.transform(X_test)
+        scaler = scaler.fit(X_train)
+        X_train = scaler.transform(X_train)
+        X_test = scaler.transform(X_test)
+
+        z_test, z_train = data.z_test, data.z_train
+
+        z_test = z_test.reshape(z_test.shape[0], 1)
         for i, lmbda in enumerate(lmbds):
-            model.fit(X_train, data.z_train, lmbda)
+            # skmodel = sklm.Lasso(lmbda, max_iter=500000, tol=0.01, fit_intercept=False)
+            # skmodel.fit(X_train, z_train)
+
+            model.fit(X_train, z_train, lmbda)
             # betas.append(beta)
 
             # z_tilde = model.predict(X_train)
             z_pred = model.predict(X_test)
 
             # MSETrain[dim, i] = MSE(data.z_train, z_tilde)
-            MSETest[dim, i] = MSE(data.z_test, z_pred)
-            R2Scores[dim, i] = R2Score(data.z_test, z_pred)
+            # print(z_test.shape, z_pred.shape)
+            MSETest[dim, i] = MSE(z_test, z_pred)
+            R2Scores[dim, i] = R2Score(z_test, z_pred)
             pbar.update(1)
 
     if title is None:
@@ -82,6 +90,7 @@ def heatmap_bootstrap(
     model: Model = Ridge(),
     title: str = None,
     var: bool = False,
+    n_bootstraps: int = 100,
     **kwargs,
 ) -> None:
     """Heatmap of lambda vs degree with bootstrapping.
@@ -93,9 +102,13 @@ def heatmap_bootstrap(
         title (str): Title of the resulting plot
         var (bool): Whether to plot variance
     """
-    n_boostraps = 10
     error, bias, variance = bootstrap_lambdas(
-        data, n_boostraps, model, lmbds=lmbds, maxDim=maxDim, **kwargs
+        data,
+        n_bootstraps=n_bootstraps,
+        model=model,
+        lmbds=lmbds,
+        maxDim=maxDim,
+        **kwargs,
     )
     if title is None:
         title = f"{model.__class__.__name__} with bootstrapping " + (
@@ -114,6 +127,7 @@ def heatmap_HomeMade_cross_val(
     model: Model = Ridge(),
     title: str = None,
     var: bool = False,
+    kfolds: int = 10,
     **kwargs,
 ) -> None:
     """Heatmap of lambda vs degree with Cross Validation.
@@ -126,7 +140,7 @@ def heatmap_HomeMade_cross_val(
         var (bool): Whether to plot variance
     """
     error, variance = HomeMade_cross_val_lambdas(
-        data, kfolds=5, model=model, lmbds=lmbds
+        data, kfolds=kfolds, model=model, lmbds=lmbds, maxDim=maxDim
     )
     if title is None:
         title = f"{model.__class__.__name__} with Cross Validation " + (
@@ -157,7 +171,7 @@ def heatmap_sklearn_cross_val(
         var (bool): Whether to plot variance
     """
     error, variance = sklearn_cross_val_lambdas(
-        data, kfolds=5, model=model, lmbds=lmbds
+        data, kfolds=5, model=model, lmbds=lmbds, maxDim=maxDim
     )
     if title is None:
         title = f"{model.__class__.__name__} with Scikit-learn CV " + (

@@ -1,4 +1,4 @@
-from Models import OLS
+from Models import OLS, Model
 from Data import Data
 import matplotlib.pyplot as plt
 import numpy as np
@@ -177,7 +177,7 @@ def plot_Bias_VS_Variance(
     plt.close()
 
 
-def bootstrap_vs_cross_val_OLS(
+def bootstrap_vs_cross_val(
     data,
     maxDim: int = 5,
     savePlots: bool = False,
@@ -185,6 +185,7 @@ def bootstrap_vs_cross_val_OLS(
     figsPath: Path = None,
     kfolds: int = 10,
     n_bootstraps: int = 100,
+    model: Model = OLS(),
 ):
     """Compare bootstrap and Cross validation scores for OLS
 
@@ -215,20 +216,27 @@ def bootstrap_vs_cross_val_OLS(
     """
     polyDegrees = range(1, maxDim + 1)
     error_kfold, variance_kfold = kfold_score_degrees(
-        data, kfolds=kfolds, maxDim=maxDim
+        data,
+        kfolds=kfolds,
+        maxDim=maxDim,
+        model=model,
     )
     error_boot, bias_boot, variance_boot = bootstrap_degrees(
-        data, n_bootstraps=n_bootstraps, maxDim=maxDim
+        data,
+        n_bootstraps=n_bootstraps,
+        maxDim=maxDim,
+        model=model,
     )
 
+    modelname = model.__class__.__name__
     plt.plot(polyDegrees, error_kfold, "b", label="Kfold CV Error")
     plt.plot(polyDegrees, error_boot, "r--", label="Bootstrap Error")
-    plt.title("Bootstrap vs CV for OLS")
+    plt.title(f"Bootstrap vs CV for {modelname}")
     plt.xlabel("Polynomial degree")
     plt.ylabel("Error")
     plt.legend()
     if savePlots:
-        plt.savefig(figsPath / f"Bias_vs_Var_OLS_{maxDim}.png", dpi=300)
+        plt.savefig(figsPath / f"Bias_vs_Var_{modelname}_{maxDim}.png", dpi=300)
     if showPlots:
         plt.show()
     plt.close()

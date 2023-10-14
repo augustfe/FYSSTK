@@ -6,6 +6,7 @@ from metrics import MSE, mean_MSE, get_bias, get_variance
 from sklearn.utils import resample
 
 from sklearn.model_selection import cross_val_score, KFold
+from sklearn.preprocessing import StandardScaler
 from tqdm import tqdm
 from sklearn.linear_model import Lasso as LassoSKL
 from sklearn.linear_model import Ridge as RidgeSKL
@@ -35,17 +36,23 @@ def bootstrap_degrees(
         total=len(polyDegrees) * n_bootstraps,
         desc=f"Bootstrap {model.__class__.__name__}",
     )
+    scaler = StandardScaler()
     for j, dim in enumerate(polyDegrees):
         X_train = model.create_X(data.x_train, data.y_train, dim)
         X_test = model.create_X(data.x_test, data.y_test, dim)
+
+        scaler = scaler.fit(X_train)
+        X_train = scaler.transform(X_train)
+        X_test = scaler.transform(X_test)
 
         z_test, z_train = data.z_test, data.z_train
         z_pred = np.empty((z_test.shape[0], n_bootstraps))
 
         for i in range(n_bootstraps):
             X_, z_ = resample(X_train, z_train)
-            model.fit(X_, z_)
-            z_pred[:, i] = model.predict(X_test).ravel()
+            beta = model.fit(X_, z_)
+            # z_pred[:, i] = model.predict(X_test).ravel()
+            z_pred[:, i] = (X_test @ beta).ravel()
             pbar.update(1)
 
         error[j] = mean_MSE(z_test, z_pred)
@@ -57,7 +64,7 @@ def bootstrap_degrees(
 
 def bootstrap_lambdas(
     data: Data,
-    n_boostraps: int,
+    n_bootstraps: int,
     model: Ridge | Lasso = Ridge(),
     lmbds: np.array = np.logspace(-3, 5, 10),
     maxDim: int = 15,
@@ -83,21 +90,26 @@ def bootstrap_lambdas(
 
     # for i, dim in tqdm(enumerate(polyDegrees)):
     pbar = tqdm(
-        total=n_degrees * n_lmbds * n_boostraps,
+        total=n_degrees * n_lmbds * n_bootstraps,
         desc=f"Bootstrap for {model.__class__.__name__}",
     )
+    scaler = StandardScaler()
 
     for i in range(maxDim):
         dim = i + 1
         X_train = model.create_X(data.x_train, data.y_train, dim)
         X_test = model.create_X(data.x_test, data.y_test, dim)
 
+        scaler = scaler.fit(X_train)
+        X_train = scaler.transform(X_train)
+        X_test = scaler.transform(X_test)
+
         z_test, z_train = data.z_test, data.z_train
 
         z_test = z_test.reshape(z_test.shape[0], 1)
         for j, lambd in enumerate(lmbds):
-            z_pred = np.empty((z_test.shape[0], n_boostraps))
-            for k in range(n_boostraps):
+            z_pred = np.empty((z_test.shape[0], n_bootstraps))
+            for k in range(n_bootstraps):
                 X_, z_ = resample(X_train, z_train)
                 model.fit(X_, z_, lambd)
                 z_pred[:, k] = model.predict(X_test).ravel()
@@ -131,9 +143,10 @@ def sklearn_cross_val(
     dummy_model = Model()
     for i, degree in tqdm(enumerate(polyDegrees), total=maxDim):
         X = dummy_model.create_X(data.x, data.y, degree)
+        X = StandardScaler().fit_transform(X)
 
         scores = cross_val_score(
-            model, X, data.z, scoring="neg_mean_squared_error", cv=nfolds, n_jobs=-1
+            model, X, data.z_, scoring="neg_mean_squared_error", cv=nfolds, n_jobs=-1
         )
         error[i] = -scores.mean()
         variance[i] = scores.std()
@@ -167,6 +180,7 @@ def kfold_score_degrees(
         scores = np.zeros(kfolds)
 
         X = model.create_X(data.x_, data.y_, degree)
+        X = StandardScaler().fit_transform(X)
 
         for j, (train_i, test_i) in enumerate(Kfold.split(X)):
             X_train = X[train_i]
@@ -213,12 +227,14 @@ def sklearn_cross_val_lambdas(
     variance = np.zeros((n_degrees, n_lmbds))
 
     dummy_model = Model()  # only needed because of where create X is
+    Kfold = KFold(n_splits=kfolds, shuffle=True)
 
     pbar = tqdm(
         total=n_degrees * n_lmbds, desc=f"sklearn CV {model.__class__.__name__}"
     )
     for i, degree in enumerate(polyDegrees):
         X = dummy_model.create_X(data.x_, data.y_, degree)
+        X = StandardScaler().fit_transform(X)
         for j, lambd in enumerate(lmbds):
             model.alpha = lambd
 
@@ -227,7 +243,7 @@ def sklearn_cross_val_lambdas(
                 X,
                 data.z_,
                 scoring="neg_mean_squared_error",
-                cv=kfolds,
+                cv=Kfold,
                 n_jobs=-1,
             )
             error[i, j] = -scores.mean()
@@ -269,11 +285,11 @@ def HomeMade_cross_val_lambdas(
         desc=f"Homemade CV {model.__class__.__name__}",
     )
     for i, degree in enumerate(polyDegrees):
-        scores = np.zeros(kfolds)
-
         X = model.create_X(data.x_, data.y_, degree)
+        X = StandardScaler().fit_transform(X)
 
         for j, lambd in enumerate(lmbds):
+            scores = np.zeros(kfolds)
             for k, (train_i, test_i) in enumerate(Kfold.split(X)):
                 X_train = X[train_i]
                 X_test = X[test_i]
