@@ -78,6 +78,7 @@ class Ridge(Model):
         Identity = np.identity(X.shape[1])
         self.beta = np.linalg.pinv(X.T @ X + self.lmbd * Identity) @ X.T @ y
         self.fitted = True
+
         return self.beta
 
 
@@ -100,6 +101,7 @@ class OLS(Model):
         """
         self.beta = np.linalg.pinv(X.T @ X) @ X.T @ y
         self.fitted = True
+
         return self.beta
 
 
@@ -149,4 +151,5 @@ class Lasso(Model):
         """
         if not self.fitted:
             raise ValueError("Model can not predict before being fitted")
+
         return self.lasso_model.predict(X).reshape(-1, 1)

@@ -28,21 +28,17 @@ data = TerrainData(
     terrainfile,
     40,
     maxDim,
-    savePlots=False,
-    showPlots=True,
+    savePlots=True,
+    showPlots=False,
     figsPath=figsPath,
 )
 
 
-# make franke plot
 def Surface():
     data.plotSurface()
-    # data.plotFranke()
 
 
-# THE CLASSIC
-
-
+# OLS
 def OLSAnalysis() -> None:
     "Run all the plots for Ordinary Least Squares"
     OLS_train_test(
@@ -72,7 +68,7 @@ def OLSAnalysis() -> None:
     )
 
 
-# Same analysis for lasso and Ridge as THE Classic
+# Same analysis for lasso and Ridge as OLS
 def RidgeAnalysis() -> None:
     "Run all the plots for Ridge"
     heatmap_no_resampling(
@@ -170,7 +166,7 @@ def LassoAnalysis() -> None:
 
 
 if __name__ == "__main__":
-    # Surface()
-    # OLSAnalysis()
-    # RidgeAnalysis()
+    Surface()
+    OLSAnalysis()
+    RidgeAnalysis()
     LassoAnalysis()

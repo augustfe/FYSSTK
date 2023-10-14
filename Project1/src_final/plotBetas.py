@@ -11,7 +11,7 @@ def plotBeta(
     savePlots: bool = False,
     showPlots: bool = True,
     figsPath: Path = Path(".").parent,
-):
+) -> None:
     """
     Plots the beta values of a linear regression model for different polynomial degrees.
 
@@ -19,9 +19,9 @@ def plotBeta(
         betas (list[np.array]):
             A list of beta values for different polynomial degrees.
         title (str):
-        A string containing the title for the plot.
-    methodname (str):
-        A string containing the name of the method used to calculate beta values.
+            A string containing the title for the plot.
+        methodname (str):
+            A string containing the name of the method used to calculate beta values.
     """
     for i, beta in enumerate(betas[:5]):
         for param in beta:

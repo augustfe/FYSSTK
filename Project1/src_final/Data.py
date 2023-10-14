@@ -12,6 +12,8 @@ from imageio import imread
 
 
 class Data:
+    "Base class for data."
+
     def __init__(self):
         raise NotImplementedError
 
@@ -27,19 +29,13 @@ class FrankeData(Data):
         savePlots: bool = False,
         showPlots: bool = True,
         figsPath: Path = None,
-    ):
-        """.
+    ) -> None:
+        """Initialize the data from Franke's function
 
-        Parameters:
-        -----------
-            numPoints: (int)
-                Number of points to generate.
-
-            alphNoise: (float)
-                Amount of noise to add
-
-            maxDim: (int)
-                Maximal polynomial dimension
+        inputs:
+            numPoints (int): Number of points to generate
+            alphNoise (float): Amount of noise to add
+            maxDim (int): Maximal polynomial dimension
 
         """
         self.N = numPoints
@@ -51,7 +47,6 @@ class FrankeData(Data):
         self.figsPath = figsPath
 
         self.x_, self.y_, self.z_ = self.generate_data(self.N, self.alphNoise)
-        # self.z_scaled = StandardScaler().fit_transform(self.z_)
 
         (
             self.x_train,
@@ -60,10 +55,7 @@ class FrankeData(Data):
             self.y_test,
             self.z_train,
             self.z_test,
-        ) = train_test_split(self.x_, self.y_, self.z_, test_size=0.5)
-        # scaler = StandardScaler().fit(self.z_train)
-        # self.z_train_scaled = scaler.transform(self.z_train)
-        # self.z_test_scaled = scaler.transform(self.z_test)
+        ) = train_test_split(self.x_, self.y_, self.z_, test_size=0.2)
 
     def generate_data(
         self, N: int, alph: float = 0.2
@@ -78,8 +70,6 @@ class FrankeData(Data):
         """
         x_ = np.linspace(0, 1, N)
         y_ = np.linspace(0, 1, N)
-        # x_ = np.sort(np.random.uniform(0, 1, N))
-        # y_ = np.sort(np.random.uniform(0, 1, N))
 
         self.x_raw, self.y_raw = np.meshgrid(x_, y_)
         x = self.x_raw.flatten().reshape(-1, 1)
@@ -96,15 +86,12 @@ class FrankeData(Data):
     def FrankeFunction(x: np.array, y: np.array) -> np.array:
         """Franke's function for evaluating methods.
 
-        Parameters:
-        -----------
-            x: (np.array)
-                values in x direction
+        inputs:
+            x (np.array): values in x direction
 
-            y: (np.array)
-                values in y direction
+            y (np.array): values in y direction
 
-        Returns:
+        returns:
             (np.array) values in z direction
         """
 
@@ -114,7 +101,8 @@ class FrankeData(Data):
         term4 = -0.2 * np.exp(-((9 * x - 4) ** 2) - (9 * y - 7) ** 2)
         return term1 + term2 + term3 + term4
 
-    def plotSurface(self):
+    def plotSurface(self) -> None:
+        "Plot the surface of the data, with and without noise."
         fig = plt.figure(figsize=plt.figaspect(0.5))
 
         ax = fig.add_subplot(1, 2, 1, projection="3d")
@@ -175,7 +163,7 @@ class TerrainData(Data):
         savePlots: bool = False,
         showPlots: bool = True,
         figsPath: Path = None,
-    ):
+    ) -> None:
         """
 
         Parameters:
@@ -209,18 +197,12 @@ class TerrainData(Data):
         ) = train_test_split(self.x_, self.y_, self.z_, test_size=0.2)
 
     def ready_data(self, N: int) -> tuple[np.array, np.array, np.array]:
-        """
-        Preprocess the terrain data
+        """Preprocess the terrain data
 
-        Parameters:
-        -----------
-
-        N: (int)
-            number of points
-
-        Returns:
-
-            x, y, t
+        inputs:
+            N (int): number of points
+        returns:
+            Values from the meshgrid of points, with the corresponing height
         """
 
         width, length = self.terrainData.shape
@@ -241,14 +223,8 @@ class TerrainData(Data):
 
         return x, y, t
 
-    # def plotSurface(self):
-    #     plt.contour(self.x_raw, self.y_raw, self.z_raw)
-    #     plt.title("Terrain plot")
-    #     plt.xlabel("X")
-    #     plt.ylabel("Y")
-    #     plt.show()
-
-    def plotSurface(self):
+    def plotSurface(self) -> None:
+        "Plot the surface of the data."
         fig = plt.figure(figsize=plt.figaspect(0.5))
 
         ax = fig.add_subplot(1, 2, 1, projection="3d")
@@ -262,7 +238,6 @@ class TerrainData(Data):
         )
 
         # Customize the z axis.
-        # ax.set_zlim(-0.10, 1.40)
         ax.zaxis.set_major_locator(LinearLocator(10))
         ax.zaxis.set_major_formatter(FormatStrFormatter("%.02f"))
         ax.set_title("Not scaled")
@@ -281,7 +256,6 @@ class TerrainData(Data):
         )
 
         # Customize the z axis.
-        # ax.set_zlim(-0.10, 1.40)
         ax.zaxis.set_major_locator(LinearLocator(10))
         ax.zaxis.set_major_formatter(FormatStrFormatter("%.02f"))
         ax.set_title("Scaled")

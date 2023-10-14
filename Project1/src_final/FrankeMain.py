@@ -28,12 +28,9 @@ data = FrankeData(40, 0.2, maxDim, savePlots=True, showPlots=False, figsPath=fig
 # make franke plot
 def Franke():
     data.plotSurface()
-    # data.plotFranke()
 
 
-# THE CLASSIC
-
-
+# OLS
 def OLSAnalysis() -> None:
     "Run all the plots for Ordinary Least Squares"
     OLS_train_test(
@@ -63,7 +60,7 @@ def OLSAnalysis() -> None:
     )
 
 
-# Same analysis for lasso and Ridge as THE Classic
+# Same analysis for lasso and Ridge as OLS
 def RidgeAnalysis() -> None:
     "Run all the plots for Ridge"
     heatmap_no_resampling(

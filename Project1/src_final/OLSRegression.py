@@ -132,7 +132,7 @@ def plot_Bias_VS_Variance(
     showPlots: bool = False,
     figsPath: Path = Path(".").parent,
     n_bootstraps: int = 100,
-):
+) -> None:
     """Plots variance, error(MSE), and bias using bootstrapping as resampling technique.
 
     inputs:
@@ -155,7 +155,7 @@ def plot_Bias_VS_Variance(
             Path to save figures to
 
         n_bootstraps (int):
-            Optional, default is 1000. Number of random samples to generate using bootstrapping
+            Optional, default is 100. Number of random samples to generate using bootstrapping
     """
     error, bias, variance = bootstrap_degrees(data, n_bootstraps, OLS(), maxDim=maxDim)
     polyDegrees = range(1, maxDim + 1)
@@ -186,7 +186,7 @@ def bootstrap_vs_cross_val(
     kfolds: int = 10,
     n_bootstraps: int = 100,
     model: Model = OLS(),
-):
+) -> None:
     """Compare bootstrap and Cross validation scores for OLS
 
     inputs:

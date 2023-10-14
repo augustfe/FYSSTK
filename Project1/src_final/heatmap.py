@@ -12,28 +12,20 @@ def create_heatmap(
     savePlots: bool = False,
     showPlots: bool = True,
     figsPath: Path = Path(".").parent,
-    maxDim: int = 15,
-    minDim: int = 1,
-):
+) -> None:
     """Create heatmap of MSE for lambda vs degree.
 
     Creates a heatmap plot of the test set MSE given the results of the model for
     different polynomial degrees and lambda values.
 
-    Parameters
-    ----------
-    MSE_test : np.array
-        A 2D numpy array of shape (n_poly_degrees, n_lambdas) with test set MSE
-        values for different polynomial degrees and lambda values.
-    lmbds : np.array
-        A 1D numpy array of lambda values for regularization.
-    title : str
-        A string containing the title for the heatmap plot.
-
-    Returns
-    -------
-    None
-        The function displays a heatmap plot using Seaborn and Matplotlib.
+    inputs:
+        MSE_test (np.array):
+            A 2D numpy array of shape (n_poly_degrees, n_lambdas) with test set MSE
+            values for different polynomial degrees and lambda values.
+        lmbds (np.array):
+            A 1D numpy array of lambda values for regularization.
+        title (str):
+            A string containing the title for the heatmap plot.
     """
 
     # Define polynomial degrees and lambda values

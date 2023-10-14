@@ -5,12 +5,13 @@ import numpy as np
 from metrics import MSE, mean_MSE, get_bias, get_variance
 from sklearn.utils import resample
 
-from sklearn.model_selection import cross_val_score, KFold
+from sklearn.model_selection import cross_val_score, KFold as skKfold
 from sklearn.preprocessing import StandardScaler
 from tqdm import tqdm
 from sklearn.linear_model import Lasso as LassoSKL
 from sklearn.linear_model import Ridge as RidgeSKL
 from sklearn.linear_model import LinearRegression as OLSSKL
+from Kfold import KFold
 
 
 def bootstrap_degrees(
@@ -141,12 +142,13 @@ def sklearn_cross_val(
     error = np.zeros(n_degrees)
     variance = np.zeros(n_degrees)
     dummy_model = Model()
+    Kfold = skKfold(nfolds, shuffle=True)
     for i, degree in tqdm(enumerate(polyDegrees), total=maxDim):
         X = dummy_model.create_X(data.x, data.y, degree)
         X = StandardScaler().fit_transform(X)
 
         scores = cross_val_score(
-            model, X, data.z_, scoring="neg_mean_squared_error", cv=nfolds, n_jobs=-1
+            model, X, data.z_, scoring="neg_mean_squared_error", cv=Kfold, n_jobs=-1
         )
         error[i] = -scores.mean()
         variance[i] = scores.std()
@@ -227,7 +229,7 @@ def sklearn_cross_val_lambdas(
     variance = np.zeros((n_degrees, n_lmbds))
 
     dummy_model = Model()  # only needed because of where create X is
-    Kfold = KFold(n_splits=kfolds, shuffle=True)
+    Kfold = skKfold(n_splits=kfolds, shuffle=True)
 
     pbar = tqdm(
         total=n_degrees * n_lmbds, desc=f"sklearn CV {model.__class__.__name__}"
