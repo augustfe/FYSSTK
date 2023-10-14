@@ -100,7 +100,6 @@ class TerrainData:
         return X
 
     def plotContour(self):
-
         plt.contour(self.x_raw, self.y_raw, self.t_data)
         plt.title("Terrain plot")
         plt.xlabel("X")
@@ -109,7 +108,6 @@ class TerrainData:
 
 
 if __name__ == "__main__":
-
     terrain1 = imread("../../DataFiles/SRTM_data_Norway_1.tif")
     terrain = np.asarray(terrain1)
 

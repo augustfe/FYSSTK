@@ -15,10 +15,9 @@ class Data:
 
 class FrankeData(Data):
     """
-    Pourpuse of this class is to hold all of our data.
+    This class is used to hold all of our Franke data.
     That way we can use the exact same data for all methods.
-    Also it's simple to create a similiar class for the terrain
-    data.
+    This setup also generalizes well to the terrain data.
 
     """
 
@@ -125,10 +124,11 @@ class FrankeData(Data):
         )
 
         # Customize the z axis.
+        ax.axis("off")
         ax.set_zlim(-0.10, 1.40)
         ax.zaxis.set_major_locator(LinearLocator(10))
         ax.zaxis.set_major_formatter(FormatStrFormatter("%.02f"))
-        ax.set_title("No noise")
+        ax.set_title(f"No noise")
 
         # Add a color bar which maps values to colors.
         fig.colorbar(surf, shrink=0.5, aspect=10)
@@ -144,10 +144,11 @@ class FrankeData(Data):
         )
 
         # Customize the z axis.
+        ax.axis("off")
         ax.set_zlim(-0.10, 1.40)
         ax.zaxis.set_major_locator(LinearLocator(10))
         ax.zaxis.set_major_formatter(FormatStrFormatter("%.02f"))
-        ax.set_title("With noise")
+        ax.set_title(f"With noise (\alpha = {self.alphNoise})")
 
         # Add a color bar which maps values to colors.
         fig.colorbar(surf, shrink=0.5, aspect=10)

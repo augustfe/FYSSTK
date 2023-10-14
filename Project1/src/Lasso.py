@@ -38,8 +38,7 @@ def pureSKLearnLasso(
     ztilde = clf.predict(X_train)
     z_pred_Lasso = clf.predict(X_test)
 
-    MSE_train = MSE(y_train, ztilde)
-    MSE_test = MSE(y_test, z_pred_Lasso)
+    MSE_test = MSE(y_train, ztilde)
     R2 = R2Score(y_test, z_pred_Lasso)
 
     return MSE_train, MSE_test, R2

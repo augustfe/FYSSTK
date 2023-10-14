@@ -8,8 +8,9 @@ from pathlib import Path
 
 def plotBeta(
     betas,
-    title,
+    title="beta by polynomial degree",
     methodname="OLS",
+    polyDegrees=range(1,14),
     savePlots: bool = False,
     showPlots: bool = True,
     figsPath: Path = None,
@@ -29,15 +30,14 @@ def plotBeta(
         A string containing the name of the method used to calculate beta values, by default "OLS".
 
     """
-    dims = range(len(betas))
-    for dim in dims:
-        for beta in betas[dim]:
-            plt.scatter(dim + 1, beta, c="r", alpha=0.5)  # , "r", alpha=1)
+    for i, degree in enumerate(polyDegrees):
+        for beta in betas[i]:
+            plt.scatter(degree, beta, c="r", alpha=0.5)  # , "r", alpha=1)
 
     plt.title(title)
-    plt.xticks([dim + 1 for dim in dims])
+    plt.xticks(polyDegrees)
     plt.xlabel("Polynomial degree")
-    plt.ylabel(r"$\beta_i$ value")
+    plt.ylabel(r"beta_i value")
 
     tmp = []
     for beta in betas:
@@ -48,7 +48,7 @@ def plotBeta(
     plt.ylim((-maxBeta, maxBeta))
 
     if savePlots:
-        plt.savefig(figsPath / f"{methodname}_{dims[-1]}_betas.png", dpi=300)
+        plt.savefig(figsPath / f"{methodname}__betas.png", dpi=300)
     if showPlots:
         plt.show()
     plt.close()
