@@ -589,14 +589,14 @@ The same data was used for each plot, unless otherwise specified.
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth*2/3]{/Franke/OLS_13_MSE.png}
-    \caption{MSE for ordinary least squares of polynomial degree up to 5.}
+    \caption{MSE for ordinary least squares of polynomial degree up to 13.}
     \label{fig:OLS5MSE}
 \end{figure}
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth*2/3]{/Franke/OLS_13_R2.png}
-    \caption{$R^2$ for ordinary least squares of polynomial degree up to 5.}
+    \caption{$R^2$ for ordinary least squares of polynomial degree up to 13.}
     \label{fig:OLS5R2}
 \end{figure}
 
@@ -610,7 +610,7 @@ The same data was used for each plot, unless otherwise specified.
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth*2/3]{Project1/figures/Franke/Few_points_Bias_Variance_Tradeoff_13.png}
-    \caption{Bias variance tradeoff for OLS with 400 points instead of 1600 for polynomial degree up to 15. Resampling with bootstrap.}
+    \caption{Bias variance tradeoff for OLS with 400 points instead of 1600 for polynomial degree up to 13. Resampling with bootstrap.}
     \label{fig:FewBVtradeoff}
 \end{figure}
 
@@ -626,30 +626,184 @@ The same data was used for each plot, unless otherwise specified.
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{Project1/figures/Franke/Heatmap_MSE_Ridge_no_resampling.png}
-    \caption{Caption}
-    \label{fig:enter-label}
+    \caption{MSE for Ridge regression of different values for $\lambda$ up to degree 15. No resampling.}
+    \label{fig:RidgeNoResamp}
 \end{figure}
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{Project1/figures/Franke/Heatmap_MSE_Ridge_CV.png}
-    \caption{Caption}
-    \label{fig:enter-label}
+    \caption{MSE for Ridge regression of different values for $\lambda$ up to degree 15. Resampling with cross validation.}
+    \label{fig:RidgeCV}
 \end{figure}
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{Project1/figures/Franke/Heatmap_MSE_Ridge_CV_from_Scikit-learn.png}
-    \caption{Caption}
-    \label{fig:enter-label}
+    \caption{MSE for Ridge regression of different values for $\lambda$ up to degree 15. Resampling with cross validation. Functions from Scikit-learn}
+    \label{fig:RidgeCVsklearn}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{Project1/figures/Franke/Heatmap_MSE_Ridge_Bootstrap.png}
+    \caption{MSE for Ridge regression of different values for $\lambda$ up to degree 13. Resampling with bootstrap.}
+    \label{fig:RidgeBootstrap}
 \end{figure}
 
 \newpage
 \subsubsection{Results from Lasso}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{Project1/figures/Franke/Heatmap_MSE_Lasso_no_resampling.png}
+    \caption{MSE for Lasso regression of different values for $\lambda$ up to degree 15. No resampling.}
+    \label{fig:LassoNoResamp}
+\end{figure}
 
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{Project1/figures/Franke/Heatmap_MSE_Lasso_CV.png}
+    \caption{MSE for Lasso regression of different values for $\lambda$ up to degree 15. Resampling with cross validation.}
+    \label{fig:LassoCV}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{Project1/figures/Franke/Heatmap_MSE_Lasso_CV_from_Scikit-learn.png}
+    \caption{MSE for Lasso regression of different values for $\lambda$ up to degree 15. Resampling with cross validation. Functions from Scikit-learn}
+    \label{fig:LassoCVsklearn}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{Project1/figures/Franke/Heatmap_MSE_Lasso_Bootstrap.png}
+    \caption{MSE for Lasso regression of different values for $\lambda$ up to degree 15. Resampling with bootstrap.}
+    \label{fig:LassoBootstrap}
+\end{figure}
+
+
+\newpage
 \subsection{Results for topographical data}
+\subsubsection{Results from Ordinary least squares}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth*2/3]{Terrain/OLS_5_betas.png}
+    \caption{Values of $\boldsymbol{\beta}$ from ordinary least squares for polynomial degree up to 5.}
+    \label{fig:TerrainOLS5Beta}
+\end{figure}
 
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth*2/3]{/Franke/OLS_13_MSE.png}
+    \caption{MSE for ordinary least squares of polynomial degree up to 13.}
+    \label{fig:TerrainOLS5MSE}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth*2/3]{/Franke/OLS_13_R2.png}
+    \caption{$R^2$ for ordinary least squares of polynomial degree up to 13.}
+    \label{fig:TerrainOLS5R2}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth*2/3]{Project1/figures/Terrain/Bias_Variance_Tradeoff_OLS_15.png}
+    \caption{Bias variance tradeoff for OLS up to polynomial degree of 15. Resampling with bootstrap.}
+    \label{fig:TerrainBVtradeoff}
+\end{figure}
+
+% \begin{figure}[htbp]
+%     \centering
+%     \includegraphics[width=\textwidth*2/3]{Project1/figures/Terrain/Few_points_Bias_Variance_Tradeoff_13.png}
+%     \caption{Bias variance tradeoff for OLS with 400 points instead of 1600 for polynomial degree up to 13. Resampling with bootstrap.}
+%     \label{fig:TerrainFewBVtradeoff}
+% \end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth*2/3]{Project1/figures/Terrain/Bias_vs_Var_OLS_15.png}
+    \caption{Comparison of MSE for bootstrapping and cross validation for ordinary least squares for polynomial degree up to 15.}
+    \label{fig:TerrainBvsCV}
+\end{figure}
+
+\newpage
+\subsubsection{Results from Ridge}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{Project1/figures/Terrain/Heatmap_MSE_Ridge_no_resampling.png}
+    \caption{MSE for Ridge regression of different values for $\lambda$ up to degree 15. No resampling.}
+    \label{fig:TerrainRidgeNoResamp}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{Project1/figures/Terrain/Heatmap_MSE_Ridge_CV.png}
+    \caption{MSE for Ridge regression of different values for $\lambda$ up to degree 15. Resampling with cross validation.}
+    \label{fig:TerrainRidgeCV}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{Project1/figures/Terrain/Heatmap_MSE_Ridge_CV_from_Scikit-learn.png}
+    \label{fig:TerrainRidgeCVsklearn}
+    \caption{MSE for Ridge regression of different values for $\lambda$ up to degree 15. Resampling with cross validation. Functions from Scikit-learn}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{Project1/figures/Terrain/Heatmap_MSE_Lasso_Bootstrap.png}
+    \caption{MSE for Lasso regression of different values for $\lambda$ up to degree 13. Resampling with bootstrap.}
+    \label{fig:TerrainLassoBootstrap}
+\end{figure}
+
+\newpage
+\subsubsection{Results from Lasso}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{Project1/figures/Terrain/Heatmap_MSE_Lasso_no_resampling.png}
+    \caption{MSE for Lasso regression of different values for $\lambda$ up to degree 15. No resampling.}
+    \label{fig:TerrainLassoNoResamp}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{Project1/figures/Terrain/Heatmap_MSE_Lasso_CV.png}
+    \caption{MSE for Lasso regression of different values for $\lambda$ up to degree 15. Resampling with cross validation.}
+    \label{fig:TerrainLassoCV}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{Project1/figures/Terrain/Heatmap_MSE_Lasso_CV_from_Scikit-learn.png}
+    \caption{MSE for Lasso regression of different values for $\lambda$ up to degree 15. Resampling with cross validation. Functions from Scikit-learn}
+    \label{fig:TerrainLassoCVsklearn}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{Project1/figures/Terrain/Heatmap_MSE_Lasso_Bootstrap.png}
+    \caption{MSE for Lasso regression of different values for $\lambda$ up to degree 15. Resampling with bootstrap.}
+    \label{fig:TerrainLassoBootstrap}
+\end{figure}
+
+
+\newpage
 \section{Discussion}
+In general, the results we were able to produce were heavily effected by a lack of computing power. Ideally, we would have preferred to utilize lower values for $\lambda$ where we see that the optimal values found lie on the lower range of the attempted values, a higher number of bootstraps, and a higher max iteration for solving Lasso. In some places, we decided to compare our own methods with those we would have gotten, had we utilized scikit-learn to a greater extent.
+
+\subsection{Discussion of Franke}
+We started out with a simple validation set approach (\ref{fig:OLS5MSE}, \ref{fig:OLS5R2}) for Ordinary least squares, in order to get a feeling for what kind of results we might expect. The resulting figures indicate that we will get a high degree of overfitting when attempting to use polynomial linear regression with a high polynomial degree with this kind of problem. We previously found that the number of $\boldsymbol{\beta}$ parameters grows quadratically with the polynomial degree, but we did not state how the size of an individual parameter $\beta_i$ would behave. We see in figure \ref{fig:OLS5Beta} that most points lie around zero, with a gaining high values in comparison. We decided to only plot the values for the first five polynomial degrees, as when extending the graph the outliers make it difficult to pick up the details around the lower degrees. This is highly indicative of overfitting, which explains our previous figures.
+
+We were also interested in exploring more about the Bias-Variance trade off. We initially produced figure \ref{fig:BVtradeoff}, however due to the high number of points used ($40 \cdot 40$), we saw only a small increase in variance. To illustrate the effect better, we decided to reproduce the plot with fewer points ($20 \cdot 20$) in figure \ref{fig:FewBVtradeoff}. This behaviour is expected, as variance is highly correlated with the number of samples we have at our disposal.
+
+We ended off our results from ordinary least squares by comparing two different methods of resampling in figure \ref{fig:BvsCV}. Here, we compared bootstrapping and K-Fold, seeing almost identical results. We found this a bit surprising, as we found bootstrapping a lot more computationally heavy. With OLS we found the best results with a polynomial degree of $7$.
+
+When attempting to compare how the mean squared error is effected for varying degrees of polynomials and different values for the regularization parameter $\lambda$, we initially used a 3D plot. This was highly informative, however difficult to place into a report such as this, due to not being able to rotate the graph. We instead therefore ended up using heat maps, were cells are shaded based on their values. As this ends up capturing a lot of detail, we highlight the box with the lowest value.
+
+
+
+
 
 \section{Conclusion}
 

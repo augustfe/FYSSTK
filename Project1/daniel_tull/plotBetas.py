@@ -10,7 +10,7 @@ def plotBeta(
     betas,
     title="beta by polynomial degree",
     methodname="OLS",
-    polyDegrees=range(1,14),
+    polyDegrees=range(1, 14),
     savePlots: bool = False,
     showPlots: bool = True,
     figsPath: Path = None,

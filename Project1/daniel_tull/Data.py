@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+np.random.seed(2023)
 
 from sklearn.model_selection import train_test_split
 from matplotlib import cm

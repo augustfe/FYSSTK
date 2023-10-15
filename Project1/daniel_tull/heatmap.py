@@ -1,9 +1,16 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+plt.rcParams['font.family'] = 'Calibri'
 
 def create_heatmap(
-    MSE_test, polyDegrees, lambdas, title=None, showPlots=True, savePlots=False, figsPath=None
+    MSE_test,
+    polyDegrees,
+    lambdas,
+    title=None,
+    showPlots=True,
+    savePlots=False,
+    figsPath=None,
 ):
     """
     Creates a heatmap plot of the test set MSE given the results of the model for different polynomial degrees and lambda values.
@@ -48,7 +55,7 @@ def create_heatmap(
             1,
             1,
             linewidth=3,
-            edgecolor="gold",
+            edgecolor="black",
             facecolor="none",
         )
     )
