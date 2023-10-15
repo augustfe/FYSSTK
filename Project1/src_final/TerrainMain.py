@@ -41,8 +41,9 @@ def Surface():
 # OLS
 def OLSAnalysis() -> None:
     "Run all the plots for Ordinary Least Squares"
+    OLSmaxDim = 25
     OLS_train_test(
-        data, savePlots=True, showPlots=False, figsPath=figsPath, maxDim=maxDim
+        data, savePlots=True, showPlots=False, figsPath=figsPath, maxDim=OLSmaxDim
     )
     # BVData = FrankeData(
     #     20, 0.2, maxDim=25, savePlots=True, showPlots=False, figsPath=figsPath
@@ -56,11 +57,11 @@ def OLSAnalysis() -> None:
     #     title="Few points Bias Variance Tradeoff",
     # )
     plot_Bias_VS_Variance(
-        data, maxDim=15, savePlots=True, showPlots=False, figsPath=figsPath
+        data, maxDim=OLSmaxDim, savePlots=True, showPlots=False, figsPath=figsPath
     )
     bootstrap_vs_cross_val(
         data,
-        maxDim=15,
+        maxDim=OLSmaxDim,
         savePlots=True,
         showPlots=False,
         figsPath=figsPath,
