@@ -75,6 +75,8 @@ apsrev41Control%
 \end{figure}
 \newpage
 \tableofcontents
+\listoffigures
+
 \newpage
 
 % \section*{Abstract}
@@ -395,7 +397,7 @@ The sample variance of our model cost is given by:
 %the above part blends more nicely to discussion on bootstrap
 
 \subsubsection{Bootstrapping}
-Instead of cross-validation we could use the bootstrap to asses our model. The bootstrap resampling technique allows us to estimate the sampling distribution of any statistic. If our training data is $\textbf{X} = (x_1, x_2 .... x_N)$ we draw $N$ samples with replacement from $X$ uniformly B times creating $\boldsymbol{Z}_1, \boldsymbol{Z}_2 .... \boldsymbol{Z}_B$ new training sets. The error of prediction of unseen data can then be estimated by 
+Instead of cross-validation we could use the bootstrap to asses our model. The bootstrap resampling technique allows us to estimate the sampling distribution of any statistic. If our training data is $\textbf{X} = (x_1, x_2 .... x_N)$ we draw $N$ samples with replacement from $\textbf{X}$ uniformly B times creating $\boldsymbol{Z}_1, \boldsymbol{Z}_2 .... \boldsymbol{Z}_B$ new training sets. The error of prediction of unseen data can then be estimated by 
 
 \begin{equation*}
     \text{Err}_{\text{boot}_1} =  \frac{1}{B} \sum_{b=1}^B \frac{1}{N} \sum_{i = 0}^{N-1} (y_i - f_b(x_i))^2
@@ -457,9 +459,12 @@ Instead we will utilize our resampling techniques for tuning and selecting the b
 \subsection{Data sets}
 In this project we focus on the approximation of two datasets using 2D polynomial regression methods: OLS, Ridge, and LASSO regression. To validate the effectiveness of our techniques, we first utilize a self-generated dataset known as the Franke Function, which is a well-established smooth function. Following this validation, we proceed to analyze terrain data from a specific location in Norway, collected by NASA's Shuttle Radar Topography Mission (SRTM).
 
-e are interested in using linear regression in order to predict topographical data, with samples gathered from the United States Geographical Survey of different areas in Norway. In order to verify that our
+We are interested in using linear regression in order to predict topographical data, with samples gathered from the United States Geographical Survey of different areas in Norway. In order to verify that our
 
-The entire project is implemented in Python and we have made the code publicly available on our GitHub repository (GitHub repo link) for reference and reproducibility purposes.
+The entire project is implemented in Python and we have made the code publicly available on \href{https://github.com/augustfe/FYSSTK/tree/main/Project1}{our GitHub repository} for reference and reproducibility purposes.
+
+\subsection{Data Holdout}
+When 
 
 \subsection{Two-dimensional polynomial regression}
 Franke's function is given by
@@ -561,6 +566,12 @@ In addition to using \verb|cross_val_score|, we have also implemented our own me
 
 
 \subsubsection{Bootstrapping}
+For our project, we performed Bootstrapping on the training set of our train-test split. This means that we generated multiple bootstrap samples by randomly selecting indices from the training data with replacement. We then trained our regression models on each bootstrap sample and evaluated their performance on the test set.
+
+While this Bootstrapping technique was not explicitly specified in the theory section, it is the method presented to us in the lectures, and we thus choose to stick with it. 
+
+It's worth noting that our train-test split (4/5, 1/5) is somewhat akin to performing Cross Validation with 5 folds, as each fold represents approximately 1/5 of the data. This allows for a comparison of the two techniques, which can be seen in the results section below.
+
 
 
 \newpage
@@ -573,6 +584,7 @@ We started with asserting how well our model performs when trained on Franke's f
     \centering
     \includegraphics[width=\textwidth]{Franke/FrankesFunction.png}
     \caption{Franke's function with and without noise}
+    \label{fig:FrankeTerrain}
     % Include caption, figure num, source, ...
 \end{figure}
 
@@ -684,6 +696,13 @@ The same data was used for each plot, unless otherwise specified.
 
 \newpage
 \subsection{Results for topographical data}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{Project1/figures/Terrain/TerrainFigure.png}
+    \caption{Data used before and after scaling.}
+    \label{fig:TerrainFig}
+\end{figure}
+
 \subsubsection{Results from Ordinary least squares}
 \begin{figure}[htbp]
     \centering
@@ -694,14 +713,14 @@ The same data was used for each plot, unless otherwise specified.
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=\textwidth*2/3]{/Franke/OLS_13_MSE.png}
+    \includegraphics[width=\textwidth*2/3]{/Terrain/OLS_13_MSE.png}
     \caption{MSE for ordinary least squares of polynomial degree up to 13.}
     \label{fig:TerrainOLS5MSE}
 \end{figure}
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=\textwidth*2/3]{/Franke/OLS_13_R2.png}
+    \includegraphics[width=\textwidth*2/3]{/Terrain/OLS_13_R2.png}
     \caption{$R^2$ for ordinary least squares of polynomial degree up to 13.}
     \label{fig:TerrainOLS5R2}
 \end{figure}
@@ -752,9 +771,9 @@ The same data was used for each plot, unless otherwise specified.
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=\textwidth]{Project1/figures/Terrain/Heatmap_MSE_Lasso_Bootstrap.png}
-    \caption{MSE for Lasso regression of different values for $\lambda$ up to degree 13. Resampling with bootstrap.}
-    \label{fig:TerrainLassoBootstrap}
+    \includegraphics[width=\textwidth]{Project1/figures/Terrain/Heatmap_MSE_Ridge_Bootstrap.png}
+    \caption{MSE for Ridge regression of different values for $\lambda$ up to degree 13. Resampling with bootstrap.}
+    \label{fig:TerrainRidgeBootstrap}
 \end{figure}
 
 \newpage
@@ -801,9 +820,24 @@ We ended off our results from ordinary least squares by comparing two different 
 
 When attempting to compare how the mean squared error is effected for varying degrees of polynomials and different values for the regularization parameter $\lambda$, we initially used a 3D plot. This was highly informative, however difficult to place into a report such as this, due to not being able to rotate the graph. We instead therefore ended up using heat maps, were cells are shaded based on their values. As this ends up capturing a lot of detail, we highlight the box with the lowest value.
 
+Over all, it seems like the lowest error for Ridge regression seems to lie in the range of polynomial degree 6 -- 11 and $\lambda \in [10^{-5}, 10^{-2}]$. Due to limited computing power, we were unable to narrow this interval down further. When using no method of resampling \ref{fig:RidgeNoResamp} we got suspiciously similar results for most of the values, perhaps indicating a fault in the code.
+
+With a varying range of values, we found smallest to be $0.2038$ with cross validation \ref{fig:RidgeCV} when $\lambda = 10^{-4}$ with a polynomial degree of $6$. With bootstrapping \ref{fig:RidgeBootstrap} the optimal value was found as approximately $0.2104$ when $\lambda = 10^{-2}$ and the polynomial degree was $9$. Interestingly, Scikit-learn wildly outperformed our methods \ref{fig:RidgeCVsklearn}, with a score of $0.0434$. We have been unable to figure out exactly why, but our leading theory is that we are either scaling poorly, or using a different method of inverting $\textbf{X}^T \textbf{X}$.
+
+The results from Lasso regression are all characterized by the optimal values landing on our lowest value for $\lambda$. Upon finding this, we attempted to shift our range of values down, however we were constantly met with exceedingly slow run times and convergence errors. We increased the maximal number of iterations for Lasso to $100000$, which gave the results above, however this did not fix the issue.
+
+With no resampling \ref{fig:LassoNoResamp}, Lasso produced an MSE of $0.4808$ with the lowest measured value $\lambda = 10^{-4}$ and polynomial degree 4. An almost identical value of $0.4868$ was found with bootstrapping \ref{fig:LassoBootstrap}, only with a polynomial degree of 3. Promisingly, cross validating gave almost identical values of $0.4480$ and $0.4470$ with respectively our own KFold algorithm \ref{fig:LassoCV} and Scikit-learn \ref{fig:LassoCVsklearn}. These were both with a polynomial degree of 11 and $\lambda = 10^{-4}$.
+
+This last result further corroborates that the issue with our implementation of Ridge lies in the fitting or predicting stage, as everything else except the choice of model is identical between Lasso and Ridge. It is interesting to note that we might be seeing the zeroing out of the parameters for $\boldsymbol{\beta}$ as $\lambda$ increases, as the MSE becomes nearly constant across the polynomial degrees.
+
+\subsection{Discussion of Terrain data}
+The data utilized for this section was of terrain data from Møsvatn Austfjell in Norway. The data set consists of $3601 \cdot 1801$, which given our previous performance issues is way too much. We therefore down sampled our data by choosing every 40th point in both $x$ and $y$ direction, which gave us a much more modest $1600$ points. We also scaled the data such that it has a mean of $0$ and standard deviation of $1$. This is shown in figure \ref{fig:TerrainFig}, and note that this does not change the overall shape. We also note that this looks similar to our noisy data from Franke's function \ref{fig:FrankeTerrain}, giving us reason to believe that we chose our test function wisely.
+
+\subsubsection{Discussion of Ordinary least squares}
 
 
-
+\subsubsection{Discussion of Ridge}
+\subsubsection{Discussion of Lasso}
 
 \section{Conclusion}
 
