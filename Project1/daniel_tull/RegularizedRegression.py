@@ -18,13 +18,7 @@ from globals import *
 from tqdm import tqdm
 
 
-def heatmap_no_resampling(
-    data,
-    model,
-    polyDegrees,
-    lambdas,
-    **kwargs
-):
+def heatmap_no_resampling(data, model, polyDegrees, lambdas, **kwargs):
     ndegrees = len(polyDegrees)
 
     nlambdas = lambdas.size
@@ -45,8 +39,8 @@ def heatmap_no_resampling(
             X_test = model.create_X(data.x_test, data.y_test, dim)
 
             scaler.fit(X_train)
-            scaler.transform(X_train)
-            scaler.transform(X_test)
+            X_train = scaler.transform(X_train)
+            X_test = scaler.transform(X_test)
 
             beta = model.fit(X_train, data.z_train, lmbda)
             # betas.append(beta)
@@ -56,30 +50,19 @@ def heatmap_no_resampling(
 
             # MSETrain[dim, i] = MSE(data.z_train, z_tilde)
             MSETest[j, i] = MSE(data.z_test, z_pred)
-            #R2Scores[j, i] = R2Score(data.z_test, z_pred)
+            # R2Scores[j, i] = R2Score(data.z_test, z_pred)
             pbar.update(1)
-    create_heatmap(
-        MSETest,
-        polyDegrees=polyDegrees,
-        lambdas=lambdas,
-        **kwargs
-    )
+    create_heatmap(MSETest, polyDegrees=polyDegrees, lambdas=lambdas, **kwargs)
 
 
 def heatmap_bootstrap(
-    data,
-    polyDegrees,
-    lambdas,
-    n_bootstraps,
-    model,
-    var=False,
-    **kwargs
+    data, polyDegrees, lambdas, n_bootstraps, model, var=False, **kwargs
 ):
-    error, bias, variance = bootstrap_lambdas(data, polyDegrees=polyDegrees, lambdas=lambdas, n_bootstraps=100, model=model)
+    error, bias, variance = bootstrap_lambdas(
+        data, polyDegrees=polyDegrees, lambdas=lambdas, n_bootstraps=100, model=model
+    )
     if var:
-        create_heatmap(
-            variance, lambdas=lambdas, polyDegrees=polyDegrees,**kwargs
-        )
+        create_heatmap(variance, lambdas=lambdas, polyDegrees=polyDegrees, **kwargs)
     else:
         create_heatmap(error, lambdas=lambdas, polyDegrees=polyDegrees, **kwargs)
 
@@ -93,13 +76,14 @@ def heatmap_HomeMade_cross_val(
     var=False,
     **kwargs,
 ):
-    error, variance = HomeMade_cross_val_lambdas(data, kfolds=kfolds, polyDegrees=polyDegrees, lambdas=lambdas, model=model)
+    error, variance = HomeMade_cross_val_lambdas(
+        data, kfolds=kfolds, polyDegrees=polyDegrees, lambdas=lambdas, model=model
+    )
     if var:
-        create_heatmap(
-            variance, lambdas=lambdas, polyDegrees=polyDegrees,**kwargs
-        )
+        create_heatmap(variance, lambdas=lambdas, polyDegrees=polyDegrees, **kwargs)
     else:
         create_heatmap(error, lambdas=lambdas, polyDegrees=polyDegrees, **kwargs)
+
 
 def heatmap_sklearn_cross_val(
     data,
@@ -110,7 +94,9 @@ def heatmap_sklearn_cross_val(
     var=False,
     **kwargs,
 ):
-    error, variance = sklearn_cross_val_lambdas(data, kfolds=kfolds, polyDegrees=polyDegrees, lambdas=lambdas ,model=model)
+    error, variance = sklearn_cross_val_lambdas(
+        data, kfolds=kfolds, polyDegrees=polyDegrees, lambdas=lambdas, model=model
+    )
 
     if var:
         create_heatmap(variance, lambdas=lambdas, polyDegrees=polyDegrees, **kwargs)

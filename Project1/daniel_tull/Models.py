@@ -72,7 +72,7 @@ class Lasso(Model):
             raise ValueError("No lambda/alpha provided")
 
         self.lambd = lambd
-        self.lasso_model = Lass(alpha=lambd, max_iter=100000)
+        self.lasso_model = Lass(alpha=lambd, max_iter=1000000)
         self.lasso_model.fit(X, y)
         self.beta = np.hstack((self.lasso_model.intercept_, self.lasso_model.coef_))
         self.fitted = True

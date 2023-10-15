@@ -100,7 +100,7 @@ def plot_prediction_vs_true(N: int = 300, polyDegrees: list[int] = [1, 4, 15]) -
         )
 
         # Scatter plot the x,y training values to see what we workin with
-        ax.scatter(x, y, z, c="black", s=10)
+        #ax.scatter(x, y, z, c="black", s=10)
         # add varaince and mean of model in title of plot
         plt.title(
             "Degree: {}\nMSE = {:.2e}(+/- {:.2e})".format(

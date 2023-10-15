@@ -55,15 +55,16 @@ def plotScores(
     plt.plot(xVals, MSEs_train, label="MSE train", color="r")
     plt.plot(xVals, MSEs_test, label="MSE test", color="g")
 
+    #HERE
     minTestMSE = np.argmin(MSEs_test)
     plt.scatter(
-        minTestMSE + 1,
+        xVals[minTestMSE],
         MSEs_test[minTestMSE],
         marker="x",
         label="Minimum test error",
     )
     if title == "":
-        title="MSE OLS (no resampling)"
+        title = "MSE OLS (no resampling)"
     plt.title(title)
     plt.legend()
 
@@ -77,7 +78,7 @@ def plotScores(
     plt.plot(xVals, R2s, label="$R^2$ score", color=color)
 
     maxR2 = np.argmax(R2s)
-    plt.scatter(maxR2 + 1, R2s[maxR2], marker="x", label="Maximum $R^2$")
+    plt.scatter(xVals[maxR2], R2s[maxR2], marker="x", label="Maximum $R^2$")
 
     plt.legend()
     plt.title(f"$R^2$ Scores by polynomial degree for {methodname}")

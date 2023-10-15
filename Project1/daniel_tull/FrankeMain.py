@@ -19,33 +19,35 @@ from RegularizedRegression import (
 )
 import sklearn.linear_model as sklm
 
-maxDim = 15
+maxDim = 13
 lambdas = np.logspace(-3, 4, 13)
 figsPath = Path(__file__).parent.parent.parent / "figures"
 showPlots = True
 savePlots = False
 kfolds = 5
-N=20
-alphaNoise=0.2
-n_bootstraps=100
+N = 23
+alphaNoise = 0.2
+n_bootstraps = 200
 
 
-
-polyDegrees=list(range(4,maxDim+1))
-
-
-
+polyDegrees = list(range(2, maxDim + 1))
 
 
 data = FrankeData(
     N, alphaNoise, maxDim, savePlots=savePlots, showPlots=showPlots, figsPath=figsPath
 )
 
-kwargs={'polyDegrees': polyDegrees, 'showPlots': True, 'savePlots': False, 'figsPath': figsPath}
+kwargs = {
+    "polyDegrees": polyDegrees,
+    "showPlots": True,
+    "savePlots": False,
+    "figsPath": figsPath,
+}
+
 
 # make franke plot
 def Franke():
-    data.plotFranke()
+    data.plotSurface()
 
 
 # THE CLASSIC
@@ -59,13 +61,8 @@ def OLSAnalysis():
 
 # Same analysis for lasso and Ridge as THE Classic
 def RidgeAnalysis():
-
     heatmap_no_resampling(
-        data,
-        model=Ridge(),
-        lambdas=lambdas,
-        title="Ridge no resampling",
-        **kwargs
+        data, model=Ridge(), lambdas=lambdas, title="Ridge no resampling", **kwargs
     )
     BootData = FrankeData(
         20, 0.2, maxDim=25, savePlots=False, showPlots=False, figsPath=figsPath
@@ -76,9 +73,8 @@ def RidgeAnalysis():
         title="Ridge bootstrap",
         lambdas=lambdas,
         n_bootstraps=n_bootstraps,
-        **kwargs
+        **kwargs,
     )
-
 
     heatmap_sklearn_cross_val(
         data,
@@ -86,7 +82,7 @@ def RidgeAnalysis():
         title=f"Ridge sklearn CV (kfolds={kfolds})",
         lambdas=lambdas,
         kfolds=kfolds,
-        **kwargs
+        **kwargs,
     )
 
     heatmap_HomeMade_cross_val(
@@ -95,17 +91,13 @@ def RidgeAnalysis():
         title=f"Ridge CV (kfolds={kfolds})",
         lambdas=lambdas,
         kfolds=kfolds,
-        **kwargs
+        **kwargs,
     )
 
 
 def LassoAnalysis():
     heatmap_no_resampling(
-        data,
-        model=Lasso(),
-        lambdas=lambdas,
-        title="Lasso no resampling",
-        **kwargs
+        data, model=Lasso(), lambdas=lambdas, title="Lasso no resampling", **kwargs
     )
     BootData = FrankeData(
         20, 0.2, maxDim=25, savePlots=False, showPlots=False, figsPath=figsPath
@@ -117,9 +109,8 @@ def LassoAnalysis():
         title="Lasso bootstrap",
         lambdas=lambdas,
         n_bootstraps=n_bootstraps,
-        **kwargs
+        **kwargs,
     )
-
 
     heatmap_sklearn_cross_val(
         data,
@@ -127,7 +118,7 @@ def LassoAnalysis():
         title=f"Lasso sklearn CV (kfolds={kfolds})",
         lambdas=lambdas,
         kfolds=kfolds,
-        **kwargs
+        **kwargs,
     )
 
     heatmap_HomeMade_cross_val(
@@ -136,7 +127,7 @@ def LassoAnalysis():
         title=f"Lasso CV (kfolds={kfolds})",
         lambdas=lambdas,
         kfolds=kfolds,
-        **kwargs
+        **kwargs,
     )
 
 
@@ -147,7 +138,7 @@ def LassoAnalysis():
 # bootstrap_vs_cross_val
 
 if __name__ == "__main__":
-    # Franke()
-    #OLSAnalysis()
-    #RidgeAnalysis()
-    LassoAnalysis()
+    #Franke()
+    OLSAnalysis()
+    # RidgeAnalysis()
+    #LassoAnalysis()
