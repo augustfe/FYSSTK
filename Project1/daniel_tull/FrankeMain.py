@@ -25,7 +25,7 @@ figsPath = Path(__file__).parent.parent.parent / "figures"
 showPlots = True
 savePlots = False
 kfolds = 5
-N = 23
+N = 20
 alphaNoise = 0.2
 n_bootstraps = 200
 
@@ -78,7 +78,7 @@ def RidgeAnalysis():
 
     heatmap_sklearn_cross_val(
         data,
-        model=skRidge(),
+        model=sklm.Ridge(),
         title=f"Ridge sklearn CV (kfolds={kfolds})",
         lambdas=lambdas,
         kfolds=kfolds,
@@ -87,7 +87,7 @@ def RidgeAnalysis():
 
     heatmap_HomeMade_cross_val(
         data,
-        model=sklm.Ridge(),
+        model=Ridge(),
         title=f"Ridge CV (kfolds={kfolds})",
         lambdas=lambdas,
         kfolds=kfolds,
@@ -140,5 +140,5 @@ def LassoAnalysis():
 if __name__ == "__main__":
     #Franke()
     OLSAnalysis()
-    # RidgeAnalysis()
-    #LassoAnalysis()
+    RidgeAnalysis()
+    LassoAnalysis()

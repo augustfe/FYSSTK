@@ -18,12 +18,11 @@ from RegularizedRegression import (
 import sklearn.linear_model as sklm
 
 np.random.seed(32019)
-maxDim = 13
+maxDim = 25
 lambdas = np.logspace(-3, 4, 13)
 figsPath = Path(__file__).parent.parent / "figures" / "Terrain"
 kfolds = 5
-N = 20
-alphaNoise = 0.2
+N = 40
 n_bootstraps = 100
 
 # data = FrankeData(40, 0.2, maxDim, savePlots=False, showPlots=True, figsPath=figsPath)
@@ -36,13 +35,6 @@ data = TerrainData(
     figsPath=figsPath,
 )
 
-print(np.amax(data.x_))
-print(np.amin(data.x_))
-print(np.amax(data.y_))
-print(np.amin(data.y_))
-print(np.amax(data.z_))
-print(np.amin(data.z_))
-quit()
 
 # make franke plot
 def Surface():
@@ -57,7 +49,7 @@ polyDegrees = list(range(1, maxDim + 1))
 kwargs = {
     "polyDegrees": polyDegrees,
     "showPlots": True,
-    "savePlots": False,
+    "savePlots": True,
     "figsPath": figsPath,
 }
 
@@ -89,7 +81,7 @@ def RidgeAnalysis():
 
     heatmap_sklearn_cross_val(
         data,
-        model=skRidge(),
+        model=sklm.Ridge(),
         title=f"Ridge sklearn CV (kfolds={kfolds})",
         lambdas=lambdas,
         kfolds=kfolds,
@@ -98,7 +90,7 @@ def RidgeAnalysis():
 
     heatmap_HomeMade_cross_val(
         data,
-        model=sklm.Ridge(),
+        model=Ridge(),
         title=f"Ridge CV (kfolds={kfolds})",
         lambdas=lambdas,
         kfolds=kfolds,
@@ -147,6 +139,6 @@ def LassoAnalysis():
 
 if __name__ == "__main__":
     Surface()
-    # OLSAnalysis()
-    # RidgeAnalysis()
+    OLSAnalysis()
+    RidgeAnalysis()
     LassoAnalysis()

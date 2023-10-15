@@ -214,7 +214,7 @@ def sklearn_cross_val_lambdas(data, polyDegrees, lambdas, kfolds, model):
 
     return error, variance
 
-def Newsklearn_cross_val_lambdas(data, polyDegrees, lambdas, kfolds, model):
+def GridSearchCV_sklearn_lambdas(data, polyDegrees, lambdas, kfolds, model):
     """
     sklearn cross val for polydegrees and lambda
     """
@@ -255,6 +255,7 @@ def HomeMade_cross_val_lambdas(data, polyDegrees, lambdas, kfolds, model):
     """
     n_degrees = len(polyDegrees)
     n_lambdas = lambdas.size
+    scaler = StandardScaler()
 
     error = np.zeros((n_degrees, n_lambdas))
     variance = np.zeros((n_degrees, n_lambdas))
