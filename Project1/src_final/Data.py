@@ -164,19 +164,12 @@ class TerrainData(Data):
         showPlots: bool = True,
         figsPath: Path = None,
     ) -> None:
-        """
+        """Initialize the data from terrain.
 
-        Parameters:
-        -----------
-        terrainData: (numpy.Ndarray)
-            Original dataset
-
-        numPoints: (int)
-            Number of points to generate.
-
-        maxDim: (int)
-            Maximal polynomial dimension
-
+        inputs:
+            terrainData (numpy.Ndarray): Original dataset
+            numPoints (int): Number of points to generate.
+            maxDim (int): Maximal polynomial dimension
         """
         self.terrainData = np.asarray(imread(terrainfile))
         self.N = numPoints
@@ -207,9 +200,6 @@ class TerrainData(Data):
 
         width, length = self.terrainData.shape
 
-        y_len = width // N
-        x_len = length // N
-
         x_ = np.sort(np.linspace(0, 1, N + 1))
         y_ = np.sort(np.linspace(0, 1, N + 1))
 
@@ -217,7 +207,7 @@ class TerrainData(Data):
         x = self.x_raw.flatten().reshape(-1, 1)
         y = self.y_raw.flatten().reshape(-1, 1)
 
-        self.z_raw = self.terrainData[::y_len, ::x_len]
+        self.z_raw = self.terrainData[: 2 * N + 1 : 2, : 2 * N + 1 : 2]
         self.scaled_z = (self.z_raw - np.mean(self.z_raw)) / np.std(self.z_raw)
         t = self.scaled_z.flatten().reshape(-1, 1)
 

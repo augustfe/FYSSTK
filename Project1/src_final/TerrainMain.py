@@ -20,7 +20,7 @@ import sklearn.linear_model as sklm
 np.random.seed(32019)
 maxDim = 13
 lmbds = np.logspace(-7, 3, 11)
-figsPath = Path(__file__).parent.parent / "figures" / "Terrain"
+figsPath = Path(__file__).parent.parent / "figures" / "TerrainCompare"
 terrainfile = figsPath.parent.parent / "DataFiles" / "SRTM_data_Norway_1.tif"
 
 
@@ -41,9 +41,8 @@ def Surface():
 # OLS
 def OLSAnalysis() -> None:
     "Run all the plots for Ordinary Least Squares"
-    OLSmaxDim = 25
     OLS_train_test(
-        data, savePlots=True, showPlots=False, figsPath=figsPath, maxDim=OLSmaxDim
+        data, savePlots=True, showPlots=False, figsPath=figsPath, maxDim=maxDim
     )
     # BVData = FrankeData(
     #     20, 0.2, maxDim=25, savePlots=True, showPlots=False, figsPath=figsPath
@@ -57,11 +56,11 @@ def OLSAnalysis() -> None:
     #     title="Few points Bias Variance Tradeoff",
     # )
     plot_Bias_VS_Variance(
-        data, maxDim=OLSmaxDim, savePlots=True, showPlots=False, figsPath=figsPath
+        data, maxDim=maxDim, savePlots=True, showPlots=False, figsPath=figsPath
     )
     bootstrap_vs_cross_val(
         data,
-        maxDim=OLSmaxDim,
+        maxDim=maxDim,
         savePlots=True,
         showPlots=False,
         figsPath=figsPath,
