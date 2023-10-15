@@ -175,7 +175,7 @@ def bootstrap_vs_cross_val_OLS(
         data, polyDegrees=polyDegrees, kfolds=5, model=OLS()
     )
     error_boot, bias_boot, variance_boot = bootstrap_degrees(
-        data, polyDegrees=polyDegrees, n_bootstraps=100
+        data, polyDegrees=polyDegrees, n_bootstraps=100, model=OLS()
     )
     # error_CV, varaince_CV = sklearn_cross_val_OLS(x, y, z, polyDegrees, kfolds)
     # print(error_kfold)
