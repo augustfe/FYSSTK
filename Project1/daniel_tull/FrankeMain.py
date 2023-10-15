@@ -114,7 +114,7 @@ def LassoAnalysis():
 
     heatmap_sklearn_cross_val(
         data,
-        model=sklm.Lasso(),
+        model=sklm.Lasso(max_iter=10000000),
         title=f"Lasso sklearn CV (kfolds={kfolds})",
         lambdas=lambdas,
         kfolds=kfolds,

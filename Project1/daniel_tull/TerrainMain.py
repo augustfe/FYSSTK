@@ -30,7 +30,7 @@ data = TerrainData(
     figsPath.parent.parent / "DataFiles" / "SRTM_data_Norway_1.tif",
     40,
     maxDim,
-    savePlots=False,
+    savePlots=True,
     showPlots=True,
     figsPath=figsPath,
 )
