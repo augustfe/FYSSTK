@@ -713,22 +713,22 @@ The same data was used for each plot, unless otherwise specified.
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=\textwidth*2/3]{/Terrain/OLS_25_MSE.png}
-    \caption{MSE for ordinary least squares of polynomial degree up to 25.}
+    \includegraphics[width=\textwidth*2/3]{/Terrain/OLS_13_MSE.png}
+    \caption{MSE for ordinary least squares of polynomial degree up to 13.}
     \label{fig:TerrainOLS5MSE}
 \end{figure}
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=\textwidth*2/3]{Project1/figures/Terrain/OLS_25_R2.png}
-    \caption{$R^2$ for ordinary least squares of polynomial degree up to 25.}
+    \includegraphics[width=\textwidth*2/3]{Project1/figures/Terrain/OLS_13_R2.png}
+    \caption{$R^2$ for ordinary least squares of polynomial degree up to 13.}
     \label{fig:TerrainOLS5R2}
 \end{figure}
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=\textwidth*2/3]{Project1/figures/Terrain/Bias_Variance_Tradeoff_OLS_25.png}
-    \caption{Bias variance tradeoff for OLS up to polynomial degree of 25. Resampling with bootstrap.}
+    \includegraphics[width=\textwidth*2/3]{Project1/figures/Terrain/Bias_Variance_Tradeoff_OLS_13.png}
+    \caption{Bias variance tradeoff for OLS up to polynomial degree of 13. Resampling with bootstrap.}
     \label{fig:TerrainBVtradeoff}
 \end{figure}
 
@@ -741,8 +741,8 @@ The same data was used for each plot, unless otherwise specified.
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=\textwidth*2/3]{Project1/figures/Terrain/Bias_vs_Var_OLS_25.png}
-    \caption{Comparison of MSE for bootstrapping and cross validation for ordinary least squares for polynomial degree up to 25.}
+    \includegraphics[width=\textwidth*2/3]{Project1/figures/Terrain/Bias_vs_Var_OLS_13.png}
+    \caption{Comparison of MSE for bootstrapping and cross validation for ordinary least squares for polynomial degree up to 13.}
     \label{fig:TerrainBvsCV}
 \end{figure}
 
@@ -831,7 +831,7 @@ With no resampling \ref{fig:LassoNoResamp}, Lasso produced an MSE of $0.4808$ wi
 This last result further corroborates that the issue with our implementation of Ridge lies in the fitting or predicting stage, as everything else except the choice of model is identical between Lasso and Ridge. It is interesting to note that we might be seeing the zeroing out of the parameters for $\boldsymbol{\beta}$ as $\lambda$ increases, as the MSE becomes nearly constant across the polynomial degrees.
 
 \subsection{Discussion of Terrain data}
-The data utilized for this section was of terrain data from Møsvatn Austfjell in Norway. The data set consists of $3601 \cdot 1801$ points, which given our previous performance issues is way too much. We therefore down sampled our data by choosing 40 evenly spaced points in both $x$ and $y$ direction, which gave us a much more modest $1600$ points. We also scaled the data such that it has a mean of $0$ and standard deviation of $1$. This is shown in figure \ref{fig:TerrainFig}, and note that this does not change the overall shape. We also note that this looks similar to our noisy data from Franke's function \ref{fig:FrankeTerrain}, giving us reason to believe that we chose our test function wisely.
+The data utilized for this section was of terrain data from Møsvatn Austfjell in Norway. The data set consists of $3601 \cdot 1801$ points, which given our previous performance issues is way too much. In our initial attempt, we choose 40 evenly spaced points in $x$ and $y$ direction from the total data. This resulting in an extremely high bias, giving us mostly useless results. We therefore opted to select every other point in the first $80 \times 80$ grid, resulting in a more modest $40 \cdot 40$ points. We also scaled the data such that it has a mean of $0$ and standard deviation of $1$. This is shown in figure \ref{fig:TerrainFig}, and note that this does not change the overall shape.
 
 \subsubsection{Discussion of Ordinary least squares}
 We saw the same trends for the values of $\boldsymbol{\beta}$ with the terrain data \ref{fig:TerrainOLS5Beta} as with Frank's function \ref{fig:OLS5Beta} when applying Ordinary least squares. We got worse results for $R^2$ \ref{fig:TerrainOLS5R2} and MSE \ref{fig:TerrainOLS5MSE}, bottoming out just below $0.4$. This is not surprising, given the bias was found around $0.3$ \ref{fig:TerrainBVtradeoff}.
