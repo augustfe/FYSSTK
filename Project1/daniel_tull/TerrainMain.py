@@ -18,17 +18,17 @@ from RegularizedRegression import (
 import sklearn.linear_model as sklm
 
 np.random.seed(32019)
-maxDim = 25
-lambdas = np.logspace(-3, 4, 13)
+maxDim = 13
+lambdas = np.logspace(-7, 4, 13)
 figsPath = Path(__file__).parent.parent / "figures" / "Terrain"
 kfolds = 5
-N = 40
+N = 12
 n_bootstraps = 100
 
 # data = FrankeData(40, 0.2, maxDim, savePlots=False, showPlots=True, figsPath=figsPath)
 data = TerrainData(
     figsPath.parent.parent / "DataFiles" / "SRTM_data_Norway_1.tif",
-    40,
+    N,
     maxDim,
     savePlots=True,
     showPlots=True,
@@ -139,6 +139,6 @@ def LassoAnalysis():
 
 if __name__ == "__main__":
     Surface()
-    OLSAnalysis()
-    RidgeAnalysis()
-    LassoAnalysis()
+    #OLSAnalysis()
+    #RidgeAnalysis()
+    #LassoAnalysis()

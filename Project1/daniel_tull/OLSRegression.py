@@ -141,7 +141,7 @@ def plot_Bias_VS_Variance(
         Optional, default is 1000. Number of random samples to generate using bootstrapping.
 
     """
-    n_bootstraps = 400
+    n_bootstraps = 100
 
     error, bias, variance = bootstrap_degrees(
         data=data, polyDegrees=polyDegrees, n_bootstraps=n_bootstraps, model=OLS()
