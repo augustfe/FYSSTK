@@ -87,11 +87,11 @@ class NeuralNet:
 
         self.seed = seed
 
-        self.z_layers = list()
-        self.a_layers = list()
-        self.classification = None
+        self.z_layers: list[np.ndarray] = list()
+        self.a_layers: list[np.ndarray] = list()
 
         self.reset_weights()
+        self.set_classification()
 
     def reset_weights(self) -> None:
         """
@@ -417,6 +417,12 @@ class NeuralNet:
             "CostLogReg",
             "CostCrossEntropy",
         ]
+
+    def predict(self, X: np.ndarray, *, theshold: float = 0.5) -> np.ndarray:
+        predict = self.feed_forward(X)
+        if self.classification:
+            return np.where(predict > theshold, 1, 0)
+        return predict
 
 
 class OneLayerNeuralNet:
