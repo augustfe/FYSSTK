@@ -9,6 +9,38 @@ from copy import deepcopy
 
 
 class NeuralNet:
+    """
+    A class representing a neural network.
+
+    Attributes:
+    -----------
+    dimensions : tuple[int]
+        A tuple of integers representing the number of nodes in each layer of the neural network.
+    hidden_func : Callable
+        A callable function representing the activation function for the hidden layers.
+    output_func : Callable
+        A callable function representing the activation function for the output layer.
+    cost_func : Callable
+        A callable function representing the cost function used to evaluate the performance of the neural network.
+    seed : Optional[int]
+        An optional integer representing the seed for the random number generator used to initialize the weights.
+
+    Methods:
+    --------
+    reset_weights() -> None:
+        Resets the weights of the neural network.
+    fit(X_train: np.ndarray, target_train: np.ndarray, scheduler: Scheduler, **kwargs) -> dict[str, np.ndarray]:
+        Trains the neural network on the given data.
+    feed_forward(X_batch: np.ndarray) -> np.ndarray:
+        Performs a feed forward pass through the neural network.
+    back_propagate(X_batch: np.ndarray, target_batch: np.ndarray, lmbda: float) -> None:
+        Performs back propagation to update the weights of the neural network.
+    accuracy(prediction: np.ndarray, target: np.ndarray) -> float:
+        Calculates the accuracy of the neural network.
+    set_classification() -> None:
+        Sets the classification attribute of the neural network based on the cost function used.
+    """
+
     def __init__(
         self,
         dimensions: tuple[int],
@@ -16,7 +48,31 @@ class NeuralNet:
         output_func: Callable = sigmoid,
         cost_func: Callable = CostOLS,
         seed: Optional[int] = None,
-    ):
+    ) -> None:
+        """
+        Initializes the neural network.
+
+        Parameters:
+        -----------
+        dimensions : tuple[int]
+            A tuple of integers representing the number of nodes in each layer of the neural network.
+        hidden_func : Callable
+            A callable function representing the activation function for the hidden layers.
+        output_func : Callable
+            A callable function representing the activation function for the output layer.
+        cost_func : Callable
+            A callable function representing the cost function used to evaluate the performance of the neural network.
+        seed : Optional[int]
+            An optional integer representing the seed for the random number generator used to initialize the weights.
+
+        Raises:
+        -------
+        TypeError:
+            If dimensions is not a tuple, if any value in dimensions is not an integer,
+            or if seed is not an integer or None.
+        ValueError:
+            If any value in dimensions is less than or equal to 0.
+        """
         if not isinstance(dimensions, tuple):
             raise TypeError(f"Dimensions must be tuple, not {type(dimensions)}")
         if not all(isinstance(layer, int) for layer in dimensions):
@@ -39,7 +95,10 @@ class NeuralNet:
 
         self.reset_weights()
 
-    def reset_weights(self):
+    def reset_weights(self) -> None:
+        """
+        Resets the weights of the neural network.
+        """
         if self.seed is not None:
             np.random.seed(self.seed)
 
@@ -66,6 +125,41 @@ class NeuralNet:
         X_val: Optional[np.ndarray] = None,
         target_val: Optional[np.ndarray] = None,
     ) -> dict[str, np.ndarray]:
+        """
+        Trains the neural network on the given data.
+
+        Parameters:
+        -----------
+        X_train : np.ndarray
+            A numpy array representing the training data.
+        target_train : np.ndarray
+            A numpy array representing the target values for the training data.
+        scheduler : Scheduler
+            A scheduler object used to update the weights of the neural network.
+        batches : int, optional
+            An integer representing the number of batches to divide the training data into, by default 1.
+        epochs : int, optional
+            An integer representing the number of epochs to train the neural network for, by default 100.
+        lmbda : float, optional
+            A float representing the regularization parameter, by default 0.
+        X_val : Optional[np.ndarray], optional
+            An optional numpy array representing the validation data, by default None.
+        target_val : Optional[np.ndarray], optional
+            An optional numpy array representing the target values for the validation data, by default None.
+
+        Returns:
+        --------
+        dict[str, np.ndarray]
+            A dictionary containing the training and validation errors and accuracies (if applicable).
+
+        Raises:
+        -------
+        TypeError:
+            If scheduler is not of class Scheduler, if batches or epochs are not integers, or if lmbda is not a number.
+        ValueError:
+            If batches or epochs are less than or equal to 0, if lmbda is negative, or if the number of batches exceeds
+            the number of training points.
+        """
         # Handle TypeErrors (arrays are iffy with jax etc.)
         if not isinstance(scheduler, Scheduler):
             raise TypeError("The scheduler must be of class Scheduler")
@@ -177,6 +271,19 @@ class NeuralNet:
         return scores
 
     def feed_forward(self, X_batch: np.ndarray) -> np.ndarray:
+        """
+        Performs a feed forward pass through the neural network.
+
+        Parameters:
+        -----------
+        X_batch : np.ndarray
+            A numpy array representing the input data.
+
+        Returns:
+        --------
+        np.ndarray
+            A numpy array representing the output of the neural network.
+        """
         self.a_layers = list()
         self.z_layers = list()
 
@@ -216,7 +323,24 @@ class NeuralNet:
 
     def back_propagate(
         self, X_batch: np.ndarray, target_batch: np.ndarray, lmbda: float
-    ):
+    ) -> None:
+        """
+        Performs back propagation to update the weights of the neural network.
+
+        Parameters:
+        -----------
+        X_batch : np.ndarray
+            A numpy array representing the input data.
+        target_batch : np.ndarray
+            A numpy array representing the target values for the input data.
+        lmbda : float
+            A float representing the regularization parameter.
+
+        Raises:
+        -------
+        ValueError:
+            If the shapes of prediction and target do not correspond.
+        """
         hidden_derivative = derivate(self.hidden_func)
         output_derivative = derivate(self.output_func)
 
@@ -246,7 +370,64 @@ class NeuralNet:
 
         # Back propagate the hidden layers
         for i in range(len(self.weights) - 2, -1, -1):
-            delta_matrix = delta_matrix @ self.weights[i + 1][1:].T
+            # Calculate error for layer
+            delta_matrix = (
+                delta_matrix @ self.weights[i + 1][1:].T
+            ) * hidden_derivative(self.z_layers[i + 1])
+
+            # Calculate gradients
+            gradient_weights = delta_matrix.T @ self.a_layers[i][:, 1:]
+            gradient_bias = np.sum(delta_matrix, axis=0).reshape(
+                1, delta_matrix.shape[1]
+            )
+
+            # Regularize
+            gradient_weights += self.weights[i][1:, :] * lmbda
+
+            update_matrix = np.vstack(
+                [
+                    self.schedulers_bias[i].update_change(gradient_bias),
+                    self.schedulers_weight[i].update_change(gradient_weights),
+                ]
+            )
+            # Update weights
+            self.weights -= update_matrix
+
+    def accuracy(self, prediction: np.ndarray, target: np.ndarray) -> float:
+        """
+        Calculates the accuracy of the neural network.
+
+        Parameters:
+        -----------
+        prediction : np.ndarray
+            A numpy array representing the predicted values.
+        target : np.ndarray
+            A numpy array representing the target values.
+
+        Returns:
+        --------
+        float
+            A float representing the accuracy of the neural network.
+
+        Raises:
+        -------
+        ValueError:
+            If the shapes of prediction and target do not correspond.
+        """
+        if prediction.shape != target.shape:
+            raise ValueError(
+                f"Shapes must correspond, not {prediction.shape} and {target.shape}"
+            )
+        return np.average((target == prediction))
+
+    def set_classification(self) -> None:
+        """
+        Sets the classification attribute of the neural network based on the cost function used.
+        """
+        self.classification = self.cost_func.__name__ in [
+            "CostLogReg",
+            "CostCrossEntropy",
+        ]
 
 
 class OneLayerNeuralNet:
