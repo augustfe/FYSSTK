@@ -21,8 +21,8 @@ class Gradients:
     ) -> None:
         if not isinstance(n, int):
             raise TypeError(f"n should be and integer, not {n} of type {type(n)}")
-        if not isinstance(x, np.ndarray) or not isinstance(y, np.ndarray):
-            raise TypeError(f"x and y must be arrays, not {type(x)} and {type(y)}")
+        # if not isinstance(x, np.ndarray) or not isinstance(y, np.ndarray):
+        #     raise TypeError(f"x and y must be arrays, not {type(x)} and {type(y)}")
         if not (n == len(x) == len(y)):
             raise ValueError("Number of points must correspond to length of arrays")
 
@@ -80,7 +80,7 @@ class Gradients:
         return theta
 
     def StochasticGradientDescent(
-        self, theta: np.array, n_epochs: int, M: int, t0: float = None, t1: float = None
+        self, theta: np.array, n_epochs: int, M: int
     ) -> np.array:
         m = self.n // M
 
