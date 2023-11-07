@@ -6,6 +6,7 @@ from CostFuncs import CostCrossEntropy, CostOLS
 from Schedules import Scheduler
 from sklearn.utils import resample
 from copy import deepcopy
+from tqdm import tqdm
 
 
 class NeuralNet:
@@ -75,9 +76,9 @@ class NeuralNet:
             raise TypeError(f"Dimensions must be tuple, not {type(dimensions)}")
         if not all(isinstance(layer, int) for layer in dimensions):
             raise TypeError(f"Values of dimensions must be ints, not {dimensions}")
-        if not isinstance(seed, int) or seed is not None:
+        if not isinstance(seed, int) or seed is None:
             raise TypeError(f"Seed must be either None or int, not {type(seed)}")
-        if dimensions <= 0:
+        if any(dimension <= 0 for dimension in dimensions):
             raise ValueError(f"Number of dimensions must be positive, not {dimensions}")
 
         self.dimensions = dimensions
@@ -221,16 +222,18 @@ class NeuralNet:
 
         data_indices = np.arange(X_train.shape[0])
 
+        pbar = tqdm(total=epochs * batches)
         for e in range(epochs):
             for i in range(batches):
                 # Draw with replacement
                 batch_idx = np.random.choice(data_indices, batch_size)
-
                 X_batch = X_train[batch_idx, :]
                 target_batch = target_train[batch_idx]
 
                 self.feed_forward(X_batch)
                 self.back_propagate(X_batch, target_batch, lmbda)
+
+                pbar.update(1)
 
             # Reset schedulers
             for weight_scheduler, bias_scheduler in zip(
@@ -239,7 +242,8 @@ class NeuralNet:
                 weight_scheduler.reset()
                 bias_scheduler.reset()
 
-            train_error = cost_function_train(X_train)
+            pred_train = self.predict(X_train)
+            train_error = cost_function_train(pred_train)
             train_errors[e] = train_error
 
             if validate:
@@ -282,29 +286,39 @@ class NeuralNet:
         self.z_layers = list()
 
         # Make sure X is a matrix
-        if len(X_batch.shape == 1):
+        if len(X_batch.shape) == 1:
             X_batch = X_batch.reshape((1, X_batch.size))
 
         # Add a bias
         bias = np.ones((X_batch.shape[0], 1))
-        X_batch = np.hstack((bias, X_batch))
+        X_batch = np.hstack([bias, X_batch])
 
         a = X_batch
         self.a_layers.append(a)
         self.z_layers.append(a)
 
         # Feed forward for all but output layer
-        for weight in self.weights[:-1]:
-            # Calculate z for hidden layers
-            z = a @ weight
+        for i in range(len(self.weights) - 1):
+            z = a @ self.weights[i]
             self.z_layers.append(z)
-            # Activate layer
             a = self.hidden_func(z)
 
             # Add bias layer
             bias = np.ones((a.shape[0], 1)) * 0.01
-            a = np.hstack((bias, a))
+            a = np.hstack([bias, a])
             self.a_layers.append(a)
+
+        # for weight in self.weights[:-1]:
+        #     # Calculate z for hidden layers
+        #     z = a @ weight
+        #     self.z_layers.append(z)
+        #     # Activate layer
+        #     a = self.hidden_func(z)
+
+        #     # Add bias layer
+        #     bias = np.ones((a.shape[0], 1)) * 0.01
+        #     a = np.hstack((bias, a))
+        #     self.a_layers.append(a)
 
         # Output layer
         z = a @ self.weights[-1]
@@ -337,38 +351,40 @@ class NeuralNet:
         output_derivative = derivate(self.output_func)
 
         # Start with output layer
+        i = len(self.weights) - 1
+
         if self.output_func.__name__ == "softmax":
-            delta_matrix = self.a_layers[-1] - target_batch
+            delta_matrix = self.a_layers[i + 1] - target_batch
         else:
             cost_func_derivative = grad(self.cost_func(target_batch))
-            delta_matrix = output_derivative(self.z_layers[-1]) * cost_func_derivative(
-                self.a_layers[-1]
-            )
+            delta_matrix = output_derivative(
+                self.z_layers[i + 1]
+            ) * cost_func_derivative(self.a_layers[i + 1])
 
         # Output gradient
-        gradient_weights = self.a_layers[-1][:, 1:].T @ delta_matrix
+        gradient_weights = self.a_layers[i][:, 1:].T @ delta_matrix
         gradient_bias = np.sum(delta_matrix, axis=0).reshape(1, delta_matrix.shape[1])
 
-        gradient_weights += self.weights[-1][1:, :] * lmbda
+        gradient_weights += self.weights[i][1:, :] * lmbda
 
         update_matrix = np.vstack(
             [
-                self.schedulers_bias[-1].update_change(gradient_bias),
-                self.schedulers_weight[-1].update_change(gradient_weights),
+                self.schedulers_bias[i].update_change(gradient_bias),
+                self.schedulers_weight[i].update_change(gradient_weights),
             ]
         )
 
-        self.weights[-1] -= update_matrix
+        self.weights[i] -= update_matrix
 
         # Back propagate the hidden layers
         for i in range(len(self.weights) - 2, -1, -1):
             # Calculate error for layer
             delta_matrix = (
-                delta_matrix @ self.weights[i + 1][1:].T
-            ) * hidden_derivative(self.z_layers[i + 1])
+                self.weights[i + 1][1:, :] @ delta_matrix.T
+            ).T * hidden_derivative(self.z_layers[i + 1])
 
             # Calculate gradients
-            gradient_weights = delta_matrix.T @ self.a_layers[i][:, 1:]
+            gradient_weights = self.a_layers[i][:, 1:].T @ delta_matrix
             gradient_bias = np.sum(delta_matrix, axis=0).reshape(
                 1, delta_matrix.shape[1]
             )
@@ -383,7 +399,7 @@ class NeuralNet:
                 ]
             )
             # Update weights
-            self.weights -= update_matrix
+            self.weights[i] -= update_matrix
 
     def accuracy(self, prediction: np.ndarray, target: np.ndarray) -> float:
         """
