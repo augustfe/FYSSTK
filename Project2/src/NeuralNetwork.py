@@ -419,6 +419,16 @@ class NeuralNet:
         ]
 
     def predict(self, X: np.ndarray, *, theshold: float = 0.5) -> np.ndarray:
+        """
+        Predicts the output for the given input data.
+
+        Args:
+            X (np.ndarray): The input data to predict the output for.
+            theshold (float, optional): The threshold value for classification. Defaults to 0.5.
+
+        Returns:
+            np.ndarray: The predicted output for the given input data.
+        """
         predict = self.feed_forward(X)
         if self.classification:
             return np.where(predict > theshold, 1, 0)
