@@ -1,6 +1,6 @@
 import autograd.numpy as np
 from autograd import elementwise_grad, grad
-from typing import Optional
+from typing import Optional, Callable
 from Activators import sigmoid, derivate
 from CostFuncs import CostCrossEntropy, CostOLS
 from Schedules import Scheduler
@@ -16,12 +16,12 @@ class NeuralNet:
     Attributes:
         dimensions : tuple[int]
             A tuple of integers representing the number of nodes in each layer of the neural network.
-        hidden_func : callable
-            A callable function representing the activation function for the hidden layers.
-        output_func : callable
-            A callable function representing the activation function for the output layer.
-        cost_func : callable
-            A callable function representing the cost function used to evaluate the performance of the neural network.
+        hidden_func : Callable
+            A Callable function representing the activation function for the hidden layers.
+        output_func : Callable
+            A Callable function representing the activation function for the output layer.
+        cost_func : Callable
+            A Callable function representing the cost function used to evaluate the performance of the neural network.
         seed : Optional[int]
             An optional integer representing the seed for the random number generator used to initialize the weights.
 
@@ -43,9 +43,9 @@ class NeuralNet:
     def __init__(
         self,
         dimensions: tuple[int],
-        hidden_func: callable = sigmoid,
-        output_func: callable = sigmoid,
-        cost_func: callable = CostOLS,
+        hidden_func: Callable = sigmoid,
+        output_func: Callable = sigmoid,
+        cost_func: Callable = CostOLS,
         seed: Optional[int] = None,
     ) -> None:
         """
@@ -54,12 +54,12 @@ class NeuralNet:
         Args:
             dimensions : tuple[int]
                 A tuple of integers representing the number of nodes in each layer of the neural network.
-            hidden_func : callable
-                A callable function representing the activation function for the hidden layers.
-            output_func : callable
-                A callable function representing the activation function for the output layer.
-            cost_func : callable
-                A callable function representing the cost function used to evaluate
+            hidden_func : Callable
+                A Callable function representing the activation function for the hidden layers.
+            output_func : Callable
+                A Callable function representing the activation function for the output layer.
+            cost_func : Callable
+                A Callable function representing the cost function used to evaluate
                 the performance of the neural network.
             seed : Optional[int]
                 An optional integer representing the seed for the random number generator
@@ -462,9 +462,9 @@ class OneLayerNeuralNet:
         batch_size: int,
         eta: float,
         lmbda: float,
-        hidden_func: callable = sigmoid,
-        output_func: callable = sigmoid,
-        cost_func: callable = CostCrossEntropy,
+        hidden_func: Callable = sigmoid,
+        output_func: Callable = sigmoid,
+        cost_func: Callable = CostCrossEntropy,
     ):
         self.X_data_full = X_data
         self.Y_data_full = Y_data

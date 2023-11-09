@@ -1,6 +1,7 @@
 import autograd.numpy as np
 from autograd import grad
 from Schedules import Scheduler, Constant
+from typing import Callable
 
 
 np.random.seed(2018)
@@ -24,7 +25,7 @@ class Gradients:
         __init__(self, n: int, x: np.ndarray, y: np.ndarray, model: str = "OLS", method: str = "analytic",
                  scheduler: Scheduler = Constant, dim: int = 2, lmbda: float = None) -> None:
             Initializes the Gradients object.
-        pickfunc(self) -> callable[[np.ndarray, np.ndarray, np.ndarray], float]:
+        pickfunc(self) -> Callable[[np.ndarray, np.ndarray, np.ndarray], float]:
             Returns the cost function to use based on the model type.
         costOLS(self, y: np.ndarray, X: np.ndarray, theta: np.ndarray) -> float:
             Computes the cost function for OLS regression.
@@ -85,22 +86,22 @@ class Gradients:
         self.method = method
         self.lmbda = lmbda
         self.dim = dim
-        self.BaseCost: callable[[np.ndarray, np.ndarray, np.ndarray], float] = getattr(
+        self.BaseCost: Callable[[np.ndarray, np.ndarray, np.ndarray], float] = getattr(
             self, f"cost{model}"
         )
-        self.gradient: callable[[np.ndarray, np.ndarray, np.ndarray], np.ndarray] = (
+        self.gradient: Callable[[np.ndarray, np.ndarray, np.ndarray], np.ndarray] = (
             getattr(self, f"analytic{model}")
             if (method == "analytic")
             else grad(self.BaseCost, 2)
         )
         self.scheduler = scheduler
 
-    def pickfunc(self) -> callable[[np.ndarray, np.ndarray, np.ndarray], float]:
+    def pickfunc(self) -> Callable[[np.ndarray, np.ndarray, np.ndarray], float]:
         """
         Returns the cost function to use based on the model type.
 
         Returns:
-            callable[[np.ndarray, np.ndarray, np.ndarray], float]: The cost function to use.
+            Callable[[np.ndarray, np.ndarray, np.ndarray], float]: The cost function to use.
         """
         if self.model == "OLS":
             return self.costOLS
@@ -198,10 +199,14 @@ class Gradients:
         Returns:
             np.ndarray: The optimized model parameters.
         """
+        self.errors = np.zeros(n_iter)
+        self.errors.fill(np.nan)
+
         for i in range(n_iter):
             gradients = self.gradient(self.y, self.X, theta)
             change = self.scheduler.update_change(gradients)
             theta = theta - change
+            self.errors[i] = self.BaseCost(self.y, self.X, theta)
 
         return theta
 
@@ -221,7 +226,10 @@ class Gradients:
         """
         m = self.n // M
 
-        for epoch in range(1, n_epochs + 1):
+        self.errors = np.zeros(n_epochs)
+        self.errors.fill(np.nan)
+
+        for epoch in range(n_epochs):
             self.scheduler.reset()
             for i in range(m):
                 idxs = np.random.choice(self.n, M)
@@ -232,6 +240,8 @@ class Gradients:
                 change = self.scheduler.update_change(gradients)
 
                 theta = theta - change
+
+            self.errors[epoch] = self.BaseCost(self.y, self.X, theta)
 
         return theta
 

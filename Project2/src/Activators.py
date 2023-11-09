@@ -1,5 +1,6 @@
 import autograd.numpy as np
 from autograd import elementwise_grad
+from typing import Callable
 
 
 def identity(X: np.ndarray) -> np.ndarray:
@@ -73,7 +74,7 @@ def LRELU(X: np.ndarray) -> np.ndarray:
     return np.where(X > np.zeros(X.shape), X, delta * X)
 
 
-def derivate(func: callable) -> callable:
+def derivate(func: Callable) -> Callable:
     """
     Computes the derivative of the input activation function.
 

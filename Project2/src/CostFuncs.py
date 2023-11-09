@@ -1,7 +1,8 @@
 import autograd.numpy as np
+from typing import Callable
 
 
-def CostCrossEntropy(target: np.ndarray) -> callable:
+def CostCrossEntropy(target: np.ndarray) -> Callable:
     """
     Computes the cross-entropy cost function for a given target.
 
@@ -9,7 +10,7 @@ def CostCrossEntropy(target: np.ndarray) -> callable:
         target (np.ndarray): The target values.
 
     Returns:
-        callable: A function that computes the cross-entropy cost function for a given input.
+        Callable: A function that computes the cross-entropy cost function for a given input.
     """
 
     def func(X: np.ndarray) -> float:
@@ -29,7 +30,7 @@ def CostCrossEntropy(target: np.ndarray) -> callable:
     return func
 
 
-def CostOLS(target: np.ndarray) -> callable:
+def CostOLS(target: np.ndarray) -> Callable:
     """
     Returns a function that calculates the mean squared error between the target and predicted values.
 
@@ -56,7 +57,7 @@ def CostOLS(target: np.ndarray) -> callable:
     return func
 
 
-def CostLogReg(target: np.ndarray) -> callable:
+def CostLogReg(target: np.ndarray) -> Callable:
     """
     Returns a function that calculates the cost function for logistic regression.
 
