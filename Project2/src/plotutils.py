@@ -6,6 +6,31 @@ import matplotlib as mpl
 from matplotlib import colormaps
 
 
+def setColors(
+    variable_arr: np.ndarray, cmap_name: str = "viridis"
+) -> tuple[mpl.colors.Colormap, mpl.colors.LogNorm, mpl.cm.ScalarMappable]:
+    """
+    Returns a colormap, a normalization instance, and a scalar mappable instance.
+
+    Args:
+        variable_arr (np.ndarray):
+            Array of values to be plotted.
+        cmap_name (str, optional):
+            Name of the colormap. Defaults to "viridis".
+
+    Returns:
+        tuple[mpl.colors.Colormap, mpl.colors.LogNorm, mpl.cm.ScalarMappable]:
+            A tuple containing the colormap, normalization instance, and scalar mappable instance.
+    """
+    cmap = colormaps.get_cmap(cmap_name)
+    norm = mpl.colors.LogNorm(vmin=variable_arr[0], vmax=variable_arr[-1])
+
+    sm = mpl.cm.ScalarMappable(norm=norm, cmap=cmap)
+    sm.set_array([])
+
+    return cmap, norm, sm
+
+
 def plotPredictionPerVariable(
     x_vals: np.ndarray,
     y_vals: list[np.ndarray],
@@ -54,11 +79,7 @@ def plotPredictionPerVariable(
     """
     fig, ax = plt.subplots()
 
-    cmap = colormaps.get_cmap("viridis")
-    norm = mpl.colors.LogNorm(vmin=variable_arr[0], vmax=variable_arr[-1])
-
-    sm = mpl.cm.ScalarMappable(norm=norm, cmap=cmap)
-    sm.set_array([])
+    cmap, norm, sm = setColors(variable_arr, cmap_name="viridis")
 
     ax.set_xlim(np.min(x_vals), np.max(x_vals))
     ax.set_ylim(np.min(y_vals), np.max(y_vals))
@@ -123,11 +144,7 @@ def PlotErrorPerVariable(
     """
     fig, ax = plt.subplots()
 
-    cmap = colormaps.get_cmap("viridis")
-    norm = mpl.colors.LogNorm(vmin=variable_arr[0], vmax=variable_arr[-1])
-
-    sm = mpl.cm.ScalarMappable(norm=norm, cmap=cmap)
-    sm.set_array([])
+    cmap, norm, sm = setColors(variable_arr, cmap_name="viridis")
 
     ax.set_xlim(0, error_vals.shape[1])
     ax.set_ylim(np.min(error_vals), np.max(error_vals))
@@ -150,12 +167,67 @@ def PlotErrorPerVariable(
     plt.close(fig)
 
 
-plotPredictionPerVariable(
-    np.linspace(0, 1, 100),
-    [np.linspace(0, 1, 100), np.logspace(0, 1, 100)],
-    np.linspace(1e-8, 1, 2),
-    target_func=lambda x: x**2,
-    title="test",
-    savePlots=False,
-    showPlots=True,
-)
+def plotThetas(
+    theta_arr: np.ndarray,
+    x_vals: np.ndarray,
+    xscale: str = "linear",
+    true_theta: np.ndarray = None,
+    x_label: str = r"$eta$",
+    title: str = r"Values for $\theta$ for different values of $\eta$",
+    savePlots: bool = False,
+    showPlots: bool = True,
+    figsPath: Path = Path(__file__).parent.parent / "figures",
+) -> None:
+    r"""
+    Plots the values of theta for different values of eta.
+
+    Args:
+        theta_arr (np.ndarray):
+            Array of theta values for different values.
+        x_vals (np.ndarray):
+            Array of x values.
+        xscale (str, optional):
+            Scale of the x-axis. Defaults to "linear".
+        true_theta (np.ndarray, optional):
+            Array of true theta values. Defaults to None.
+        x_label (str, optional):
+            Label for the x-axis. Defaults to r"$eta$".
+        title (str, optional):
+            Title of the plot. Defaults to r"Values for $\theta$ for different values of $\eta$".
+        savePlots (bool, optional):
+            Whether to save the plot. Defaults to False.
+        showPlots (bool, optional):
+            Whether to show the plot. Defaults to True.
+        figsPath (Path, optional):
+            Path to the directory where the plot will be saved. Defaults to Path(__file__).parent.parent / "figures".
+
+    Returns:
+        None
+    """
+
+    tmp_arr = np.linspace(1, 2, theta_arr.shape[1])
+
+    cmap, norm, sm = setColors(tmp_arr, cmap_name="viridis")
+
+    for i in range(theta_arr.shape[1]):
+        plt.plot(x_vals, theta_arr[:, i], color=cmap(norm(tmp_arr[i])))
+
+    if true_theta is not None:
+        for i in range(theta_arr.shape[1]):
+            plt.axhline(
+                true_theta[i],
+                color=cmap(norm(tmp_arr[i])),
+                linestyle=":",
+                label=rf"$\theta_{{{i}}}$",
+            )
+
+    plt.xscale(xscale)
+    plt.xlabel(x_label)
+    plt.ylabel(r"$\theta$")
+    plt.title(title)
+    plt.legend()
+    if savePlots:
+        plt.savefig(figsPath / f"{title}.png")
+    if showPlots:
+        plt.show()
+    plt.close()
