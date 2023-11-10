@@ -35,9 +35,9 @@ class GradAnalysis:
             np.random.seed(self.seed)
 
         if base_theta is None:
-            self.base_theta = np.random.randn(3)
+            self.base_theta = np.random.randn(3, 1)
         else:
-            self.base_theta = base_theta
+            self.base_theta = base_theta.reshape(-1, 1)
 
         self.target_func = target_func
         self.true_theta = true_theta
@@ -62,7 +62,9 @@ class GradAnalysis:
                 schedule,
             )
 
-            theta_arr[i, :] = Gradient.GradientDescent(self.base_theta, self.n_epochs)
+            theta_arr[i, :] = Gradient.GradientDescent(
+                self.base_theta, self.n_epochs
+            ).ravel()
             error_arr[i, :] = Gradient.errors
 
         return theta_arr, error_arr
@@ -178,6 +180,134 @@ class GradAnalysis:
         for i, rho in enumerate(heat_rho):
             for j, eta in enumerate(heat_eta):
                 schedule = Momentum(eta, rho)
+                Gradient = Gradients(
+                    self.n_points,
+                    self.x_vals,
+                    self.y_vals,
+                    self.model,
+                    self.method,
+                    schedule,
+                )
+                theta = Gradient.GradientDescent(self.base_theta, self.n_epochs)
+                ypred = Gradient.predict(self.base_x, theta, dim)
+                error_arr[i, j] = mean_squared_error(ynew, ypred)
+
+        fig, ax = plt.subplots()
+        df = pd.DataFrame(
+            error_arr,
+            index=[f"{rho:.2f}" for rho in heat_rho],
+            columns=[f"{eta:.2e}" for eta in heat_eta],
+        )
+        sns.heatmap(df, cmap="viridis", ax=ax)
+        ax.set_xlabel(r"$\eta$")
+        ax.set_ylabel(r"$\rho$")
+        ax.set_title(f"Error after {self.n_epochs} epochs")
+        plt.tight_layout()
+        if savePlots:
+            raise NotImplementedError
+        if showPlots:
+            plt.show()
+        plt.close(fig)
+
+    def adagrad_analysis(
+        self,
+        eta_vals: np.ndarray,
+        dim: int = 2,
+    ) -> None:
+        schedulers = [Adagrad(eta) for eta in eta_vals]
+        theta_arr, error_arr = self.error_and_theta_vals_gd(schedulers, dim)
+        pred_arr = self.pred_per_theta(self.base_x, theta_arr, dim)
+
+        PlotErrorPerVariable(
+            error_arr,
+            eta_vals,
+            title=r"Error per epoch (Adagrad)",
+        )
+        PlotPredictionPerVariable(
+            self.base_x,
+            pred_arr,
+            eta_vals,
+            title=r"Predicted polynomials (Adagrad)",
+            n_epochs=self.n_epochs,
+            target_func=self.target_func,
+        )
+        plotThetas(
+            theta_arr,
+            eta_vals,
+            title=r"Model parameters (Adagrad)",
+            true_theta=self.true_theta,
+        )
+
+    def adagrad_momentum_analysis(
+        self,
+        eta_vals: np.ndarray,
+        rho_vals: np.ndarray,
+        dim: int = 2,
+        showPlots: bool = True,
+        savePlots: bool = False,
+    ) -> None:
+        schedulers = [AdagradMomentum(eta, 0.9) for eta in eta_vals]
+        theta_arr, error_arr = self.error_and_theta_vals_gd(schedulers, dim)
+        pred_arr = self.pred_per_theta(self.base_x, theta_arr, dim)
+
+        PlotErrorPerVariable(
+            error_arr,
+            eta_vals,
+            title=r"Error per epoch (AdagradMomentum) $\rho=0.9$",
+        )
+        PlotPredictionPerVariable(
+            self.base_x,
+            pred_arr,
+            eta_vals,
+            title=r"Predicted polynomials (AdagradMomentum) $\rho=0.9$",
+            n_epochs=self.n_epochs,
+            target_func=self.target_func,
+        )
+        plotThetas(
+            theta_arr,
+            eta_vals,
+            title=r"Model parameters (AdagradMomentum) $\rho=0.9$",
+            true_theta=self.true_theta,
+        )
+
+        schedulers = [AdagradMomentum(0.1, rho) for rho in rho_vals]
+        theta_arr, error_arr = self.error_and_theta_vals_gd(schedulers, dim)
+        pred_arr = self.pred_per_theta(self.base_x, theta_arr, dim)
+
+        PlotErrorPerVariable(
+            error_arr,
+            rho_vals,
+            title=r"Error per epoch (AdagradMomentum) $\eta=0.1$",
+            variable_label=r"$\rho$",
+        )
+        PlotPredictionPerVariable(
+            self.base_x,
+            pred_arr,
+            rho_vals,
+            title=r"Predicted polynomials (AdagradMomentum) $\eta=0.1$",
+            n_epochs=self.n_epochs,
+            target_func=self.target_func,
+            variable_label=r"$\rho$",
+        )
+        plotThetas(
+            theta_arr,
+            rho_vals,
+            title=r"Model parameters (AdagradMomentum) $\eta=0.1$",
+            true_theta=self.true_theta,
+            variable_label=r"$\rho$",
+            variable_type="linear",
+        )
+
+        n_rho = 75
+        n_eta = 75
+        heat_rho = np.arctan(np.linspace(0, 10, n_rho))
+        heat_rho = heat_rho / np.max(heat_rho)
+        heat_eta = np.logspace(-7, 0, n_eta)
+        error_arr = np.zeros((n_rho, n_eta))
+        ynew = self.target_func(self.base_x)
+        for i, rho in enumerate(heat_rho):
+            for j, eta in enumerate(heat_eta):
+                schedule = AdagradMomentum(eta, rho)
                 Gradient = Gradients(
                     self.n_points,
                     self.x_vals,
