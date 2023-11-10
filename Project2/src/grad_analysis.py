@@ -302,7 +302,7 @@ class GradAnalysis:
         n_eta = 75
         heat_rho = np.arctan(np.linspace(0, 10, n_rho))
         heat_rho = heat_rho / np.max(heat_rho)
-        heat_eta = np.logspace(-7, 0, n_eta)
+        heat_eta = np.logspace(3, 0, n_eta)
         error_arr = np.zeros((n_rho, n_eta))
         ynew = self.target_func(self.base_x)
         for i, rho in enumerate(heat_rho):
@@ -326,7 +326,7 @@ class GradAnalysis:
             index=[f"{rho:.2f}" for rho in heat_rho],
             columns=[f"{eta:.2e}" for eta in heat_eta],
         )
-        sns.heatmap(df, cmap="viridis", ax=ax)
+        sns.heatmap(df, cmap="viridis", ax=ax, robust=True)
         ax.set_xlabel(r"$\eta$")
         ax.set_ylabel(r"$\rho$")
         ax.set_title(f"Error after {self.n_epochs} epochs")
