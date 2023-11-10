@@ -141,7 +141,7 @@ class Adagrad(Scheduler):
         self.G_t += gradient @ gradient.T
 
         G_t_inverse = 1 / (
-            delta + np.sqrt(np.reshape(np.diagonal(self.G_t), (self.G_t.shape[0], 1)))
+            delta + np.sqrt(np.reshape(np.diagonal(self.G_t), (self.G_t.shape[0])))
         )
         return self.eta * gradient * G_t_inverse
 
@@ -197,7 +197,7 @@ class AdagradMomentum(Scheduler):
         self.G_t += gradient @ gradient.T
 
         G_t_inverse = 1 / (
-            delta + np.sqrt(np.reshape(np.diagonal(self.G_t), (self.G_t.shape[0], 1)))
+            delta + np.sqrt(np.reshape(np.diagonal(self.G_t), (self.G_t.shape[0])))
         )
         self.change = self.change * self.momentum + self.eta * gradient * G_t_inverse
         return self.change
@@ -310,3 +310,24 @@ class Adam(Scheduler):
         self.n_epochs += 1
         self.moment = 0.0
         self.second = 0.0
+
+
+class TimeDecay(Scheduler):
+    def __init__(self, t0: float, t1: float, minibatch_size: int):
+        self.t0 = t0
+        self.t1 = t1
+        self.epochs = 0
+        self.minibatch_size = minibatch_size
+        self.minibatch_num = 0
+
+    def update_change(self, gradient: np.ndarray) -> np.ndarray:
+        t = self.epochs * self.minibatch_size + self.minibatch_num
+        eta = self.t0 / (t + self.t1)
+
+        change = eta * gradient
+        self.minibatch_num += 1
+        return change
+
+    def reset(self) -> None:
+        self.epochs += 1
+        self.minibatch_num = 0

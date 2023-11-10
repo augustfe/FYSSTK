@@ -7,7 +7,9 @@ from matplotlib import colormaps
 
 
 def setColors(
-    variable_arr: np.ndarray, cmap_name: str = "viridis"
+    variable_arr: np.ndarray,
+    cmap_name: str = "viridis",
+    norm_type: str = "log",
 ) -> tuple[mpl.colors.Colormap, mpl.colors.LogNorm, mpl.cm.ScalarMappable]:
     """
     Returns a colormap, a normalization instance, and a scalar mappable instance.
@@ -23,7 +25,12 @@ def setColors(
             A tuple containing the colormap, normalization instance, and scalar mappable instance.
     """
     cmap = colormaps.get_cmap(cmap_name)
-    norm = mpl.colors.LogNorm(vmin=variable_arr[0], vmax=variable_arr[-1])
+    if norm_type == "log":
+        norm = mpl.colors.LogNorm(vmin=variable_arr[0], vmax=variable_arr[-1])
+    elif norm_type == "linear":
+        norm = mpl.colors.Normalize(vmin=variable_arr[0], vmax=variable_arr[-1])
+    else:
+        raise ValueError(f"Invalid norm_type: {norm_type}")
 
     sm = mpl.cm.ScalarMappable(norm=norm, cmap=cmap)
     sm.set_array([])
@@ -31,7 +38,7 @@ def setColors(
     return cmap, norm, sm
 
 
-def plotPredictionPerVariable(
+def PlotPredictionPerVariable(
     x_vals: np.ndarray,
     y_vals: list[np.ndarray],
     variable_arr: np.ndarray,
@@ -39,7 +46,9 @@ def plotPredictionPerVariable(
     x_label: str = r"$x$",
     y_label: str = r"$y$",
     variable_label: str = r"$\eta$",
+    variable_type: str = "log",
     title: str = "Predicted polynomials",
+    colormap: str = "viridis",
     n_epochs: int = 500,
     savePlots: bool = False,
     showPlots: bool = True,
@@ -79,7 +88,9 @@ def plotPredictionPerVariable(
     """
     fig, ax = plt.subplots()
 
-    cmap, norm, sm = setColors(variable_arr, cmap_name="viridis")
+    cmap, norm, sm = setColors(
+        variable_arr, cmap_name=colormap, norm_type=variable_type
+    )
 
     ax.set_xlim(np.min(x_vals), np.max(x_vals))
     ax.set_ylim(np.min(y_vals), np.max(y_vals))
@@ -95,7 +106,7 @@ def plotPredictionPerVariable(
     plt.title(title + rf" $n_{{epochs}}={n_epochs}$")
     plt.legend()
     cbar = plt.colorbar(sm, ax=ax)
-    cbar.ax.set_ylabel(variable_label, rotation=0, fontsize="large")
+    cbar.ax.set_ylabel(variable_label, rotation=45, fontsize="large")
     plt.tight_layout()
 
     if savePlots:
@@ -111,7 +122,9 @@ def PlotErrorPerVariable(
     x_label: str = "epoch",
     error_label: str = "MSE",
     variable_label: str = r"$\eta$",
+    variable_type: str = "log",
     title: str = "Error per epoch",
+    colormap: str = "viridis",
     savePlots: bool = False,
     showPlots: bool = True,
     figsPath: Path = Path(__file__).parent.parent / "figures",
@@ -144,7 +157,9 @@ def PlotErrorPerVariable(
     """
     fig, ax = plt.subplots()
 
-    cmap, norm, sm = setColors(variable_arr, cmap_name="viridis")
+    cmap, norm, sm = setColors(
+        variable_arr, cmap_name=colormap, norm_type=variable_type
+    )
 
     ax.set_xlim(0, error_vals.shape[1])
     ax.set_ylim(np.min(error_vals), np.max(error_vals))
@@ -155,9 +170,8 @@ def PlotErrorPerVariable(
     ax.set_xlabel(x_label)
     ax.set_ylabel(error_label)
     plt.title(f"{title} ({variable_label})")
-    plt.legend()
     cbar = plt.colorbar(sm)
-    cbar.ax.set_ylabel(variable_label, rotation=0, fontsize="large")
+    cbar.ax.set_ylabel(variable_label, rotation=45, fontsize="large")
     plt.tight_layout()
 
     if savePlots:
@@ -169,11 +183,12 @@ def PlotErrorPerVariable(
 
 def plotThetas(
     theta_arr: np.ndarray,
-    x_vals: np.ndarray,
-    xscale: str = "linear",
+    variable_arr: np.ndarray,
+    variable_type: str = "log",
     true_theta: np.ndarray = None,
-    x_label: str = r"$eta$",
-    title: str = r"Values for $\theta$ for different values of $\eta$",
+    variable_label: str = r"$\eta$",
+    title: str = r"Values for $\theta$ for different values of ",
+    colormap: str = "viridis",
     savePlots: bool = False,
     showPlots: bool = True,
     figsPath: Path = Path(__file__).parent.parent / "figures",
@@ -187,7 +202,7 @@ def plotThetas(
         x_vals (np.ndarray):
             Array of x values.
         xscale (str, optional):
-            Scale of the x-axis. Defaults to "linear".
+            Scale of the x-axis. Defaults to "log".
         true_theta (np.ndarray, optional):
             Array of true theta values. Defaults to None.
         x_label (str, optional):
@@ -207,10 +222,10 @@ def plotThetas(
 
     tmp_arr = np.linspace(1, 2, theta_arr.shape[1])
 
-    cmap, norm, sm = setColors(tmp_arr, cmap_name="viridis")
+    cmap, norm, sm = setColors(tmp_arr, cmap_name=colormap, norm_type=variable_type)
 
     for i in range(theta_arr.shape[1]):
-        plt.plot(x_vals, theta_arr[:, i], color=cmap(norm(tmp_arr[i])))
+        plt.plot(variable_arr, theta_arr[:, i], color=cmap(norm(tmp_arr[i])))
 
     if true_theta is not None:
         for i in range(theta_arr.shape[1]):
@@ -220,12 +235,13 @@ def plotThetas(
                 linestyle=":",
                 label=rf"$\theta_{{{i}}}$",
             )
+        plt.legend()
 
-    plt.xscale(xscale)
-    plt.xlabel(x_label)
+    title = title + " " + variable_label
+    plt.xscale(variable_type)
+    plt.xlabel(variable_label)
     plt.ylabel(r"$\theta$")
     plt.title(title)
-    plt.legend()
     if savePlots:
         plt.savefig(figsPath / f"{title}.png")
     if showPlots:
