@@ -1,4 +1,6 @@
-import numpy as np
+import numpy as onp
+import jax.numpy as np
+from jax import jit
 from Schedules import (
     Scheduler,
     Constant,
@@ -19,6 +21,8 @@ from plotutils import (
 from typing import Callable
 import pandas as pd
 from sklearn.metrics import mean_squared_error
+from line_profiler import profile
+from utils import assign
 
 
 class GradAnalysis:
@@ -28,8 +32,8 @@ class GradAnalysis:
         y_vals: np.ndarray,
         n_epochs: int = 500,
         seed: int = None,
-        model: str = "OLS",
-        method: str = "analytic",
+        cost_func: Callable = None,
+        derivative_func: Callable = None,
         base_theta: np.ndarray = None,
         target_func: Callable = None,
         true_theta: np.ndarray = None,
@@ -40,14 +44,14 @@ class GradAnalysis:
         self.n_epochs = n_epochs
         self.n_points = len(x_vals)
         self.seed = seed
-        self.model = model
-        self.method = method
+        self.cost_func = cost_func
+        self.derivative_func = derivative_func
 
         if self.seed is not None:
-            np.random.seed(self.seed)
+            onp.random.seed(self.seed)
 
         if base_theta is None:
-            self.base_theta = np.random.randn(3, 1)
+            self.base_theta = onp.random.randn(3, 1)
         else:
             self.base_theta = base_theta.reshape(-1, 1)
 
@@ -69,37 +73,48 @@ class GradAnalysis:
                 self.n_points,
                 self.x_vals,
                 self.y_vals,
-                self.model,
-                self.method,
+                self.cost_func,
+                self.derivative_func,
                 schedule,
             )
 
-            theta_arr[i, :] = Gradient.GradientDescent(
-                self.base_theta, self.n_epochs
-            ).ravel()
-            error_arr[i, :] = Gradient.errors
+            theta_arr = theta_arr.at[i, :].set(
+                Gradient.GradientDescent(self.base_theta, self.n_epochs).ravel()
+            )
+
+            # theta_arr[i, :] = Gradient.GradientDescent(
+            #     self.base_theta, self.n_epochs
+            # ).ravel()
+            error_arr = error_arr.at[i, :].set(Gradient.errors)
+
+            # error_arr[i, :] = Gradient.errors
 
         return theta_arr, error_arr
 
+    @profile
     def error_per_variables(
         self, schedules: list[list[Scheduler]], dim: int = 2
     ) -> np.ndarray:
         error_arr = np.zeros((len(schedules), len(schedules[0])))
         ynew = self.target_func(self.base_x)
 
+        Gradient = Gradients(
+            self.n_points,
+            self.x_vals,
+            self.y_vals,
+            self.cost_func,
+            self.derivative_func,
+            Constant(0.1),
+        )
         for i, row in enumerate(schedules):
             for j, schedule in enumerate(row):
-                Gradient = Gradients(
-                    self.n_points,
-                    self.x_vals,
-                    self.y_vals,
-                    self.model,
-                    self.method,
-                    schedule,
-                )
+                # schedule.update_change = jit(schedule.update_change)
+                Gradient.scheduler = schedule
                 theta = Gradient.GradientDescent(self.base_theta, self.n_epochs)
                 ypred = Gradient.predict(self.base_x, theta, dim)
-                error_arr[i, j] = mean_squared_error(ynew, ypred)
+                error_arr = assign(error_arr, (i, j), mean_squared_error(ynew, ypred))
+                # error_arr = error_arr.at[i, j].set(mean_squared_error(ynew, ypred))
+                # error_arr[i, j] = mean_squared_error(ynew, ypred)
 
         return error_arr
 
@@ -112,12 +127,13 @@ class GradAnalysis:
             self.n_points,
             self.x_vals,
             self.y_vals,
-            self.model,
-            self.method,
+            self.cost_func,
+            self.derivative_func,
             Constant(1),
         )
         for i, theta in enumerate(theta_arr):
-            pred_arr[i, :] = DummyGrad.predict(x, theta, dim)
+            pred_arr = pred_arr.at[i, :].set(DummyGrad.predict(x, theta, dim))
+            # pred_arr[i, :] = DummyGrad.predict(x, theta, dim)
 
         return pred_arr
 
@@ -135,8 +151,8 @@ class GradAnalysis:
                 self.n_points,
                 self.x_vals,
                 self.y_vals,
-                self.model,
-                self.method,
+                self.cost_func,
+                self.derivative_func,
                 schedule,
             )
             theta_arr[i, :] = Gradient.StochasticGradientDescent(
@@ -229,8 +245,8 @@ class GradAnalysis:
             variable_type="linear",
         )
 
-        n_rho = 75
-        n_eta = 75
+        n_rho = 25
+        n_eta = 25
         heat_rho = np.arctan(np.linspace(0, 10, n_rho))
         heat_rho = heat_rho / np.max(heat_rho)
         heat_eta = np.logspace(-7, -1, n_eta)
@@ -541,8 +557,8 @@ class GradAnalysis:
                 self.n_points,
                 self.x_vals,
                 self.y_vals,
-                self.model,
-                self.method,
+                self.cost_func,
+                self.derivative_func,
                 schedule,
             )
             theta_arr[i, :] = Gradient.StochasticGradientDescent(

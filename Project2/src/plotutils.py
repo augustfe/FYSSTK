@@ -176,7 +176,7 @@ def PlotErrorPerVariable(
     ax.set_ylabel(error_label)
     ax.set_yscale(error_type)
     plt.title(f"{title} ({variable_label})")
-    cbar = plt.colorbar(sm)
+    cbar = plt.colorbar(sm, ax=ax)
     cbar.ax.set_ylabel(variable_label, rotation=45, fontsize="large")
     plt.tight_layout()
 

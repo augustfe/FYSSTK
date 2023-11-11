@@ -1,4 +1,6 @@
-import autograd.numpy as np
+import jax.numpy as np
+from jax import lax, jit
+from functools import partial
 
 
 class Scheduler:
@@ -31,6 +33,11 @@ class Scheduler:
         pass
 
 
+@jit
+def fast_const(eta, gradient):
+    return lax.mul(eta, gradient)
+
+
 class Constant(Scheduler):
     """
     A learning rate scheduler that keeps the learning rate constant throughout training.
@@ -60,7 +67,15 @@ class Constant(Scheduler):
             np.ndarray: The updated learning rate.
 
         """
-        return self.eta * gradient
+        return fast_const(self.eta, gradient)
+
+
+@jit
+def fast_mom(momentum, change, eta, gradient):
+    return lax.add(
+        lax.mul(momentum, change),
+        lax.mul(eta, gradient),
+    )
 
 
 class Momentum(Scheduler):
@@ -97,7 +112,7 @@ class Momentum(Scheduler):
             np.ndarray: The updated change in the weights.
 
         """
-        self.change = self.momentum * self.change + self.eta * gradient
+        self.change = fast_mom(self.momentum, self.change, self.eta, gradient)
         return self.change
 
     def reset(self) -> None:
@@ -105,6 +120,58 @@ class Momentum(Scheduler):
         Resets the change in the weights to 0.
         """
         self.change = 0.0
+
+
+@jit
+def fast_gt_add(gradient, G_t):
+    G_t = lax.add(
+        G_t,
+        lax.dot(gradient, gradient.T),
+    )
+    return G_t
+
+
+@partial(jit, static_argnums=(1,))
+def fast_gt_inv(G_t):
+    delta = 1e-8  # avoid division by zero
+    G_t_inverse = lax.reciprocal(
+        delta
+        + lax.sqrt(
+            np.reshape(
+                np.diagonal(G_t),
+                (G_t.shape[0], 1),
+            ),
+        )
+    )
+    # G_t_inverse = 1 / (delta + np.sqrt(np.reshape(np.diagonal(G_t), (G_t.shape[0], 1))))
+    return G_t_inverse
+
+
+@jit
+def fast_adagrad(eta, gradient, G_t_inverse):
+    change = lax.mul(
+        lax.mul(
+            eta,
+            gradient,
+        ),
+        G_t_inverse,
+    )
+    return change
+
+
+@jit
+def fast_adamoment(eta, gradient, G_t_inverse, momentum, change):
+    change = lax.add(
+        lax.mul(
+            momentum,
+            change,
+        ),
+        lax.mul(
+            lax.mul(eta, gradient),
+            G_t_inverse,
+        ),
+    )
+    return change
 
 
 class Adagrad(Scheduler):
@@ -139,17 +206,14 @@ class Adagrad(Scheduler):
         Returns:
             ndarray: Updated weights of the model.
         """
-        delta = 1e-8  # avoid division by zero
-
         if self.G_t is None:
             self.G_t = np.zeros((gradient.shape[0], gradient.shape[0]))
 
-        self.G_t += gradient @ gradient.T
+        self.G_t = fast_gt_add(gradient, self.G_t)
+        G_t_inverse = fast_gt_inv(self.G_t)
 
-        G_t_inverse = 1 / (
-            delta + np.sqrt(np.reshape(np.diagonal(self.G_t), (self.G_t.shape[0], 1)))
-        )
-        return self.eta * gradient * G_t_inverse
+        change = fast_adagrad(self.eta, gradient, G_t_inverse)
+        return change
 
     def reset(self) -> None:
         """
@@ -195,17 +259,16 @@ class AdagradMomentum(Scheduler):
         Returns:
             np.ndarray: The change in the weights.
         """
-        delta = 1e-8  # avoid division by zero
-
         if self.G_t is None:
             self.G_t = np.zeros((gradient.shape[0], gradient.shape[0]))
 
-        self.G_t += gradient @ gradient.T
+        self.G_t = fast_gt_add(gradient, self.G_t)
 
-        G_t_inverse = 1 / (
-            delta + np.sqrt(np.reshape(np.diagonal(self.G_t), (self.G_t.shape[0], 1)))
+        G_t_inverse = fast_gt_inv(self.G_t)
+
+        self.change = fast_adamoment(
+            self.eta, gradient, G_t_inverse, self.momentum, self.change
         )
-        self.change = self.change * self.momentum + self.eta * gradient * G_t_inverse
         return self.change
 
     def reset(self) -> None:
@@ -213,6 +276,30 @@ class AdagradMomentum(Scheduler):
         Resets the sum of the squares of the gradients to None.
         """
         self.G_t = None
+
+
+@jit
+def fast_rms_second(rho, second, gradient):
+    second = lax.add(
+        lax.mul(rho, second),
+        lax.mul(
+            lax.sub(1.0, rho),
+            lax.square(gradient),
+        ),
+    )
+    return second
+
+
+@jit
+def fast_rmsprop(eta, gradient, second):
+    delta = 1e-8
+    change = lax.div(
+        lax.mul(eta, gradient),
+        lax.sqrt(
+            lax.add(second, delta),
+        ),
+    )
+    return change
 
 
 class RMS_prop(Scheduler):
@@ -250,15 +337,67 @@ class RMS_prop(Scheduler):
         Returns:
             np.ndarray: Updated parameters.
         """
-        delta = 1e-8  # avoid division by zero
-        self.second = self.rho * self.second + (1 - self.rho) * gradient * gradient
-        return self.eta * gradient / (np.sqrt(self.second + delta))
+        self.second = fast_rms_second(self.rho, self.second, gradient)
+        # self.second = self.rho * self.second + (1 - self.rho) * gradient * gradient
+        # return self.eta * gradient / (np.sqrt(self.second + delta))
+        change = fast_rmsprop(self.eta, gradient, self.second)
+        return change
 
     def reset(self) -> None:
         """
         Reset the running average of the square of the gradients.
         """
         self.second = 0.0
+
+
+@jit
+def fast_adam_moment(rho, moment, gradient):
+    moment = lax.add(
+        lax.mul(rho, moment),
+        lax.mul(
+            lax.sub(1.0, rho),
+            gradient,
+        ),
+    )
+    return moment
+
+
+@jit
+def fast_adam_second(rho2, second, gradient):
+    second = lax.add(
+        lax.mul(rho2, second),
+        lax.mul(
+            lax.sub(1.0, rho2),
+            lax.square(gradient),
+        ),
+    )
+    return second
+
+
+@partial(jit, static_argnums=(5,))
+def fast_adam(moment, rho, second, rho2, eta, n_epochs):
+    delta = 1e-8  # avoid division by zero
+    moment_corrected = lax.div(
+        moment,
+        lax.sub(
+            1.0,
+            lax.integer_pow(rho, n_epochs),
+        ),
+    )
+    second_corrected = lax.div(
+        second,
+        lax.sub(
+            1.0,
+            lax.integer_pow(rho2, n_epochs),
+        ),
+    )
+    change = lax.div(
+        lax.mul(eta, moment_corrected),
+        lax.sqrt(
+            lax.add(second_corrected, delta),
+        ),
+    )
+    return change
 
 
 class Adam(Scheduler):
@@ -299,15 +438,25 @@ class Adam(Scheduler):
         Returns:
             np.ndarray: Updated parameters.
         """
-        delta = 1e-8  # avoid division by zero
+        self.moment = fast_adam_moment(self.rho, self.moment, gradient)
+        # self.moment = self.rho * self.moment + (1 - self.rho) * gradient
+        self.second = fast_adam_second(self.rho2, self.second, gradient)
+        # self.second = self.rho2 * self.second + (1 - self.rho2) * gradient * gradient
 
-        self.moment = self.rho * self.moment + (1 - self.rho) * gradient
-        self.second = self.rho2 * self.second + (1 - self.rho2) * gradient * gradient
+        # moment_corrected = self.moment / (1 - self.rho**self.n_epochs)
 
-        moment_corrected = self.moment / (1 - self.rho**self.n_epochs)
-        second_corrected = self.second / (1 - self.rho2**self.n_epochs)
+        # second_corrected = self.second / (1 - self.rho2**self.n_epochs)
 
-        return self.eta * moment_corrected / (np.sqrt(second_corrected + delta))
+        change = fast_adam(
+            self.moment,
+            self.rho,
+            self.second,
+            self.rho2,
+            self.eta,
+            self.n_epochs,
+        )
+        return change
+        # return self.eta * moment_corrected / (np.sqrt(second_corrected + delta))
 
     def reset(self) -> None:
         """
@@ -316,6 +465,14 @@ class Adam(Scheduler):
         self.n_epochs += 1
         self.moment = 0.0
         self.second = 0.0
+
+
+@jit
+def fast_timedecay(epochs, minibatch_size, minibatch_num, t0, t1, gradient):
+    t = lax.add(lax.mul(epochs, minibatch_size), minibatch_num)
+    eta = lax.div(t0, lax.add(t, t1))
+    change = lax.mul(eta, gradient)
+    return change
 
 
 class TimeDecay(Scheduler):
@@ -327,10 +484,18 @@ class TimeDecay(Scheduler):
         self.minibatch_num = 0
 
     def update_change(self, gradient: np.ndarray) -> np.ndarray:
-        t = self.epochs * self.minibatch_size + self.minibatch_num
-        eta = self.t0 / (t + self.t1)
+        # t = self.epochs * self.minibatch_size + self.minibatch_num
+        # eta = self.t0 / (t + self.t1)
 
-        change = eta * gradient
+        # change = eta * gradient
+        change = fast_timedecay(
+            self.epochs,
+            self.minibatch_size,
+            self.minibatch_num,
+            self.t0,
+            self.t1,
+            gradient,
+        )
         self.minibatch_num += 1
         return change
 

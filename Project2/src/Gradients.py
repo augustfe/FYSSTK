@@ -1,8 +1,11 @@
-import autograd.numpy as np
-from autograd import grad
+import jax.numpy as jnp
+import numpy as np
+from jax import grad, jit, lax
 from Schedules import Scheduler, Constant
 from typing import Callable
-
+from CostFuncs import regressionOLS
+from utils import assign, design, update_theta
+from line_profiler import profile
 
 np.random.seed(2018)
 
@@ -13,8 +16,8 @@ class Gradients:
 
     Attributes:
         n (int): The number of data points.
-        x (np.ndarray): The input data.
-        y (np.ndarray): The output data.
+        x (jnp.ndarray): The input data.
+        y (jnp.ndarray): The output data.
         model (str): The type of model to use. Default is "OLS".
         method (str): The method to use for computing gradients. Default is "analytic".
         scheduler (Scheduler): The scheduler to use for updating the learning rate. Default is Constant.
@@ -22,36 +25,36 @@ class Gradients:
         lmbda (float): The regularization parameter. Default is None.
 
     Methods:
-        __init__(self, n: int, x: np.ndarray, y: np.ndarray, model: str = "OLS", method: str = "analytic",
+        __init__(self, n: int, x: jnp.ndarray, y: jnp.ndarray, model: str = "OLS", method: str = "analytic",
                  scheduler: Scheduler = Constant, dim: int = 2, lmbda: float = None) -> None:
             Initializes the Gradients object.
-        pickfunc(self) -> Callable[[np.ndarray, np.ndarray, np.ndarray], float]:
+        pickfunc(self) -> Callable[[jnp.ndarray, jnp.ndarray, jnp.ndarray], float]:
             Returns the cost function to use based on the model type.
-        costOLS(self, y: np.ndarray, X: np.ndarray, theta: np.ndarray) -> float:
+        costOLS(self, y: jnp.ndarray, X: jnp.ndarray, theta: jnp.ndarray) -> float:
             Computes the cost function for OLS regression.
-        analyticOLS(self, y: np.ndarray, X: np.ndarray, theta: np.ndarray) -> np.ndarray:
+        analyticOLS(self, y: jnp.ndarray, X: jnp.ndarray, theta: jnp.ndarray) -> jnp.ndarray:
             Computes the gradient analytically for OLS regression.
-        costRidge(self, y: np.ndarray, X: np.ndarray, theta: np.ndarray) -> float:
+        costRidge(self, y: jnp.ndarray, X: jnp.ndarray, theta: jnp.ndarray) -> float:
             Computes the cost function for Ridge regression.
-        analyticRidge(self, y: np.ndarray, X: np.ndarray, theta: np.ndarray) -> np.ndarray:
+        analyticRidge(self, y: jnp.ndarray, X: jnp.ndarray, theta: jnp.ndarray) -> jnp.ndarray:
             Computes the gradient analytically for Ridge regression.
-        design(self, x: np.ndarray, dim: int, n: int = None) -> np.ndarray:
+        design(self, x: jnp.ndarray, dim: int, n: int = None) -> jnp.ndarray:
             Computes the design matrix for the given input data.
-        GradientDescent(self, theta: np.ndarray, n_iter: int) -> np.ndarray:
+        GradientDescent(self, theta: jnp.ndarray, n_iter: int) -> jnp.ndarray:
             Performs gradient descent to optimize the model parameters.
-        StochasticGradientDescent(self, theta: np.ndarray, n_epochs: int, M: int) -> np.ndarray:
+        StochasticGradientDescent(self, theta: jnp.ndarray, n_epochs: int, M: int) -> jnp.ndarray:
             Performs stochastic gradient descent to optimize the model parameters.
-        predict(self, x: np.ndarray, theta: np.ndarray, dim: int = 2) -> np.ndarray:
+        predict(self, x: jnp.ndarray, theta: jnp.ndarray, dim: int = 2) -> jnp.ndarray:
             Predicts the output values for the given input data using the model parameters.
     """
 
     def __init__(
         self,
         n: int,
-        x: np.ndarray,
-        y: np.ndarray,
-        model: str = "OLS",
-        method: str = "analytic",
+        x: jnp.ndarray,
+        y: jnp.ndarray,
+        cost_func: Callable = regressionOLS,
+        analytic_derivative: Callable = None,
         scheduler: Scheduler = Constant,
         dim: int = 2,
         lmbda: float = None,
@@ -61,8 +64,8 @@ class Gradients:
 
         Args:
             n (int): The number of data points.
-            x (np.ndarray): The input data.
-            y (np.ndarray): The output data.
+            x (jnp.ndarray): The input data.
+            y (jnp.ndarray): The output data.
             model (str): The type of model to use. Default is "OLS".
             method (str): The method to use for computing gradients. Default is "analytic".
             scheduler (Scheduler): The scheduler to use for updating the learning rate. Default is Constant.
@@ -81,153 +84,63 @@ class Gradients:
         self.n = n
         self.x = x
         self.y = y
-        self.X = self.design(x, dim=dim)
-        self.model = model
-        self.method = method
+        self.X = design(x, dim=dim, n=n)
         self.lmbda = lmbda
         self.dim = dim
-        self.BaseCost: Callable[[np.ndarray, np.ndarray, np.ndarray], float] = getattr(
-            self, f"cost{model}"
-        )
-        self.gradient: Callable[[np.ndarray, np.ndarray, np.ndarray], np.ndarray] = (
-            getattr(self, f"analytic{model}")
-            if (method == "analytic")
-            else grad(self.BaseCost, 2)
-        )
+        self.cost_func = cost_func(self.X, self.y)
+        if analytic_derivative is None:
+            self.derivative = grad(self.cost_func)
+        else:
+            self.derivative = analytic_derivative(self.X, self.y)
+
+        self.BaseCost = jit(self.cost_func)
+        self.gradient = jit(self.derivative)
+
         self.scheduler = scheduler
 
-    def pickfunc(self) -> Callable[[np.ndarray, np.ndarray, np.ndarray], float]:
-        """
-        Returns the cost function to use based on the model type.
-
-        Returns:
-            Callable[[np.ndarray, np.ndarray, np.ndarray], float]: The cost function to use.
-        """
-        if self.model == "OLS":
-            return self.costOLS
-        else:
-            return self.costRidge
-
-    def costOLS(self, y: np.ndarray, X: np.ndarray, theta: np.ndarray) -> float:
-        """
-        Computes the cost function for OLS regression.
-
-        Args:
-            y (np.ndarray): The output data.
-            X (np.ndarray): The design matrix.
-            theta (np.ndarray): The model parameters.
-
-        Returns:
-            float: The value of the cost function.
-        """
-        return 1 / self.n * np.sum((y - X @ theta) ** 2)
-
-    def analyticOLS(
-        self, y: np.ndarray, X: np.ndarray, theta: np.ndarray
-    ) -> np.ndarray:
-        """
-        Computes the gradient analytically for OLS regression.
-
-        Args:
-            y (np.ndarray): The output data.
-            X (np.ndarray): The design matrix.
-            theta (np.ndarray): The model parameters.
-
-        Returns:
-            np.ndarray: The gradient of the cost function.
-        """
-        return 2.0 / self.n * X.T @ ((X @ theta) - y)
-
-    def costRidge(self, y: np.ndarray, X: np.ndarray, theta: np.ndarray) -> float:
-        """
-        Computes the cost function for Ridge regression.
-
-        Args:
-            y (np.ndarray): The output data.
-            X (np.ndarray): The design matrix.
-            theta (np.ndarray): The model parameters.
-
-        Returns:
-            float: The value of the cost function.
-        """
-        return self.costOLS(y, X, theta) + self.lmbda * np.dot(theta, theta)
-
-    def analyticRidge(
-        self, y: np.ndarray, X: np.ndarray, theta: np.ndarray
-    ) -> np.ndarray:
-        """
-        Computes the gradient analytically for Ridge regression.
-
-        Args:
-            y (np.ndarray): The output data.
-            X (np.ndarray): The design matrix.
-            theta (np.ndarray): The model parameters.
-
-        Returns:
-            np.ndarray: The gradient of the cost function.
-        """
-        return 2.0 * (1 / self.n * X.T @ ((X @ theta) - y) + self.lmbda * theta)
-
-    def design(self, x: np.ndarray, dim: int, n: int = None) -> np.ndarray:
-        """
-        Computes the design matrix for the given input data.
-
-        Args:
-            x (np.ndarray): The input data.
-            dim (int): The degree of the polynomial to use for the design matrix.
-            n (int): The number of data points. Default is None.
-
-        Returns:
-            np.ndarray: The design matrix.
-        """
-        if n is None:
-            n = self.n
-        X = np.ones((n, dim + 1))
-        for i in range(1, dim + 1):
-            X[:, i] = (x**i).flatten()
-
-        return X
-
-    def GradientDescent(self, theta: np.ndarray, n_iter: int) -> np.ndarray:
+    @profile
+    def GradientDescent(self, theta: jnp.ndarray, n_iter: int) -> jnp.ndarray:
         """
         Performs gradient descent to optimize the model parameters.
 
         Args:
-            theta (np.ndarray): The initial model parameters.
+            theta (jnp.ndarray): The initial model parameters.
             n_iter (int): The number of iterations to perform.
 
         Returns:
-            np.ndarray: The optimized model parameters.
+            jnp.ndarray: The optimized model parameters.
         """
-        self.errors = np.zeros(n_iter)
-        self.errors.fill(np.nan)
+        self.errors = jnp.zeros(n_iter)
+        # self.errors = self.errors.at[:].set(jnp.nan)
 
         for i in range(n_iter):
-            gradients = self.gradient(self.y, self.X, theta)
+            gradients = self.gradient(theta)
             change = self.scheduler.update_change(gradients)
-            theta = theta - change
-            self.errors[i] = self.BaseCost(self.y, self.X, theta)
+            theta = update_theta(theta, change)
+            tmp = self.BaseCost(theta)
+            self.errors = assign(self.errors, i, tmp)
+            # self.errors = self.errors.at[i].set(tmp)
+            # self.errors[i] = self.BaseCost(self.y, self.X, theta)
 
         return theta
 
     def StochasticGradientDescent(
-        self, theta: np.ndarray, n_epochs: int, M: int
-    ) -> np.ndarray:
+        self, theta: jnp.ndarray, n_epochs: int, M: int
+    ) -> jnp.ndarray:
         """
         Performs stochastic gradient descent to optimize the model parameters.
 
         Args:
-            theta (np.ndarray): The initial model parameters.
+            theta (jnp.ndarray): The initial model parameters.
             n_epochs (int): The number of epochs to perform.
             M (int): The batch size.
 
         Returns:
-            np.ndarray: The optimized model parameters.
+            jnp.ndarray: The optimized model parameters.
         """
         m = self.n // M
 
-        self.errors = np.zeros(n_epochs)
-        self.errors.fill(np.nan)
+        self.errors = jnp.zeros(n_epochs)
 
         for epoch in range(n_epochs):
             self.scheduler.reset()
@@ -241,21 +154,22 @@ class Gradients:
 
                 theta = theta - change
 
-            self.errors[epoch] = self.BaseCost(self.y, self.X, theta)
+            self.errors = assign(self.errors, epoch, self.BaseCost(theta))
+            # self.errors[epoch] = self.BaseCost(self.y, self.X, theta)
 
         return theta
 
-    def predict(self, x: np.ndarray, theta: np.ndarray, dim: int = 2) -> np.ndarray:
+    def predict(self, x: jnp.ndarray, theta: jnp.ndarray, dim: int = 2) -> jnp.ndarray:
         """
         Predicts the output values for the given input data using the model parameters.
 
         Args:
-            x (np.ndarray): The input data.
-            theta (np.ndarray): The model parameters.
+            x (jnp.ndarray): The input data.
+            theta (jnp.ndarray): The model parameters.
             dim (int): The degree of the polynomial to use for the design matrix. Default is 2.
 
         Returns:
-            np.ndarray: The predicted output values.
+            jnp.ndarray: The predicted output values.
         """
-        X = self.design(x, dim, len(x))
-        return X @ theta
+        X = design(x, dim, len(x))
+        return lax.dot(X, theta)
