@@ -100,6 +100,12 @@ class Momentum(Scheduler):
         self.change = self.momentum * self.change + self.eta * gradient
         return self.change
 
+    def reset(self) -> None:
+        """
+        Resets the change in the weights to 0.
+        """
+        self.change = 0.0
+
 
 class Adagrad(Scheduler):
     """
