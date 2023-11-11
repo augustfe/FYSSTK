@@ -7,6 +7,7 @@ from Schedules import (
     AdagradMomentum,
     Adam,
     RMS_prop,
+    TimeDecay,
 )
 from Gradients import Gradients
 from plotutils import (
@@ -119,6 +120,31 @@ class GradAnalysis:
             pred_arr[i, :] = DummyGrad.predict(x, theta, dim)
 
         return pred_arr
+
+    def error_per_minibatch(
+        self,
+        schedule: Scheduler,
+        minibatches: np.ndarray,
+        n_epochs: int = 150,
+        dim: int = 2,
+    ) -> tuple:
+        error_arr = np.zeros((len(minibatches), n_epochs))
+        theta_arr = np.zeros((len(minibatches), dim + 1))
+        for i, batch_size in enumerate(minibatches):
+            Gradient = Gradients(
+                self.n_points,
+                self.x_vals,
+                self.y_vals,
+                self.model,
+                self.method,
+                schedule,
+            )
+            theta_arr[i, :] = Gradient.StochasticGradientDescent(
+                self.base_theta, n_epochs, batch_size
+            ).ravel()
+            error_arr[i, :] = Gradient.errors
+
+        return error_arr, theta_arr
 
     def constant_analysis(self, eta_vals: np.ndarray, dim: int = 2) -> None:
         schedulers = [Constant(eta) for eta in eta_vals]
@@ -502,3 +528,128 @@ class GradAnalysis:
             columns=[f"{eta:.2e}" for eta in heat_eta],
         )
         plotHeatmap(df, title=f"Error after {self.n_epochs} epochs")
+
+    def minibatch_analysis(self, dim: int = 2):
+        # Flip so that the "better" args are plotted on top
+        minibatches = np.flip(np.arange(1, 101))
+
+        error_arr = np.zeros((len(minibatches), 150))
+        theta_arr = np.zeros((len(minibatches), dim + 1))
+        for i, batch_size in enumerate(minibatches):
+            schedule = TimeDecay(1, 10, batch_size)
+            Gradient = Gradients(
+                self.n_points,
+                self.x_vals,
+                self.y_vals,
+                self.model,
+                self.method,
+                schedule,
+            )
+            theta_arr[i, :] = Gradient.StochasticGradientDescent(
+                self.base_theta, 150, batch_size
+            ).ravel()
+            error_arr[i, :] = Gradient.errors
+
+        pred_arr = self.pred_per_theta(self.base_x, theta_arr, dim)
+
+        PlotErrorPerVariable(
+            error_arr,
+            minibatches,
+            title=r"Error per epoch TimeDecay ($t_0 = 1$, $t_1 = 10$)",
+            variable_label="Minibatch size",
+            variable_type="linear",
+            colormap="viridis_r",
+        )
+        plotThetas(
+            theta_arr,
+            minibatches,
+            title=r"Model parameters TimeDecay ($t_0 = 1$, $t_1 = 10$)",
+            variable_label="Minibatch size",
+            variable_type="linear",
+            true_theta=self.true_theta,
+        )
+        PlotPredictionPerVariable(
+            self.base_x,
+            pred_arr,
+            minibatches,
+            title=r"Predicted polynomials TimeDecay ($t_0 = 1$, $t_1 = 10$)",
+            n_epochs=150,
+            target_func=self.target_func,
+            variable_label="Minibatch size",
+            variable_type="linear",
+            colormap="viridis_r",
+        )
+
+        schedules = [
+            Constant(0.01),
+            Momentum(0.01, 0.9),
+            Adagrad(0.01),
+            AdagradMomentum(0.01, 0.9),
+            Adam(0.01, 0.9, 0.999),
+            RMS_prop(0.01, 0.9),
+        ]
+        schedule_names = [
+            r"Constant ($\eta=0.01$)",
+            r"Momentum ($\eta=0.01$, $\rho=0.9$)",
+            r"Adagrad ($\eta=0.01$)",
+            r"AdagradMomentum ($\eta=0.01$, $\rho=0.9$)",
+            r"Adam ($\eta=0.01$, $\rho=0.9$, $\rho_2=0.999$)",
+            r"RMS_prop ($\eta=0.01$, $\rho=0.9$)",
+        ]
+        epoch_size = [60, 60, 150, 60, 40, 60]
+        for schedule, name, epoch in zip(schedules, schedule_names, epoch_size):
+            error_arr, theta_arr = self.error_per_minibatch(
+                schedule, minibatches, epoch
+            )
+            pred_arr = self.pred_per_theta(self.base_x, theta_arr, dim)
+
+            PlotErrorPerVariable(
+                error_arr,
+                minibatches,
+                title=f"Error per epoch {name}",
+                variable_label="Minibatch size",
+                variable_type="linear",
+                colormap="viridis_r",
+            )
+            plotThetas(
+                theta_arr,
+                minibatches,
+                title=f"Model parameters {name}",
+                variable_label="Minibatch size",
+                variable_type="linear",
+                true_theta=self.true_theta,
+            )
+            PlotPredictionPerVariable(
+                self.base_x,
+                pred_arr,
+                minibatches,
+                title=f"Predicted polynomials {name}",
+                n_epochs=epoch,
+                target_func=self.target_func,
+                variable_label="Minibatch size",
+                variable_type="linear",
+                colormap="viridis_r",
+            )
+
+    def gd_main(self):
+        eta_num = 75
+        eta_arr = np.logspace(-5, -1, eta_num)
+        self.constant_analysis(eta_arr)
+
+        rho_num = 75
+        rho_arr = np.linspace(1 / self.n_points, 1, rho_num)
+        self.momentum_analysis(eta_arr, rho_arr)
+
+        # NOTE: Adagrad is less sensitive to the learning rate, so we can use larger values
+        eta_arr = np.logspace(-3, 0, eta_num)
+        self.adagrad_analysis(eta_arr)
+
+        eta_arr = np.logspace(-5, 0, eta_num)
+        rho_arr = np.linspace(1 / self.n_points, 0.99, rho_num)
+        self.adagrad_momentum_analysis(eta_arr, rho_arr)
+
+        rho2_num = 75
+        rho2_arr = np.linspace(0.05, 0.999, rho2_num)
+        self.adam_analysis(eta_arr, rho_arr, rho2_arr)
+
+        self.rms_prop_analysis(eta_arr, rho_arr)

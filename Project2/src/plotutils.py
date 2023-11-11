@@ -28,9 +28,11 @@ def setColors(
     """
     cmap = colormaps.get_cmap(cmap_name)
     if norm_type == "log":
-        norm = mpl.colors.LogNorm(vmin=variable_arr[0], vmax=variable_arr[-1])
+        norm = mpl.colors.LogNorm(vmin=np.min(variable_arr), vmax=np.max(variable_arr))
     elif norm_type == "linear":
-        norm = mpl.colors.Normalize(vmin=variable_arr[0], vmax=variable_arr[-1])
+        norm = mpl.colors.Normalize(
+            vmin=np.min(variable_arr), vmax=np.max(variable_arr)
+        )
     else:
         raise ValueError(f"Invalid norm_type: {norm_type}")
 
@@ -125,6 +127,7 @@ def PlotErrorPerVariable(
     error_label: str = "MSE",
     variable_label: str = r"$\eta$",
     variable_type: str = "log",
+    error_type: str = "linear",
     title: str = "Error per epoch",
     colormap: str = "viridis",
     savePlots: bool = False,
@@ -171,6 +174,7 @@ def PlotErrorPerVariable(
 
     ax.set_xlabel(x_label)
     ax.set_ylabel(error_label)
+    ax.set_yscale(error_type)
     plt.title(f"{title} ({variable_label})")
     cbar = plt.colorbar(sm)
     cbar.ax.set_ylabel(variable_label, rotation=45, fontsize="large")
