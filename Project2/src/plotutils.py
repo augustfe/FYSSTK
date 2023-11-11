@@ -4,6 +4,8 @@ from pathlib import Path
 from typing import Callable, Optional
 import matplotlib as mpl
 from matplotlib import colormaps
+import seaborn as sns
+from pandas import DataFrame
 
 
 def setColors(
@@ -247,3 +249,26 @@ def plotThetas(
     if showPlots:
         plt.show()
     plt.close()
+
+
+def plotHeatmap(
+    df: DataFrame,
+    title: str = "Error",
+    x_label: str = r"$\eta$",
+    y_label: str = r"$\rho$",
+    colormap: str = "viridis",
+    savePlots: bool = False,
+    showPlots: bool = True,
+    figsPath: Path = Path(__file__).parent.parent / "figures",
+) -> None:
+    fig, ax = plt.subplots()
+    sns.heatmap(df, cmap=colormap, ax=ax)
+    plt.title(title)
+    ax.set_xlabel(x_label)
+    ax.set_ylabel(y_label)
+    plt.tight_layout()
+    if savePlots:
+        plt.savefig(figsPath / f"{title}.png")
+    if showPlots:
+        plt.show()
+    plt.close(fig)
