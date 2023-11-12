@@ -1,6 +1,5 @@
 import numpy as onp
 import jax.numpy as np
-from jax import jit
 from Schedules import (
     Scheduler,
     Constant,
@@ -22,7 +21,7 @@ from typing import Callable
 import pandas as pd
 from sklearn.metrics import mean_squared_error
 from line_profiler import profile
-from utils import assign
+from utils import assign, assign_row
 
 
 class GradAnalysis:
@@ -78,16 +77,13 @@ class GradAnalysis:
                 schedule,
             )
 
-            theta_arr = theta_arr.at[i, :].set(
-                Gradient.GradientDescent(self.base_theta, self.n_epochs).ravel()
+            theta_arr = assign_row(
+                theta_arr,
+                i,
+                Gradient.GradientDescent(self.base_theta, self.n_epochs).ravel(),
             )
 
-            # theta_arr[i, :] = Gradient.GradientDescent(
-            #     self.base_theta, self.n_epochs
-            # ).ravel()
-            error_arr = error_arr.at[i, :].set(Gradient.errors)
-
-            # error_arr[i, :] = Gradient.errors
+            error_arr = assign_row(error_arr, i, Gradient.errors)
 
         return theta_arr, error_arr
 
@@ -108,13 +104,10 @@ class GradAnalysis:
         )
         for i, row in enumerate(schedules):
             for j, schedule in enumerate(row):
-                # schedule.update_change = jit(schedule.update_change)
                 Gradient.scheduler = schedule
                 theta = Gradient.GradientDescent(self.base_theta, self.n_epochs)
                 ypred = Gradient.predict(self.base_x, theta, dim)
                 error_arr = assign(error_arr, (i, j), mean_squared_error(ynew, ypred))
-                # error_arr = error_arr.at[i, j].set(mean_squared_error(ynew, ypred))
-                # error_arr[i, j] = mean_squared_error(ynew, ypred)
 
         return error_arr
 
@@ -132,8 +125,7 @@ class GradAnalysis:
             Constant(1),
         )
         for i, theta in enumerate(theta_arr):
-            pred_arr = pred_arr.at[i, :].set(DummyGrad.predict(x, theta, dim))
-            # pred_arr[i, :] = DummyGrad.predict(x, theta, dim)
+            pred_arr = assign_row(pred_arr, i, DummyGrad.predict(x, theta, dim))
 
         return pred_arr
 
@@ -155,10 +147,15 @@ class GradAnalysis:
                 self.derivative_func,
                 schedule,
             )
-            theta_arr[i, :] = Gradient.StochasticGradientDescent(
-                self.base_theta, n_epochs, batch_size
-            ).ravel()
-            error_arr[i, :] = Gradient.errors
+            theta_arr = assign_row(
+                theta_arr,
+                i,
+                Gradient.StochasticGradientDescent(
+                    self.base_theta, n_epochs, batch_size
+                ).ravel(),
+            )
+
+            error_arr = assign_row(error_arr, i, Gradient.errors)
 
         return error_arr, theta_arr
 
@@ -529,21 +526,21 @@ class GradAnalysis:
             variable_type="linear",
         )
 
-        n_rho = 75
-        n_eta = 75
-        heat_rho = np.arctan(np.linspace(0.1, 10, n_rho))
-        heat_rho = heat_rho * 2 / 3
-        heat_eta = np.logspace(-3, -1, n_eta)
+        # n_rho = 75
+        # n_eta = 75
+        # heat_rho = np.arctan(np.linspace(0.1, 10, n_rho))
+        # heat_rho = heat_rho * 2 / 3
+        # heat_eta = np.logspace(-3, -1, n_eta)
 
-        schedulers = [[RMS_prop(eta, rho) for eta in heat_eta] for rho in heat_rho]
-        error_arr = self.error_per_variables(schedulers, dim)
+        # schedulers = [[RMS_prop(eta, rho) for eta in heat_eta] for rho in heat_rho]
+        # error_arr = self.error_per_variables(schedulers, dim)
 
-        df = pd.DataFrame(
-            error_arr,
-            index=[f"{rho:.2f}" for rho in heat_rho],
-            columns=[f"{eta:.2e}" for eta in heat_eta],
-        )
-        plotHeatmap(df, title=f"Error after {self.n_epochs} epochs")
+        # df = pd.DataFrame(
+        #     error_arr,
+        #     index=[f"{rho:.2f}" for rho in heat_rho],
+        #     columns=[f"{eta:.2e}" for eta in heat_eta],
+        # )
+        # plotHeatmap(df, title=f"Error after {self.n_epochs} epochs")
 
     def minibatch_analysis(self, dim: int = 2):
         # Flip so that the "better" args are plotted on top
@@ -561,10 +558,15 @@ class GradAnalysis:
                 self.derivative_func,
                 schedule,
             )
-            theta_arr[i, :] = Gradient.StochasticGradientDescent(
-                self.base_theta, 150, batch_size
-            ).ravel()
-            error_arr[i, :] = Gradient.errors
+            theta_arr = assign_row(
+                theta_arr,
+                i,
+                Gradient.StochasticGradientDescent(
+                    self.base_theta, 150, batch_size
+                ).ravel(),
+            )
+
+            error_arr = assign_row(error_arr, i, Gradient.errors)
 
         pred_arr = self.pred_per_theta(self.base_x, theta_arr, dim)
 
@@ -598,7 +600,7 @@ class GradAnalysis:
 
         schedules = [
             Constant(0.01),
-            Momentum(0.01, 0.9),
+            Momentum(0.001, 0.9),
             Adagrad(0.01),
             AdagradMomentum(0.01, 0.9),
             Adam(0.01, 0.9, 0.999),

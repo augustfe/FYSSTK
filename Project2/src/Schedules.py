@@ -115,12 +115,6 @@ class Momentum(Scheduler):
         self.change = fast_mom(self.momentum, self.change, self.eta, gradient)
         return self.change
 
-    def reset(self) -> None:
-        """
-        Resets the change in the weights to 0.
-        """
-        self.change = 0.0
-
 
 @jit
 def fast_gt_add(gradient, G_t):

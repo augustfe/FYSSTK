@@ -1,5 +1,5 @@
 import jax.numpy as jnp
-from jax import lax
+from jax import lax, jit
 from typing import Callable
 
 
@@ -31,36 +31,47 @@ def CostCrossEntropy(target: jnp.ndarray) -> Callable:
     return func
 
 
-def regressionOLS(X: jnp.ndarray, y: jnp.ndarray, lmbda: float = None) -> Callable:
-    def func(theta: jnp.ndarray) -> float:
-        return (1.0 / X.shape[0]) * jnp.sum(
-            lax.integer_pow(lax.sub(y, jnp.dot(X, theta)), 2)
-        )
-
-    return func
-
-
-def derivativeOLS(X: jnp.ndarray, y: jnp.ndarray, lmbda: float = None) -> Callable:
-    def func(theta: jnp.ndarray) -> jnp.ndarray:
-        return (2.0 / X.shape[0]) * jnp.matmul(X.T, (lax.sub(jnp.matmul(X, theta), y)))
-
-    return func
+@jit
+def fast_OLS(
+    X: jnp.ndarray, y: jnp.ndarray, theta: jnp.ndarray, lmbda: float = None
+) -> jnp.ndarray:
+    return lax.mul(
+        1.0 / X.shape[0],
+        jnp.sum(lax.integer_pow(lax.sub(y, jnp.dot(X, theta)), 2)),
+    )
 
 
-def regressionRidge(X: jnp.ndarray, y: jnp.ndarray, lmbda: float) -> Callable:
-    def func(theta: jnp.ndarray) -> float:
-        return (1.0 / X.shape[0]) * jnp.sum(
-            lax.integer_pow(lax.sub(y, jnp.dot(X, theta)), 2)
-        ) + lmbda * jnp.dot(theta, theta)
+@jit
+def fast_OLS_grad(
+    X: jnp.ndarray, y: jnp.ndarray, theta: jnp.ndarray, lmbda: float = None
+) -> jnp.ndarray:
+    return lax.mul(
+        2.0 / X.shape[0],
+        lax.dot(
+            X.T,
+            lax.sub(jnp.dot(X, theta), y),
+        ),
+    )
 
-    return func
+
+@jit
+def fast_ridge(
+    X: jnp.ndarray, y: jnp.ndarray, theta: jnp.ndarray, lmbda: float = None
+) -> jnp.ndarray:
+    return lax.add(
+        fast_OLS(X, y, theta),
+        lax.mul(lmbda, lax.dot(theta, theta)),
+    )
 
 
-def derivativeRidge(X: jnp.ndarray, y: jnp.ndarray, lmbda: float) -> Callable:
-    def func(theta: jnp.ndarray) -> jnp.ndarray:
-        return 2.0 * (1 / X.shape[0] * X.T @ ((X @ theta) - y) + lmbda * theta)
-
-    return func
+@jit
+def fast_ridge_grad(
+    X: jnp.ndarray, y: jnp.ndarray, theta: jnp.ndarray, lmbda: float = None
+) -> jnp.ndarray:
+    return lax.add(
+        fast_OLS_grad(X, y, theta),
+        lax.mul(2.0 * lmbda, theta),
+    )
 
 
 def CostOLS(target: jnp.ndarray) -> Callable:

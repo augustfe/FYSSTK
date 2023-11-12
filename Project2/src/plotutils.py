@@ -96,8 +96,8 @@ def PlotPredictionPerVariable(
         variable_arr, cmap_name=colormap, norm_type=variable_type
     )
 
-    ax.set_xlim(np.min(x_vals), np.max(x_vals))
-    ax.set_ylim(np.min(y_vals), np.max(y_vals))
+    ax.set_xlim(np.nanmin(x_vals), np.nanmax(x_vals))
+    ax.set_ylim(np.nanmin(y_vals), np.nanmax(y_vals))
 
     for i, ynew in enumerate(y_vals):
         ax.plot(x_vals, ynew, color=cmap(norm(variable_arr[i])))
@@ -167,7 +167,7 @@ def PlotErrorPerVariable(
     )
 
     ax.set_xlim(0, error_vals.shape[1])
-    ax.set_ylim(np.min(error_vals), np.max(error_vals))
+    ax.set_ylim(np.nanmin(error_vals), np.nanmax(error_vals))
 
     for i, error in enumerate(error_vals):
         ax.plot(error, color=cmap(norm(variable_arr[i])))
