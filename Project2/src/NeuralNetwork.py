@@ -1,5 +1,6 @@
-import autograd.numpy as np
-from autograd import elementwise_grad, grad
+import jax.numpy as np
+import numpy as onp
+from jax import grad, vmap
 from typing import Optional, Callable
 from Activators import sigmoid, derivate
 from CostFuncs import CostCrossEntropy, CostOLS
@@ -99,17 +100,17 @@ class NeuralNet:
         Resets the weights of the neural network.
         """
         if self.seed is not None:
-            np.random.seed(self.seed)
+            onp.random.seed(self.seed)
 
         self.weights = list()
         for i in range(len(self.dimensions) - 1):
             # Weights
-            weight_array = np.random.randn(
+            weight_array = onp.random.randn(
                 self.dimensions[i] + 1, self.dimensions[i + 1]
             )
 
             # Bias
-            weight_array[0, :] = np.random.randn(self.dimensions[i + 1]) * 0.01
+            weight_array[0, :] = onp.random.randn(self.dimensions[i + 1]) * 0.01
 
             self.weights.append(weight_array)
 
@@ -177,7 +178,7 @@ class NeuralNet:
 
         # Set random seed to exclude source of error
         if self.seed is not None:
-            np.random.seed(self.seed)
+            onp.random.seed(self.seed)
 
         # Validate if available
         validate = False
@@ -186,10 +187,10 @@ class NeuralNet:
 
         # Training metrics
         train_errors = np.empty(epochs)
-        train_errors.fill(np.nan)
+        # train_errors.fill(np.nan)
 
         train_accuracies = np.empty(epochs)
-        train_accuracies.fill(np.nan)
+        # train_accuracies.fill(np.nan)
 
         self.schedulers_weight: list[Scheduler] = list()
         self.schedulers_bias: list[Scheduler] = list()
@@ -210,10 +211,10 @@ class NeuralNet:
 
             # Validation metrics
             validation_errors = np.empty(epochs)
-            validation_errors.fill(np.nan)
+            # validation_errors.fill(np.nan)
 
             validation_accuracies = np.empty(epochs)
-            validation_accuracies.fill(np.nan)
+            # validation_accuracies.fill(np.nan)
 
         for i in range(len(self.weights)):
             # I believe deepcopy is necessary to ensure layers are not cross contaminated
@@ -226,7 +227,7 @@ class NeuralNet:
         for e in range(epochs):
             for i in range(batches):
                 # Draw with replacement
-                batch_idx = np.random.choice(data_indices, batch_size)
+                batch_idx = onp.random.choice(data_indices, batch_size)
                 X_batch = X_train[batch_idx, :]
                 target_batch = target_train[batch_idx]
 
@@ -357,9 +358,15 @@ class NeuralNet:
             delta_matrix = self.a_layers[i + 1] - target_batch
         else:
             cost_func_derivative = grad(self.cost_func(target_batch))
-            delta_matrix = output_derivative(
-                self.z_layers[i + 1]
-            ) * cost_func_derivative(self.a_layers[i + 1])
+            print(self.z_layers[i + 1].shape)
+
+            left = output_derivative(self.z_layers[i + 1].ravel())
+            right = cost_func_derivative(self.a_layers[i + 1])
+
+            delta_matrix = left * right
+            # delta_matrix = output_derivative(
+            #     self.z_layers[i + 1]
+            # ) * cost_func_derivative(self.a_layers[i + 1])
 
         # Output gradient
         gradient_weights = self.a_layers[i][:, 1:].T @ delta_matrix
@@ -488,11 +495,11 @@ class OneLayerNeuralNet:
 
     def create_weights_and_bias(self):
         # Weights and bias for the hidden layer
-        self.hidden_weights = np.random.randn(self.n_features, self.n_hidden_nodes)
+        self.hidden_weights = onp.random.randn(self.n_features, self.n_hidden_nodes)
         self.hidden_bias = np.zeros(self.n_hidden_nodes) + 0.01
 
         # Weights and bias for the output layer
-        self.output_weights = np.random.randn(self.n_hidden_nodes, self.n_categories)
+        self.output_weights = onp.random.randn(self.n_hidden_nodes, self.n_categories)
         self.output_bias = np.zeros(self.n_categories) + 0.01
 
     def feed_forward(self):
@@ -506,7 +513,7 @@ class OneLayerNeuralNet:
 
         self.a_o = self.output_func(self.z_o)
 
-    def feed_forward_out(self, X: np.ndarray[float]) -> np.ndarray[float]:
+    def feed_forward_out(self, X: np.ndarray) -> np.ndarray:
         # Weighted sum over the inputs - $z_h = \sum_{i=1}^F w_{ij}^l x_i + b_{i}^l$
         z_h = X @ self.hidden_weights + self.hidden_bias
         # Activation function - $a_h = f(z_h)$
@@ -520,8 +527,8 @@ class OneLayerNeuralNet:
 
     def back_propagation(self):
         # Derivative of functions
-        derivative_hidden = elementwise_grad(self.hidden_func)
-        derivative_output = elementwise_grad(self.output_func)
+        derivative_hidden = vmap(grad(self.hidden_func))
+        derivative_output = vmap(grad(self.output_func))
 
         # Derivative of cost function for our current targets
         cost_func_derivative = grad(self.cost_func(self.Y_data))
@@ -571,7 +578,7 @@ class OneLayerNeuralNet:
 
             # We only have four datapoints in this case, otherwise:
             for j in range(self.iterations):
-                batch_indices = np.random.choice(data_indices, size=self.batch_size)
+                batch_indices = onp.random.choice(data_indices, size=self.batch_size)
 
                 self.X_data = self.X_data_full[batch_indices]
                 self.Y_data = self.Y_data_full[batch_indices]

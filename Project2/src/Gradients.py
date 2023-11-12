@@ -84,7 +84,7 @@ class Gradients:
         self.n = n
         self.x = x
         self.y = y
-        self.X = design(x, dim=dim, n=n)
+        self.X = design(x, dim, len(x))
         self.lmbda = lmbda
         self.dim = dim
         self.cost_func = cost_func
@@ -110,10 +110,10 @@ class Gradients:
         self.errors = jnp.zeros(n_iter)
 
         for i in range(n_iter):
-            gradients = self.gradient(self.X, self.y, theta)
+            gradients = self.gradient(self.X, self.y, theta, self.lmbda)
             change = self.scheduler.update_change(gradients)
             theta = update_theta(theta, change)
-            tmp = self.cost_func(self.X, self.y, theta)
+            tmp = self.cost_func(self.X, self.y, theta, self.lmbda)
             self.errors = assign(self.errors, i, tmp)
 
         return theta
@@ -143,13 +143,13 @@ class Gradients:
                 xi = self.X[idxs]
                 yi = self.y[idxs]
 
-                gradients = self.gradient(xi, yi, theta)
+                gradients = self.gradient(xi, yi, theta, self.lmbda)
                 change = self.scheduler.update_change(gradients)
 
                 theta = update_theta(theta, change)
 
             self.errors = assign(
-                self.errors, epoch, self.cost_func(self.X, self.y, theta)
+                self.errors, epoch, self.cost_func(self.X, self.y, theta, self.lmbda)
             )
 
         return theta

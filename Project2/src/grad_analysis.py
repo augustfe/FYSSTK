@@ -37,6 +37,7 @@ class GradAnalysis:
         target_func: Callable = None,
         true_theta: np.ndarray = None,
         base_x: np.ndarray = None,
+        lmbda: float = None,
     ) -> None:
         self.x_vals = x_vals
         self.y_vals = y_vals
@@ -45,6 +46,7 @@ class GradAnalysis:
         self.seed = seed
         self.cost_func = cost_func
         self.derivative_func = derivative_func
+        self.lmbda = lmbda
 
         if self.seed is not None:
             onp.random.seed(self.seed)
@@ -75,6 +77,7 @@ class GradAnalysis:
                 self.cost_func,
                 self.derivative_func,
                 schedule,
+                lmbda=self.lmbda,
             )
 
             theta_arr = assign_row(
@@ -87,7 +90,6 @@ class GradAnalysis:
 
         return theta_arr, error_arr
 
-    @profile
     def error_per_variables(
         self, schedules: list[list[Scheduler]], dim: int = 2
     ) -> np.ndarray:
@@ -101,6 +103,7 @@ class GradAnalysis:
             self.cost_func,
             self.derivative_func,
             Constant(0.1),
+            lmbda=self.lmbda,
         )
         for i, row in enumerate(schedules):
             for j, schedule in enumerate(row):
@@ -123,6 +126,7 @@ class GradAnalysis:
             self.cost_func,
             self.derivative_func,
             Constant(1),
+            lmbda=self.lmbda,
         )
         for i, theta in enumerate(theta_arr):
             pred_arr = assign_row(pred_arr, i, DummyGrad.predict(x, theta, dim))
@@ -146,6 +150,7 @@ class GradAnalysis:
                 self.cost_func,
                 self.derivative_func,
                 schedule,
+                lmbda=self.lmbda,
             )
             theta_arr = assign_row(
                 theta_arr,
@@ -557,6 +562,7 @@ class GradAnalysis:
                 self.cost_func,
                 self.derivative_func,
                 schedule,
+                lmbda=self.lmbda,
             )
             theta_arr = assign_row(
                 theta_arr,
@@ -671,3 +677,80 @@ class GradAnalysis:
         self.adam_analysis(eta_arr, rho_arr, rho2_arr)
 
         self.rms_prop_analysis(eta_arr, rho_arr)
+
+    def ridge_analysis(self, eta_arr: np.ndarray, lmbda_arr: np.ndarray):
+        ynew = self.target_func(self.base_x)
+
+        theta_arr = np.zeros((len(lmbda_arr), 3))
+        Gradient = Gradients(
+            self.n_points,
+            self.x_vals,
+            self.y_vals,
+            self.cost_func,
+            self.derivative_func,
+            Constant(0.1),
+            lmbda=0.1,
+        )
+        for i, lmbda in enumerate(lmbda_arr):
+            Gradient.lmbda = lmbda
+            theta_arr = assign_row(
+                theta_arr,
+                i,
+                Gradient.GradientDescent(self.base_theta, self.n_epochs).ravel(),
+            )
+
+        plotThetas(
+            theta_arr,
+            lmbda_arr,
+            true_theta=self.true_theta,
+            title=r"$\theta$ for different values of $\lambda$ (Constant Ridge)",
+            variable_label=r"$\lambda$",
+        )
+
+        schedulers = [Constant, Momentum, Adagrad, AdagradMomentum, Adam, RMS_prop]
+        params = [
+            {},
+            {"rho": 0.9},
+            {},
+            {"rho": 0.9},
+            {"rho": 0.9, "rho2": 0.999},
+            {"rho": 0.9},
+        ]
+        schedule_names = [
+            r"Constant ($\eta=0.01$)",
+            r"Momentum ($\eta=0.01$, $\rho=0.9$)",
+            r"Adagrad ($\eta=0.01$)",
+            r"AdagradMomentum ($\eta=0.01$, $\rho=0.9$)",
+            r"Adam ($\eta=0.01$, $\rho=0.9$, $\rho_2=0.999$)",
+            r"RMS_prop ($\eta=0.01$, $\rho=0.9$)",
+        ]
+        for schedule, param, schedule_name in zip(schedulers, params, schedule_names):
+            error_arr = np.zeros((len(eta_arr), len(lmbda_arr)))
+
+            for i, eta in enumerate(eta_arr):
+                for j, lmbda in enumerate(lmbda_arr):
+                    Gradient = Gradients(
+                        self.n_points,
+                        self.x_vals,
+                        self.y_vals,
+                        self.cost_func,
+                        self.derivative_func,
+                        schedule(eta=eta, **param),
+                        lmbda=lmbda,
+                    )
+                    theta = Gradient.GradientDescent(self.base_theta, self.n_epochs)
+                    ypred = Gradient.predict(self.base_x, theta, 2)
+                    tmp = mean_squared_error(ynew, ypred)
+                    error_arr = assign(error_arr, (i, j), tmp)
+
+            df = pd.DataFrame(
+                error_arr,
+                index=[f"{eta:.2e}" for eta in eta_arr],
+                columns=[f"{lmbda:.2e}" for lmbda in lmbda_arr],
+            )
+            plotHeatmap(
+                df,
+                title=f"Ridge {schedule_name}",
+                x_label=r"$\lambda$",
+                y_label=r"$\eta$",
+            )

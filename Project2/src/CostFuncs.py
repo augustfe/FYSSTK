@@ -58,19 +58,30 @@ def fast_OLS_grad(
 def fast_ridge(
     X: jnp.ndarray, y: jnp.ndarray, theta: jnp.ndarray, lmbda: float = None
 ) -> jnp.ndarray:
-    return lax.add(
-        fast_OLS(X, y, theta),
-        lax.mul(lmbda, lax.dot(theta, theta)),
-    )
+    tmp_theta = theta.squeeze()
+    return 1.0 / X.shape[0] * jnp.sum(
+        lax.integer_pow(lax.sub(y, jnp.dot(X, theta)), 2)
+    ) + lmbda * lax.dot(tmp_theta.T, tmp_theta)
 
 
 @jit
 def fast_ridge_grad(
     X: jnp.ndarray, y: jnp.ndarray, theta: jnp.ndarray, lmbda: float = None
 ) -> jnp.ndarray:
-    return lax.add(
-        fast_OLS_grad(X, y, theta),
-        lax.mul(2.0 * lmbda, theta),
+    # tmp_theta = theta.squeeze()
+    return 2.0 * (
+        lax.add(
+            1.0
+            / X.shape[0]
+            * lax.dot(
+                X.T,
+                lax.sub(
+                    lax.dot(X, theta),
+                    y,
+                ),
+            ),
+            lax.mul(lmbda, theta),
+        )
     )
 
 

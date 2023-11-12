@@ -1,6 +1,6 @@
-import numpy as np
-from jax import grad, vmap
-import jax.numpy as jnp
+import numpy as onp
+from jax import grad, vmap, lax, jit
+import jax.numpy as np
 from typing import Callable
 
 
@@ -17,6 +17,7 @@ def identity(X: np.ndarray) -> np.ndarray:
     return X
 
 
+@jit
 def sigmoid(X: np.ndarray) -> np.ndarray:
     """
     Applies the sigmoid activation function to the input array.
@@ -27,10 +28,11 @@ def sigmoid(X: np.ndarray) -> np.ndarray:
     Returns:
         np.ndarray: The output array after applying the sigmoid function.
     """
-    try:
-        return 1.0 / (1 + jnp.exp(-X))
-    except FloatingPointError:
-        return jnp.where(X > jnp.zeros(X.shape), jnp.ones(X.shape), jnp.zeros(X.shape))
+    return lax.reciprocal(lax.add(1.0, lax.exp(-X)))
+    # try:
+    #     return 1.0 / (1 + np.exp(-X))
+    # except FloatingPointError:
+    #     return np.where(X > np.zeros(X.shape), np.ones(X.shape), np.zeros(X.shape))
 
 
 def softmax(X: np.ndarray) -> np.ndarray:
@@ -43,9 +45,9 @@ def softmax(X: np.ndarray) -> np.ndarray:
     Returns:
         np.ndarray: Output array after applying the softmax function.
     """
-    X = X - jnp.max(X, axis=-1, keepdims=True)
+    X = X - np.max(X, axis=-1, keepdims=True)
     delta = 10e-10
-    return jnp.exp(X) / (jnp.sum(jnp.exp(X), axis=-1, keepdims=True) + delta)
+    return np.exp(X) / (np.sum(np.exp(X), axis=-1, keepdims=True) + delta)
 
 
 def RELU(X: np.ndarray) -> np.ndarray:
@@ -58,7 +60,7 @@ def RELU(X: np.ndarray) -> np.ndarray:
     Returns:
         np.ndarray: Output array with values equal to X where X > 0, and 0 elsewhere.
     """
-    return jnp.where(X > jnp.zeros(X.shape), X, jnp.zeros(X.shape))
+    return np.where(X > np.zeros(X.shape), X, np.zeros(X.shape))
 
 
 def LRELU(X: np.ndarray) -> np.ndarray:
@@ -72,7 +74,7 @@ def LRELU(X: np.ndarray) -> np.ndarray:
         np.ndarray: Output array with the same shape as X.
     """
     delta = 10e-4
-    return jnp.where(X > jnp.zeros(X.shape), X, delta * X)
+    return np.where(X > np.zeros(X.shape), X, delta * X)
 
 
 def derivate(func: Callable) -> Callable:
@@ -97,7 +99,7 @@ def derivate(func: Callable) -> Callable:
             Returns:
                 The derivative of the ReLU activation function.
             """
-            return jnp.where(X > 0, 1, 0)
+            return np.where(X > 0, 1, 0)
 
         return func
 
@@ -114,9 +116,9 @@ def derivate(func: Callable) -> Callable:
                 The derivative of the Leaky ReLU activation function.
             """
             delta = 10e-4
-            return jnp.where(X > 0, 1, delta)
+            return np.where(X > 0, 1, delta)
 
         return func
 
     else:
-        return vmap(grad(func))
+        return grad(vmap(func))

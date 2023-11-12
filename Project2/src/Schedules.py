@@ -83,9 +83,9 @@ class Momentum(Scheduler):
 
     """
 
-    def __init__(self, eta: float, momentum: float) -> None:
+    def __init__(self, eta: float, rho: float) -> None:
         self.eta = eta
-        self.momentum = momentum
+        self.momentum = rho
         self.change = 0.0
 
     def update_change(self, gradient: np.ndarray) -> np.ndarray:
@@ -172,10 +172,10 @@ class AdagradMomentum(Scheduler):
             Resets the sum of the squares of the gradients to None.
     """
 
-    def __init__(self, eta: float, momentum: float) -> None:
+    def __init__(self, eta: float, rho: float) -> None:
         self.eta = eta
         self.G_t = None
-        self.momentum = momentum
+        self.momentum = rho
         self.change = 0.0
 
     def update_change(self, gradient: np.ndarray) -> np.ndarray:
