@@ -1,6 +1,5 @@
 \documentclass{article}
 
-% \documentclass[aps,rmp,reprint,amsmath,amssymb,graphicx,longbibliography]{article}
 \usepackage[utf8]{inputenc}
 \usepackage{graphicx}
 \graphicspath{ {figures/} }
@@ -12,14 +11,9 @@
 \usepackage{commath}
 \usepackage{tabularx}
 \usepackage[ruled,vlined]{algorithm2e}
-% \graphicspath{{./plots/}}
-% \usepackage{biblatex}
-% \addbibresource{refs.bib}
 \usepackage{caption}
 \usepackage{subcaption}
 \usepackage[outputdir=../]{minted}
-
-% \usepackage{longbibliography}
 
 \bibliographystyle{apalike}
 \usepackage{hyperref}
@@ -32,17 +26,11 @@
 \DeclareMathOperator*{\Var}{Var}
 
 
-\title{Regression analysis and resampling methods applied to Franke's Function}
+\title{Regression analysis and resampling methods applied to Franke's Function and Topographical data}
 \author{Femtehjell, Hoel, Otterlei and Steeneveldt}
 
-\date{September 2023}
+\date{October 2023}
 
-
-% Sample for adding code to text:
-% \inputminted[frame=lines,
-% framesep=2mm,
-% linenos,
-% fontsize=\footnotesize]{python}{filename.py}
 
 \def\@bibdataout@aps{%
 \immediate\write\@bibdataout{%
@@ -81,52 +69,22 @@ apsrev41Control%
 
 % \section*{Abstract}
 \begin{abstract} 
-    In this project, we aim to employ various regression methods, including Ordinary Least Squares, Ridge, and LASSO, to analyze a set of terrain data and Franke's function. We explore the use of two-variable polynomials of varying orders and optimize hyperparameters, such as $\lambda$, for Ridge and LASSO. To assess the effectiveness of the models, we utilize resampling techniques such as non-parametric bootstrap and k-fold cross-validation. These techniques allow us to evaluate each model's performance by dividing the data into test and training subsets and training the model multiple times on the training subset while evaluating it on the testing subset. Although our ultimate goal is to identify the best model and evaluate its performance, we also explore and compare several regression techniques to gain valuable insights into their strengths and weaknesses.
+    In this project, we aim to employ various regression methods, including Ordinary Least Squares, Ridge, and Lasso, to analyze a set of terrain data and Franke's function. We explore the use of two-variable polynomials of varying orders and optimize hyperparameters for Ridge and Lasso. To assess the effectiveness of the models, we utilize resampling techniques such as non-parametric bootstrap and k-fold cross-validation. These techniques allow us to evaluate each model's performance by dividing the data into test and training subsets and training the model multiple times on the training subset while evaluating it on the testing subset. Although our ultimate goal is to identify the best model and evaluate its performance, we also explore and compare several regression techniques to gain valuable insights into their strengths and weaknesses. We found our best results using Lasso regression.
 \end{abstract}
 
 \section{Introduction}
-Machine learning has become wildly popular in the last decade. It is now used to some degree in all aspects of society and keeps growing in popularity. The most popular of the different machine learning models are deep learning, which is based on neural network and the base layer of neural networks theory is regression methods. This project will look into the theory of different regression methods and re-sampling techniques. Specifically, the project will look how to use linear regression, ridge and lasso regression to model polynomials of different degrees and how they differ in output.
+Early in our education, we learn how to connect points by drawing a straight line through them. However, when such a line does not exists, how should one proceed? You may perhaps try to draw a wave through the points, or maybe draw a straight line through which is the `closest' to all the points. Later we learn how to utilize tools to automatically create these lines, which are as mathematically close to the points as possible, but how does this work? How does the computer decide which type of line to draw, and how does it calculate how `far' the line is from the points?
 
-Early in our education, we learn how to connect points by drawing a straight line through them. However, when such a line does not exists, how should one proceed? You may perhaps try to draw a wave through the points, or maybe draw a straight line through which is the 'closest' to all the points. Later we learn how to utilize tools to automatically create these lines, which are as mathematically close to the points as possible, but how does this work? How does the computer decide which type of line to draw, and how does it calculate how 'far' the line is from the points?
+Suppose all of your points lie along a line, except one which is far away. Should the best line be the one which passes straight through most of the points, or should we penalize it for being far from one of the points. Maybe we should draw a line which goes straight from point to point, deviating far to catch the deviant. What if we know that we only have a handful of all the points, and that we want to place the line such that future points will also lay close to it. Does your answer change then?
 
-Suppose all of your points lay along a line, except one which is far away. Should the best line be the one which passes straight through most of the points, or should we penalize it for being far from one of the points. Maybe we should draw a line which goes straight from point to point, deviating far to catch the deviant. What if we know that we only have a handful of all the points, and that we want to place the line such that future points will also lay close to it. Does your answer change then?
+We find the answers to these questions within the art of regression. One common way to calculate the deviation of points from the line, is to calculate the mean sum of the square of the errors (MSE), a method often attributed to Galileo Galilei \cite{galileo}. This method is what we find at the core of our first regression method, namely ordinary least squares (OLS), which tries to minimize this metric. This however, may cause problems where our model is too closely fitted our line, such that new points lay far away. In order to alleviate some of these issues, there are more complex methods such as Ridge and Lasso regression, which build on OLS, which add a penalty in order to make sure that the most relevant aspects of the line are prioritized.
 
-We find the answers to these questions within the art of regression. One common way to calculate the deviation of points from the line, is to calculate the mean sum of the square of the errors (MSE), a method often attributed to Galileo Galilei \cite{galileo}. This method is what we find at the core of our first regression method, namely ordinary least squares (OLS), which tries to minimize this metric. This however, may cause problems where our model is too closely fitted our line, such that new points lay far away. In order to alleviate some of these issues, there are more complex methods such as ridge and Lasso regression, which build on OLS, which add a penalty in order to make sure that the most relevant aspects of the line are prioritized.
+In the last decade the concept of machine learning has become wildly popular. It is used to some degree in nearly all aspect of society and keeps growing in popularity. Since regression lies at the core of many machine learning methods, studying how these different methods mentioned above behaves becomes key for moving on to more complex methods in machine learning.
 
 We will apply these methods to the Franke function, a method commonly used to test interpolation problems \cite{Franke:1982}. This function consists of two peaks, which is ideal as we will later attempt to analyse real world terrain data.
 
-\section{Theory}
-Linear regression is a well-known and well-used method in statistics. It is the method of drawing a line through a set of data to match the data points best as possible. It creates a
-\begin{equation*}
-    y = f(x) + \epsilon
-\end{equation*}
-where $y$ are the resulting values, $f(x)$ is the function we want to approximate and $\epsilon$ is the error estimate. For a single dimension, this becomes
-\begin{equation*}
-    y = \beta x + \epsilon
-\end{equation*}
-When fitting this to data, this will look like this
-%%%%
-% Insert linear regression plot w/o intercept
-%%%%
-As we can see from the plot, this does not work so well if the data is not naturally formed around the origin. To fix this we can add in a constant, called intercept, $\beta$. This gives us the equation
-\begin{equation*}
-    y = \beta_0 + \beta_1x + \epsilon
-\end{equation*}
-From the figure below, we can see that this fits better as the intercept controls the starting point of the linear regression line.
-%%%%
-%% Add regression plot with intercept
-%%%%
-For the case in this project, we need to use linear regression in multiple dimensions. For this, we need to move to matrix calculus. Our new equation for linear regression becomes
-\begin{equation*}
-    \mathbf{y} = f(\mathbf{x}) + \mathbf{\epsilon}
-\end{equation*}
-where $\mathbf{x} = [x_1, x_2, x_3, ..., x_n]^T$. Since we can't know the original function $f$, we have to be satisfied with an approximation, which gives us
-\begin{equation*}
-    \mathbf{\Tilde{y}} = \mathbf{X\beta}
-\end{equation*}
-here, $\mathbf{X}$ is the design matrix and $\mathbf{\beta}$ is the weights
-
 \newpage
+\section{Theory}
 \subsection{Ordinary Least Squares}
 In order to have a basis to work from, we assume that there exists a continuous function $f: X \to Y$ such that our data points $\boldsymbol{y} \in Y$ can be described as
 \begin{equation*}
@@ -144,7 +102,7 @@ We gather this information in a matrix $\textbf{X}$, called the design matrix, s
         x_{n,0} & x_{n,1} & \ldots & x_{n, p-1}
     \end{bmatrix}.
 \end{equation*}
-We are seeking to find a causal relationship between $\boldsymbol{y}$ and $\boldsymbol{x}$, and as we have no knowledge of what type of function $f$ is, we assume there is a linear relationship such that $y_i = \boldsymbol{x}_i \cdot \boldsymbol{\beta} + \varepsilon_i$, for some weight $\beta_i$. This can be written as
+We are seeking to find a causal relationship between $\boldsymbol{y}$ and $\boldsymbol{x}$, and as we have no knowledge of what type of function $f$ is, we assume there is a linear relationship such that $y_i = \boldsymbol{x}_i \cdot \boldsymbol{\beta} + \varepsilon_i$, for some weights $\beta_i$. This can be written as
 \begin{equation*}
     \boldsymbol{y} = \begin{bmatrix}
         x_{0,0} & x_{0,1} & \ldots & x_{0, p-1} \\
@@ -161,9 +119,7 @@ We are seeking to find a causal relationship between $\boldsymbol{y}$ and $\bold
     \end{bmatrix}
     = \textbf{X} \boldsymbol{\beta} + \boldsymbol{\varepsilon},
 \end{equation*}
-where $f(\boldsymbol{x})$ is now equal to $\textbf{X} \boldsymbol{\beta}$. Our approximation $\boldsymbol{\tilde{y}}$ then becomes $\boldsymbol{\tilde{y}} = \textbf{X} \boldsymbol{\beta}$.
-
-We call $\boldsymbol{x}_i$ the explanatory variables, $\boldsymbol{\beta}$ the regression parameter, and $\boldsymbol{y}$ the response variable.
+where $f(\boldsymbol{x})$ is now equal to $\textbf{X} \boldsymbol{\beta}$. Our approximation $\boldsymbol{\tilde{y}}$ then becomes $\boldsymbol{\tilde{y}} = \textbf{X} \boldsymbol{\beta}$. We call $\boldsymbol{x}_i$ the explanatory variables, $\boldsymbol{\beta}$ the regression parameter, and $\boldsymbol{y}$ the response variable.
 
 Our goal is now to find $\boldsymbol{\hat{\beta}}$ such that $\left( \boldsymbol{y} - \boldsymbol{\tilde{y}} \right)^2$ is minimized, i.e.,
 \begin{equation*}
@@ -173,7 +129,7 @@ As then
 \begin{equation*}
     \left( \boldsymbol{y} - \textbf{X} \boldsymbol{\beta} \right)^T \left( \boldsymbol{y} - \textbf{X} \boldsymbol{\beta} \right) = \boldsymbol{y}^T \boldsymbol{y} - 2 \boldsymbol{\beta}^T \textbf{X}^T \boldsymbol{y} + \boldsymbol{\beta}^T \textbf{X}^T \textbf{X} \boldsymbol{\beta} 
 \end{equation*}
-is a non-negative quadratic equation, the minimum must exist. We may therefore find it by equating the partial derivatives with respect to the $p$ components of $\boldsymbol{\beta}$ with zero. In finding the derivative, we can ignore the scaling factor $\frac{1}{n}$
+is a non-negative quadratic equation, the minimum must exist. We may therefore find it by equating the partial derivatives with respect to the $p$ components of $\boldsymbol{\beta}$ with zero. In finding the derivative, we can ignore the scaling factor $\frac{1}{n}$.
 
 \begin{gather*}
     \frac{\partial}{\partial \boldsymbol{\beta}} \left( \boldsymbol{y}^T \boldsymbol{y} - 2 \boldsymbol{\beta}^T \textbf{X}^T \boldsymbol{y} + \boldsymbol{\beta}^T \textbf{X}^T \textbf{X} \boldsymbol{\beta} \right) = 0 \\
@@ -183,14 +139,6 @@ is a non-negative quadratic equation, the minimum must exist. We may therefore f
 \end{gather*}
 
 When the matrix $\textbf{X}^T \textbf{X}$ is invertible, this solution $\boldsymbol{\hat{\beta}}$ which minimizes the MSE can be found precisely. Often, especially when working numerically, the matrix is singular, so we instead apply the Moore-Penrose generalised inverse defined from the Singular Value Decomposition, often just called the pseudoinverse \cite[p.~74--82]{introNumeric}.
-
-
-% \subsubsection{Single Value Decomposition}
-% % Maybe move this down after Lasso?
-% When $\mathbf{X}^T\mathbf{X}$ is not invertible, we can solve this using the method of the SVD algorithm. SVD is defined as
-% \begin{equation*}
-%     \mathbf{A} = \mathbf{U}\mathbf{\Sigma}\mathbf{V}^T
-% \end{equation*}
 
 \subsubsection{Expectation and variance of OLS}
 The expectation value of a single element $y_i$ of $\boldsymbol{y}$ is found as
@@ -236,10 +184,7 @@ we get that
 \subsection{Ridge}
 When conducting Ordinary Least Squares (OLS) regression, overfitting can be a challenge. Overfitting occurs when our model closely conforms to the training data, not only capturing the genuine underlying pattern but also incorporating the random fluctuations present in our data. This can result in a model that exhibits exceptional performance on the training data it has seen but performs poorly when tasked with predicting unseen data.
 
-Overfitting is influenced by two closely related factors: the density of our training data and the complexity of our model. Ideally, with an infinitely dense training dataset, we could employ an arbitrarily complex model. Acquiring such a dataset is in practice often impossible%There is a regression technique called k-nearest neighbors suited for such a purpose 
-. Our model must therefore deliver reliable performance even when trained on a limited number of data points.
-
-% However, acquiring such an extensive dataset is often impractical, not to mention that even if obtained regression would then be inefficient for predictive purposes. Therefore, our model must strike a balance, delivering reliable performance even when trained on a limited number of data points.
+Overfitting is influenced by two closely related factors: the density of our training data and the complexity of our model. Ideally, with an infinitely dense training dataset, we could employ an arbitrarily complex model. Acquiring such a dataset is in practice often impossible. Our model must therefore deliver reliable performance even when trained on a limited number of data points.
 
 Ridge regression is a method which aims to address this by taking into account the size of the values in the regression parameter $\boldsymbol{\beta}$. The cost function is now defined as
 \begin{align*}
@@ -247,20 +192,12 @@ Ridge regression is a method which aims to address this by taking into account t
     &= \frac{1}{n} \left( \boldsymbol{y} - \textbf{X} \boldsymbol{\beta} \right)^2 + \lambda \boldsymbol{\beta}^2
 \end{align*}
 
-% Ridge regression is a method which aims to address this by utilizing the cost function
-% \begin{align*}
-%     C(\textbf{X},\boldsymbol{\beta})=&\frac{1}{n}\vert\vert \boldsymbol{y}-\boldsymbol{\tilde{y}}\vert\vert_2^2+\lambda\vert\vert \boldsymbol{\beta}\vert\vert_2^2\\
-%     =& \frac{1}{n}\vert\vert \boldsymbol{y}-\textbf{X}\boldsymbol{\beta}\vert\vert_2^2+\lambda\vert\vert \boldsymbol{\beta}\vert\vert_2^2
-% \end{align*}
-
 The right addend ($\lambda\lVert \boldsymbol{\beta} \rVert_2^2$) is called the regularization term, and we require that $\lVert \boldsymbol{\beta} \rVert_2^2 \leq t$ for some finite constant $t > 0$. It penalizes large regression coefficients, discouraging the model from assigning excessive importance to any single feature. This skews our predictions closer to zero. Resulting in higher bias, but lower variance.
 
 The strength of the regularization is determined by $\lambda$. When $\lambda=0$, we recover OLS regression. By increasing the value of the hyperparameter $\lambda$, we enforce stronger penalization on large coefficient values, effectively skewing our predictions more towards zero. The optimal value of $\lambda$ can be determined through resampling techniques.
 
 Given a $\lambda$ our optimal regression parameter $\boldsymbol{\hat{\beta}}$ minimizes the cost function. That is
-% \begin{equation*}
-%     \frac{1}{n} \left( \boldsymbol{y} - \textbf{X} \boldsymbol{\hat{\beta}} \right)^2 + \lambda \boldsymbol{\hat{\beta}}^2 = \min_{\boldsymbol{\beta} \in \mathbb{R}^p} \frac{1}{n} \left( \boldsymbol{y} - \textbf{X} \boldsymbol{\beta} \right)^2 + \lambda \boldsymbol{\beta}^2
-% \end{equation*}
+
 \begin{equation*}
     \boldsymbol{\hat{\beta}} = \argmin_{\boldsymbol{\beta} \in \mathbb{R}^p} \frac{1}{n} \left( \boldsymbol{y} - \textbf{X} \boldsymbol{\beta} \right)^2 + \lambda \boldsymbol{\beta}^2
 \end{equation*}
@@ -293,21 +230,17 @@ Here, the cost function is defined as
     C \left( \textbf{X}, \boldsymbol{\beta} \right) &= \frac{1}{n} \lVert \boldsymbol{y} - \textbf{X} \boldsymbol{\beta} \rVert_2^2 + \lambda \lVert \boldsymbol{\beta} \rVert_1 \\
     &= \frac{1}{n} \left( \boldsymbol{y} - \textbf{X} \boldsymbol{\beta} \right)^2 + \lambda \sum_i |\beta_i|.
 \end{align*}
-%Predictor selection happens when we add a constraint on the size of the penalty
+
 To see why predictor selection happens with Lasso regression it's helpful to have a look at a simple model with two features and two corresponding $\beta$ values
-%\begin{align*}
- %   \lVert \boldsymbol{\beta} \rVert_1 \leq s, \hspace{10mm} 0\leq s
-%\end{align*}
-%such that the OLS solution is not within the space of suitable $\beta$. This is most easily explained by looking at a simpler model with two features and two corresponding $\beta$ values
 
-\begin{center}
-    % \includegraphics[width=95mm]{lasso_ridge_contour.png}
+\begin{figure}
+    \centering
     \includegraphics[width=\textwidth]{lasso_ridge_contour.png}
-    % Include caption, figure num, source, ...
-\end{center}
+    \caption{Lasso vs Ridge regression for constrained values. (Figure 3.11 in \cite{Hastie2009})}
+    \label{fig:LassoRidgeHastie}
+\end{figure}
 
-
-Here, $\boldsymbol{\hat{\beta}}$ is the OLS solution, along with the contour lines for other values of $\boldsymbol{\beta}$. As we relax the constraint $s$, we grow the ``diamond" generated by the constrained $\ell_1$ norm until it meets with the target ellipse, and the corners of the diamond are more likely to intersect before the edges. This is especially the case when working higher dimensions, as the corners stick out further \cite[p.~432--436]{Murphy2012}. This is not the case with the constrained $\ell_2$ norm, as it has no ``corners" along the axes.
+Here, $\boldsymbol{\hat{\beta}}$ is the OLS solution, along with the contour lines for other values of $\boldsymbol{\beta}$. As we relax the constraint $t$ ($s$ in the figure), we grow the ``diamond" generated by the constrained $\ell_1$ norm until it meets with the target ellipse, and the corners of the diamond are more likely to intersect before the edges. This is especially the case when working higher dimensions, as the corners stick out further \cite[p.~432--436]{Murphy2012}. This is not the case with the constrained $\ell_2$ norm, as it has no ``corners" along the axes.
 
 Due to the nature of the $\ell_1$ norm, there exists no neat analytical solution, as absolute values do not perform nicely under derivation. We get that
 \begin{align*}
@@ -403,14 +336,13 @@ Instead of cross-validation we could use the bootstrap to asses our model. The b
     \text{Err}_{\text{boot}_1} =  \frac{1}{B} \sum_{b=1}^B \frac{1}{N} \sum_{i = 0}^{N-1} (y_i - f_b(x_i))^2
 \end{equation*}
 
-Where $f_b(x_i)$ is our prediction for $x_i$ by the model fit $\boldsymbol{Z}_b$. Unfortunately, this is not a particularly good estimator because bootstrap samples used to produce $f_b(x_i)$ may have contained $x_i$ \cite[p.~270]{Hastie2009}. To rectify this problem, the leave-one-out bootstrap estimator offers an improvement by emulating cross-validation.
+Where $f_b(x_i)$ is our prediction for $x_i$ by the model fit on $\boldsymbol{Z}_b$. Unfortunately, this is not a particularly good estimator because bootstrap samples used to produce $f_b(x_i)$ may have contained $x_i$ \cite[p.~270]{Hastie2009}. To rectify this problem, the leave-one-out bootstrap estimator offers an improvement by emulating cross-validation.
 
 \begin{equation*}
     \text{Err}_{\text{boot}_2} =  \frac{1}{B} \sum_{b=1}^B \frac{1}{|C^{-i}|} \sum_{i \in C^{-i}} (y_i - f_b(x_i))^2
 \end{equation*}
 
-Where $C^{-i}$ is the set of indices of bootstrap sample b that do not contain
-observation $i$. However this estimate is upward biased. To combat this we can use that the average number of distinct observations in each bootstrap sample is about 0.632N (\cite[p.~270]{Hastie2009}) which gives the .632 bootstrap
+Where $C^{-i}$ is the set of indices of bootstrap sample $b$ that do not contain observation $i$. However this estimate is upward biased. To combat this we can use that the average number of distinct observations in each bootstrap sample is about 0.632N (\cite[p.~270]{Hastie2009}) which gives the .632 bootstrap
 \begin{equation*}
     \text{Err}_{\text{boot}_{.632}} = .368\bar{\text{err}} + .632 \text{Err}_{\text{boot}_2}
 \end{equation*}
@@ -459,12 +391,8 @@ Instead we will utilize our resampling techniques for tuning and selecting the b
 \subsection{Data sets}
 In this project we focus on the approximation of two datasets using 2D polynomial regression methods: OLS, Ridge, and LASSO regression. To validate the effectiveness of our techniques, we first utilize a self-generated dataset known as the Franke Function, which is a well-established smooth function. Following this validation, we proceed to analyze terrain data from a specific location in Norway, collected by NASA's Shuttle Radar Topography Mission (SRTM).
 
-We are interested in using linear regression in order to predict topographical data, with samples gathered from the United States Geographical Survey of different areas in Norway. In order to verify that our
-
-The entire project is implemented in Python and we have made the code publicly available on \href{https://github.com/augustfe/FYSSTK/tree/main/Project1}{our GitHub repository} for reference and reproducibility purposes.
-
 \subsection{Data Holdout}
-When 
+In this project, we have chosen to use a soft 2-way holdout approach for evaluating the performance of our different models. In this approach, we do not perform a strict holdout of our test data, but use it instead to evaluate the performance of our models. It's also worth noting that we change the split when performing cross-validation. While this approach works well for ranking different models, it is important to recognize that it may not provide an accurate estimate of the model's performance on truly unseen data. 
 
 \subsection{Two-dimensional polynomial regression}
 Franke's function is given by
@@ -488,82 +416,32 @@ The number of parameters for a polynomial degree of $N$ is then the sum of the c
     = \sum_{d = 0}^N d + 1
     = \frac{(N + 1)(N + 2)}{2},
 \end{equation*}
-meaning that the complexity of our model increases quadratically as we increase the polynomial degree.
+meaning that the number of parameters for our model increases quadratically as we increase the polynomial degree.
 
-In order to generate our data set, we draw $N$ values of $x,y \sim U(0, 1)$ using \verb|uniform| from the \verb|numpy.random| module in python. This generates pseudo-random values, and in order to simplify the verification process, we set a fixed seed for the random values. In order to simulate the random noise present in real world data, we will be adding an error term $\varepsilon \sim N(0,1)$ to each of our data points using \verb|randn|.
+In order to generate our data set, we use \verb|numpy.linspace| in order to get $N$ evenly spaced values between 0 and 1. This is then used to generate a mesh grid of values, which is shuffled whenever relevant. We added our error term $\varepsilon \sim N(0,1)$ to each of our data points using \verb|randn| from \verb|numpy.random| in order to simulate real world data, fixing a seed to get reproducible results.
 
 \subsection{Scaling}
-
 As our values of $x$ and $y$, for both Franke's function and the terrain data,  lie in $[0, 1]$, our explanatory variables might have vastly different scales. Suppose we are using polynomials of degree up to $5$. If our value of $x_i$ lies even in the middle of our interval, i.e. $x_i = 0.5$, then $x_i^5 = 0.03125$. This does not affect OLS regression, however this will cause unwanted bias for regularized regression. We thus have to scale in order to get good results from ridge and lasso regression. To achieve this, we use \verb|StandardScaling| from \verb|sklearn.preproccesing|.
 
 \subsection{Creating our design matrix}
-In order to set up our design matrix with the polynomial explanatory variables, we initialize our matrix with the number of rows equal to the number of data points and length equal to the number of $\boldsymbol{\beta}$ parameters we calculated earlier. The code looks as following:
-\begin{minted}{python}
-def create_X(x: np.array, y: np.array, n: int) -> np.array:
-    """Create the design matrix up to dimension n.
-
-    inputs:
-        x (np.array): Data points for x.
-        y (np.array): Data points for y.
-        n (int): Maximum polynomial degree.
-    returns:
-        (np.array) Design matrix for 2D polynomial regression.
-    """
-    if len(x.shape) > 1:
-        x = np.ravel(x)
-        y = np.ravel(y)
-
-    N = len(x)
-    lgth = (n + 1) * (n + 2) // 2
-    X = np.ones((N, lgth))
-    for i in range(1, n + 1):
-        q = i * (i + 1) // 2
-        for k in range(i + 1):
-            X[:, q + k] = (x ** (i - k)) * (y**k)
-
-    return X
-\end{minted}
-
-This, in effect, calculates all the desired combinations of $x^n y^m$ as stated previously.
-
+In order to set up our design matrix with the polynomial explanatory variables, we initialize our matrix with the number of rows equal to the number of data points and length equal to the number of $\boldsymbol{\beta}$ parameters we calculated earlier. The code looks as following. We calculate each combination of $x^n y^m$ in much the same fashion we used to count the number of parameters $\beta_i$.
 
 \subsection{Ordinary least squares}
-We implemented the analytical solution $\boldsymbol{\hat{\beta}}$ we found previously for OLS in python using the follow code
-\begin{minted}{python}
-def create_OLS_beta(X: np.array, z: np.array) -> np.array:
-    """Create OLS beta.
-
-    inputs:
-        X (np.array): Design matrix
-        z (np.array): Solution to optimize for
-    returns:
-        Optimal solution (np.array)
-    """
-    return np.linalg.pinv(X.T @ X) @ X.T @ z
-\end{minted}
-
-Note that we use \verb|pinv| from \verb|numpy.linalg| in order to calculate the pseudo-inverse mentioned in the theory section, as we cannot guarantee that $\textbf{X}^T \textbf{X}$ is non-singular.
+We found our analytical solution $\boldsymbol{\hat{\beta}}$ for OLS using \verb|pinv| from \verb|numpy.linalg| in order to calculate the pseudo-inverse mentioned in the theory section, as we cannot guarantee that $\textbf{X}^T \textbf{X}$ is non-singular.
 
 \subsection{Ridge}
 The code for calculating $\boldsymbol{\hat{\beta}}_\text{Ridge}$ is almost identical as that for OLS. The difference is that the function now takes in a $\lambda$ parameter, and we use $\textbf{X}^T \textbf{X} + \lambda \boldsymbol{I}_p$ inside \verb|pinv|.
 
 \subsection{Lasso}
-As there exists no analytical solution for Lasso, we opted for using the built-in \verb|Lasso| regression from \verb|sklearn.linear_model|. Generating our predictions now look something like
-\begin{minted}{python}
-clf = Lasso(alpha=alpha)
-clf.fit(X_train, z_train)
+As there exists no analytical solution for Lasso, we opted for using the built-in \verb|Lasso| regression from \verb|sklearn.linear_model|.
 
-z_tilde = clf.predict(X_train)
-z_pred_Lasso = clf.predict(X_test)
-\end{minted}
 \subsection{Resampling}
 \subsubsection{Cross Validation}
  In this project, we have utilized both our own method and the \verb|cross_val_score| function from the \verb|sklearn.model_selection| module to perform Cross Validation.
  
 The \verb|cross_val_score| function from \verb|sklearn.model_selection| automatically performs the necessary steps to split the data into folds and evaluates the model on each fold using a specified scoring metric, we choose MSE.
 
-In addition to using \verb|cross_val_score|, we have also implemented our own method for splitting the data into folds using the \verb|KFold| splitter from \verb|sklearn.model_selection|. We have sorted our data for plotting purposes and thus we need to set the \verb|shuffle| parameter equal to \verb|True| in our method as well as \verb|cross_val_score| to ensure a randomized order of the data when creating the folds.
-
+In addition to using \verb|cross_val_score|, we have also implemented our own method for splitting the data into folds using the our own \verb|KFold| class. We have sorted our data for plotting purposes and thus we need to set the \verb|shuffle| parameter equal to \verb|True| in our method as well as \verb|cross_val_score| to ensure a randomized order of the data when creating the folds.
 
 \subsubsection{Bootstrapping}
 For our project, we performed Bootstrapping on the training set of our train-test split. This means that we generated multiple bootstrap samples by randomly selecting indices from the training data with replacement. We then trained our regression models on each bootstrap sample and evaluated their performance on the test set.
@@ -572,20 +450,15 @@ While this Bootstrapping technique was not explicitly specified in the theory se
 
 It's worth noting that our train-test split (4/5, 1/5) is somewhat akin to performing Cross Validation with 5 folds, as each fold represents approximately 1/5 of the data. This allows for a comparison of the two techniques, which can be seen in the results section below.
 
-
-
 \newpage
-
 \section{Results}
-\subsection{Results for Franke}
+\subsection{Results for Franke's function}
 We started with asserting how well our model performs when trained on Franke's function. Our data looked as following, after generating our values in $x$ and $y$ direction from the uniform distribution between $0$ and $1$. We then structured our data as a mesh grid. The random noise was added with $0.2 \cdot \varepsilon_{i,j} \sim N(0, 1)$.
 \begin{figure}[htbp]
-    % \includegraphics[width=95mm]{lasso_ridge_contour.png}
     \centering
     \includegraphics[width=\textwidth]{Franke/FrankesFunction.png}
-    \caption{Franke's function with and without noise}
+    \caption{Franke's function with and without noise.}
     \label{fig:FrankeTerrain}
-    % Include caption, figure num, source, ...
 \end{figure}
 
 \newpage
@@ -645,14 +518,14 @@ The same data was used for each plot, unless otherwise specified.
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{Project1/figures/Franke/Heatmap_MSE_Ridge_CV.png}
-    \caption{MSE for Ridge regression of different values for $\lambda$ up to degree 15. Resampling with cross validation.}
+    \caption{MSE for Ridge regression of different values for $\lambda$ up to degree 13. Resampling with cross validation.}
     \label{fig:RidgeCV}
 \end{figure}
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{Project1/figures/Franke/Heatmap_MSE_Ridge_CV_from_Scikit-learn.png}
-    \caption{MSE for Ridge regression of different values for $\lambda$ up to degree 15. Resampling with cross validation. Functions from Scikit-learn}
+    \caption{MSE for Ridge regression of different values for $\lambda$ up to degree 13. Resampling with cross validation. Functions from Scikit-learn.}
     \label{fig:RidgeCVsklearn}
 \end{figure}
 
@@ -675,21 +548,21 @@ The same data was used for each plot, unless otherwise specified.
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{Project1/figures/Franke/Heatmap_MSE_Lasso_CV.png}
-    \caption{MSE for Lasso regression of different values for $\lambda$ up to degree 15. Resampling with cross validation.}
+    \caption{MSE for Lasso regression of different values for $\lambda$ up to degree 13. Resampling with cross validation.}
     \label{fig:LassoCV}
 \end{figure}
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{Project1/figures/Franke/Heatmap_MSE_Lasso_CV_from_Scikit-learn.png}
-    \caption{MSE for Lasso regression of different values for $\lambda$ up to degree 15. Resampling with cross validation. Functions from Scikit-learn}
+    \caption{MSE for Lasso regression of different values for $\lambda$ up to degree 13. Resampling with cross validation. Functions from Scikit-learn.}
     \label{fig:LassoCVsklearn}
 \end{figure}
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{Project1/figures/Franke/Heatmap_MSE_Lasso_Bootstrap.png}
-    \caption{MSE for Lasso regression of different values for $\lambda$ up to degree 15. Resampling with bootstrap.}
+    \caption{MSE for Lasso regression of different values for $\lambda$ up to degree 13. Resampling with bootstrap.}
     \label{fig:LassoBootstrap}
 \end{figure}
 
@@ -699,7 +572,7 @@ The same data was used for each plot, unless otherwise specified.
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{Project1/figures/Terrain/TerrainFigure.png}
-    \caption{Data used before and after scaling.}
+    \caption{Data used before and after scaling. Topographical data.}
     \label{fig:TerrainFig}
 \end{figure}
 
@@ -707,42 +580,35 @@ The same data was used for each plot, unless otherwise specified.
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth*2/3]{Terrain/OLS_5_betas.png}
-    \caption{Values of $\boldsymbol{\beta}$ from ordinary least squares for polynomial degree up to 5.}
+    \caption{Values of $\boldsymbol{\beta}$ from ordinary least squares for polynomial degree up to 5. Topographical data.}
     \label{fig:TerrainOLS5Beta}
 \end{figure}
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth*2/3]{/Terrain/OLS_13_MSE.png}
-    \caption{MSE for ordinary least squares of polynomial degree up to 13.}
+    \caption{MSE for ordinary least squares of polynomial degree up to 13. Topographical data.}
     \label{fig:TerrainOLS5MSE}
 \end{figure}
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth*2/3]{Project1/figures/Terrain/OLS_13_R2.png}
-    \caption{$R^2$ for ordinary least squares of polynomial degree up to 13.}
+    \caption{$R^2$ for ordinary least squares of polynomial degree up to 13. Topographical data.}
     \label{fig:TerrainOLS5R2}
 \end{figure}
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth*2/3]{Project1/figures/Terrain/Bias_Variance_Tradeoff_OLS_13.png}
-    \caption{Bias variance tradeoff for OLS up to polynomial degree of 13. Resampling with bootstrap.}
+    \caption{Bias variance tradeoff for OLS up to polynomial degree of 13. Resampling with bootstrap. Topographical data.}
     \label{fig:TerrainBVtradeoff}
 \end{figure}
-
-% \begin{figure}[htbp]
-%     \centering
-%     \includegraphics[width=\textwidth*2/3]{Project1/figures/Terrain/Few_points_Bias_Variance_Tradeoff_13.png}
-%     \caption{Bias variance tradeoff for OLS with 400 points instead of 1600 for polynomial degree up to 13. Resampling with bootstrap.}
-%     \label{fig:TerrainFewBVtradeoff}
-% \end{figure}
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth*2/3]{Project1/figures/Terrain/Bias_vs_Var_OLS_13.png}
-    \caption{Comparison of MSE for bootstrapping and cross validation for ordinary least squares for polynomial degree up to 13.}
+    \caption{Comparison of MSE for bootstrapping and cross validation for ordinary least squares for polynomial degree up to 13. Topographical data.}
     \label{fig:TerrainBvsCV}
 \end{figure}
 
@@ -751,28 +617,28 @@ The same data was used for each plot, unless otherwise specified.
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{Project1/figures/Terrain/Heatmap_MSE_Ridge_no_resampling.png}
-    \caption{MSE for Ridge regression of different values for $\lambda$ up to degree 15. No resampling.}
+    \caption{MSE for Ridge regression of different values for $\lambda$ up to degree 15. No resampling. Topographical data.}
     \label{fig:TerrainRidgeNoResamp}
 \end{figure}
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{Project1/figures/Terrain/Heatmap_MSE_Ridge_CV.png}
-    \caption{MSE for Ridge regression of different values for $\lambda$ up to degree 15. Resampling with cross validation.}
+    \caption{MSE for Ridge regression of different values for $\lambda$ up to degree 13. Resampling with cross validation. Topographical data.}
     \label{fig:TerrainRidgeCV}
 \end{figure}
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{Project1/figures/Terrain/Heatmap_MSE_Ridge_CV_from_Scikit-learn.png}
+    \caption{MSE for Ridge regression of different values for $\lambda$ up to degree 13. Resampling with cross validation. Functions from Scikit-learn. Topographical data.}
     \label{fig:TerrainRidgeCVsklearn}
-    \caption{MSE for Ridge regression of different values for $\lambda$ up to degree 15. Resampling with cross validation. Functions from Scikit-learn}
 \end{figure}
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{Project1/figures/Terrain/Heatmap_MSE_Ridge_Bootstrap.png}
-    \caption{MSE for Ridge regression of different values for $\lambda$ up to degree 13. Resampling with bootstrap.}
+    \caption{MSE for Ridge regression of different values for $\lambda$ up to degree 13. Resampling with bootstrap. Topographical data.}
     \label{fig:TerrainRidgeBootstrap}
 \end{figure}
 
@@ -781,29 +647,36 @@ The same data was used for each plot, unless otherwise specified.
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{Project1/figures/Terrain/Heatmap_MSE_Lasso_no_resampling.png}
-    \caption{MSE for Lasso regression of different values for $\lambda$ up to degree 15. No resampling.}
+    \caption{MSE for Lasso regression of different values for $\lambda$ up to degree 15. No resampling. Topographical data.}
     \label{fig:TerrainLassoNoResamp}
 \end{figure}
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{Project1/figures/Terrain/Heatmap_MSE_Lasso_CV.png}
-    \caption{MSE for Lasso regression of different values for $\lambda$ up to degree 15. Resampling with cross validation.}
+    \caption{MSE for Lasso regression of different values for $\lambda$ up to degree 13. Resampling with cross validation. Topographical data.}
     \label{fig:TerrainLassoCV}
 \end{figure}
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{Project1/figures/Terrain/Heatmap_MSE_Lasso_CV_from_Scikit-learn.png}
-    \caption{MSE for Lasso regression of different values for $\lambda$ up to degree 15. Resampling with cross validation. Functions from Scikit-learn}
+    \caption{MSE for Lasso regression of different values for $\lambda$ up to degree 13. Resampling with cross validation. Functions from Scikit-learn. Topographical data.}
     \label{fig:TerrainLassoCVsklearn}
 \end{figure}
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{Project1/figures/Terrain/Heatmap_MSE_Lasso_Bootstrap.png}
-    \caption{MSE for Lasso regression of different values for $\lambda$ up to degree 15. Resampling with bootstrap.}
+    \caption{MSE for Lasso regression of different values for $\lambda$ up to degree 13. Resampling with bootstrap. Topographical data.}
     \label{fig:TerrainLassoBootstrap}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{Project1/figures/Terrain/PredictedSurface.png}
+    \caption{Predicted surface using Lasso, polynomial degree of 13, $\lambda=10^{-4}$.}
+    \label{fig:PredictedSurface}
 \end{figure}
 
 
@@ -812,7 +685,7 @@ The same data was used for each plot, unless otherwise specified.
 In general, the results we were able to produce were heavily effected by a lack of computing power. Ideally, we would have preferred to utilize lower values for $\lambda$ where we see that the optimal values found lie on the lower range of the attempted values, a higher number of bootstraps, and a higher max iteration for solving Lasso. In some places, we decided to compare our own methods with those we would have gotten, had we utilized scikit-learn to a greater extent.
 
 \subsection{Discussion of Franke}
-We started out with a simple validation set approach (\ref{fig:OLS5MSE}, \ref{fig:OLS5R2}) for Ordinary least squares, in order to get a feeling for what kind of results we might expect. The resulting figures indicate that we will get a high degree of overfitting when attempting to use polynomial linear regression with a high polynomial degree with this kind of problem. We previously found that the number of $\boldsymbol{\beta}$ parameters grows quadratically with the polynomial degree, but we did not state how the size of an individual parameter $\beta_i$ would behave. We see in figure \ref{fig:OLS5Beta} that most points lie around zero, with a gaining high values in comparison. We decided to only plot the values for the first five polynomial degrees, as when extending the graph the outliers make it difficult to pick up the details around the lower degrees. This is highly indicative of overfitting, which explains our previous figures.
+We started out with a simple validation set approach (\ref{fig:OLS5MSE}, \ref{fig:OLS5R2}) for Ordinary least squares, in order to get a feeling for what kind of results we might expect. The resulting figures indicate that we may get a high degree of overfitting when attempting to use polynomial linear regression with a high polynomial degree with this kind of problem. We previously found that the number of $\boldsymbol{\beta}$ parameters grows quadratically with the polynomial degree, but we did not state how the size of an individual parameter $\beta_i$ would behave. We see in figure \ref{fig:OLS5Beta} that most points lie around zero, gaining high values in comparison when degree is increased. We decided to only plot the values for the first five polynomial degrees, as when extending the graph the outliers make it difficult to pick up the details around the lower degrees. This is highly indicative of overfitting, which explains our previous figures.
 
 We were also interested in exploring more about the Bias-Variance trade off. We initially produced figure \ref{fig:BVtradeoff}, however due to the high number of points used ($40 \cdot 40$), we saw only a small increase in variance. To illustrate the effect better, we decided to reproduce the plot with fewer points ($20 \cdot 20$) in figure \ref{fig:FewBVtradeoff}. This behaviour is expected, as variance is highly correlated with the number of samples we have at our disposal.
 
@@ -824,29 +697,36 @@ Over all, it seems like the lowest error for Ridge regression seems to lie in th
 
 With a varying range of values, we found smallest to be $0.2038$ with cross validation \ref{fig:RidgeCV} when $\lambda = 10^{-4}$ with a polynomial degree of $6$. With bootstrapping \ref{fig:RidgeBootstrap} the optimal value was found as approximately $0.2104$ when $\lambda = 10^{-2}$ and the polynomial degree was $9$. Interestingly, Scikit-learn wildly outperformed our methods \ref{fig:RidgeCVsklearn}, with a score of $0.0434$. We have been unable to figure out exactly why, but our leading theory is that we are either scaling poorly, or using a different method of inverting $\textbf{X}^T \textbf{X}$.
 
-The results from Lasso regression are all characterized by the optimal values landing on our lowest value for $\lambda$. Upon finding this, we attempted to shift our range of values down, however we were constantly met with exceedingly slow run times and convergence errors. We increased the maximal number of iterations for Lasso to $100000$, which gave the results above, however this did not fix the issue.
+The results from Lasso regression are all characterized by the optimal values landing on our lowest value for $\lambda$. Upon finding this, we attempted to shift our range of values down, however we were constantly met with exceedingly slow run times and convergence errors. We increased the maximal number of iterations for Lasso to $100000$, which gave the results above, however this did not fix the issue of convergence.
 
-With no resampling \ref{fig:LassoNoResamp}, Lasso produced an MSE of $0.4808$ with the lowest measured value $\lambda = 10^{-4}$ and polynomial degree 4. An almost identical value of $0.4868$ was found with bootstrapping \ref{fig:LassoBootstrap}, only with a polynomial degree of 3. Promisingly, cross validating gave almost identical values of $0.4480$ and $0.4470$ with respectively our own KFold algorithm \ref{fig:LassoCV} and Scikit-learn \ref{fig:LassoCVsklearn}. These were both with a polynomial degree of 11 and $\lambda = 10^{-4}$.
+With no resampling \ref{fig:LassoNoResamp}, Lasso produced an MSE of $0.0361$ with the lowest measured value $\lambda = 10^{-4}$ and polynomial degree 15. An almost identical value of $0.0391$ was found with bootstrapping \ref{fig:LassoBootstrap}, only with a polynomial degree of 7. Promisingly, cross validating gave almost identical values of $0.0433$ and $0.0446$ with respectively our own KFold algorithm \ref{fig:LassoCV} and Scikit-learn \ref{fig:LassoCVsklearn}. This was with polynomial degrees of respectively 7 and 8, and $\lambda = 10^{-4}$.
 
 This last result further corroborates that the issue with our implementation of Ridge lies in the fitting or predicting stage, as everything else except the choice of model is identical between Lasso and Ridge. It is interesting to note that we might be seeing the zeroing out of the parameters for $\boldsymbol{\beta}$ as $\lambda$ increases, as the MSE becomes nearly constant across the polynomial degrees.
 
 \subsection{Discussion of Terrain data}
 The data utilized for this section was of terrain data from Møsvatn Austfjell in Norway. The data set consists of $3601 \cdot 1801$ points, which given our previous performance issues is way too much. In our initial attempt, we choose 40 evenly spaced points in $x$ and $y$ direction from the total data. This resulting in an extremely high bias, giving us mostly useless results. We therefore opted to select every other point in the first $80 \times 80$ grid, resulting in a more modest $40 \cdot 40$ points. We also scaled the data such that it has a mean of $0$ and standard deviation of $1$. This is shown in figure \ref{fig:TerrainFig}, and note that this does not change the overall shape.
 
-\subsubsection{Discussion of Ordinary least squares}
-We saw the same trends for the values of $\boldsymbol{\beta}$ with the terrain data \ref{fig:TerrainOLS5Beta} as with Frank's function \ref{fig:OLS5Beta} when applying Ordinary least squares. We got worse results for $R^2$ \ref{fig:TerrainOLS5R2} and MSE \ref{fig:TerrainOLS5MSE}, bottoming out just below $0.4$. This is not surprising, given the bias was found around $0.3$ \ref{fig:TerrainBVtradeoff}.
+We saw the same trends for the values of $\boldsymbol{\beta}$ with the terrain data \ref{fig:TerrainOLS5Beta} as with Frank's function \ref{fig:OLS5Beta} when applying Ordinary least squares. Interestingly, we did not see a high degree of overfitting for higher complexity \ref{fig:TerrainOLS5MSE}, the model generally seemed to improve. This might imply that our data set can predicted nicely using polynomials \ref{fig:TerrainOLS5R2}.
 
-We got rather unstable results from $k$-fold for polynomial degrees above 15, while the bootstrap remained quite stable \ref{fig:TerrainBvsCV}. Previously, we found that the bootstrap turned unstable for higher polynomial degrees \ref{fig:BvsCV}. We initially performed these models up to a polynomial degree of 15, as with the data from Franke's function, however the models seemed to still be improving, so we increased the maximal degree to 25.
+The graph of the bias and variance further supports this hypothesis \ref{fig:TerrainBVtradeoff}. This is likely due to focusing on a much smaller area of the total terrain, giving less noise. We find it unlikely that our predictions would generalize well to the remaining terrain. Previously, we found that bootstrapping turned unstable for higher polynomial degrees, but for this data set it seems to correspond well with $k$-fold \ref{fig:TerrainBvsCV}.
 
-\subsubsection{Discussion of Ridge}
-We got similar, high, optimal values from ridge regression regardless of method used. This, combined with the high bias from OLS, indicates to us that we are underfitting our data, unable to properly figure out the relations between our features and target outputs.
+In general, we found our best values for the MSE with a high polynomial degree and a low value for $\lambda$. We were large limited by our computing power, reducing our capability of getting more accurate estimates. With no resampling \ref{fig:TerrainRidgeNoResamp}, we got our lowest value for MSE of $0.0413$ with a polynomial degree of 15 and $\lambda=10^{-7}$.
 
-\subsubsection{Discussion of Lasso}
+For cross validation, we got similar results with our own implementation \ref{fig:TerrainRidgeCV} as with that from Scikit-learn \ref{fig:TerrainRidgeCVsklearn}. This corroborates that the differences we saw with Franke's function might be from our method of scaling, however we did not have time to explore this connection further. We again got similar results bootstrapping \ref{fig:TerrainRidgeBootstrap}, all giving our lowest value of MSE with the highest tested polynomial degree and lowest value for $\lambda$.
+
+The results from Lasso regression show signs of the parameters $\boldsymbol{\beta}$ zeroing out, as the MSEs are largely identical across polynomial degrees for high values of $\lambda$. With no resampling \ref{fig:TerrainLassoNoResamp}, we got an MSE of $0.0371$. Comparing our results \ref{fig:TerrainLassoCV} with those from Scikit-learn \ref{fig:TerrainLassoCVsklearn}, our estimates were generally lower. Our implementation of $k$-fold gave the best result of $0.0398$ with a polynomial degree of 13 and $\lambda=10^{-4}$. Scikit-learn on the other hand found the best result of $0.0677$ with a polynomial degree of 12, meaning that we might not be far from the ideal parameters. Bootstrapping \ref{fig:TerrainLassoBootstrap} again gave similar results, while being a lot more computationally intensive.
+
+Finally, we decided to plot the predicted surface from out best estimate \ref{fig:PredictedSurface}, which was found as Lasso with a polynomial degree of 13 and a regularization parameter of $\lambda = 10^{-4}$. The graph shows a striking similarity to the true data \ref{fig:TerrainFig}, seeming to just be a smoothed out version. It is worth noting that we might have been lucky in our choice of points, seeing that the highest and lowest points are respectively on opposite sides of our data range. We guess that this is easier to estimate using polynomial regression.
 
 \section{Conclusion}
+Throughout this project, we spent a lot of time changing our code as we moved through different parts. This illustrated the importance of planning out our codebase, such that we were less reliant on changing arguments everywhere for each small iteration. We also got our first introduction to writing reports, as we are all math majors, being more familiar with writing calculations and carrying out proofs. We also saw the importance of choosing and handling our data correctly, as this lead to wildly different results. Had we focused on this initially, we would have saved a lot of time on computation and model selection, perhaps giving us more time to figure out the mote minute details. It might also be beneficial to write some of the heavier computations in another language like C, when we are unable to apply pre built methods.
 
 \section{References}
 
 \bibliography{Project1/refs} % add  references to this 
+
+\section{Appendix}
+The code is publicly available on \href{https://github.com/augustfe/FYSSTK}{github.com/augustfe/FYSSTK}, written in python.
+
 
 \end{document}
