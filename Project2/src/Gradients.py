@@ -87,14 +87,16 @@ class Gradients:
         self.X = design(x, dim=dim, n=n)
         self.lmbda = lmbda
         self.dim = dim
-        self.cost_func = cost_func(self.X, self.y)
-        if analytic_derivative is None:
-            self.derivative = grad(self.cost_func)
-        else:
-            self.derivative = analytic_derivative(self.X, self.y)
+        self.cost_func = cost_func
+        self.analytic_derivative = analytic_derivative
+        # self.cost_func = cost_func(self.X, self.y)
+        # if analytic_derivative is None:
+        #     self.derivative = grad(self.cost_func)
+        # else:
+        #     self.derivative = analytic_derivative(self.X, self.y)
 
-        self.BaseCost = jit(self.cost_func)
-        self.gradient = jit(self.derivative)
+        # self.BaseCost = jit(self.cost_func(self.X, self.y))
+        # self.gradient = jit(self.derivative)
 
         self.scheduler = scheduler
 
@@ -111,16 +113,19 @@ class Gradients:
             jnp.ndarray: The optimized model parameters.
         """
         self.errors = jnp.zeros(n_iter)
+        curr_costfunc = jit(self.cost_func(self.X, self.y, self.lmbda))
+        if self.analytic_derivative is None:
+            curr_gradient = jit(grad(curr_costfunc))
+        else:
+            curr_gradient = jit(self.analytic_derivative(self.X, self.y, self.lmbda))
         # self.errors = self.errors.at[:].set(jnp.nan)
 
         for i in range(n_iter):
-            gradients = self.gradient(theta)
+            gradients = curr_gradient(theta)
             change = self.scheduler.update_change(gradients)
             theta = update_theta(theta, change)
-            tmp = self.BaseCost(theta)
+            tmp = curr_costfunc(theta)
             self.errors = assign(self.errors, i, tmp)
-            # self.errors = self.errors.at[i].set(tmp)
-            # self.errors[i] = self.BaseCost(self.y, self.X, theta)
 
         return theta
 
@@ -139,6 +144,13 @@ class Gradients:
             jnp.ndarray: The optimized model parameters.
         """
         m = self.n // M
+        curr_costfunc = jit(self.cost_func(self.X, self.y, self.lmbda))
+        # if self.analytic_derivative is None:
+        #     uninitialized_gradient = lambda X, y: grad(curr_costfunc(X, y))
+        # else:
+        #     uninitialized_gradient = lambda X, y: self.analytic_derivative(
+        #         X, y, self.lmbda
+        #     )
 
         self.errors = jnp.zeros(n_epochs)
 
@@ -148,13 +160,17 @@ class Gradients:
                 idxs = np.random.choice(self.n, M)
                 xi = self.X[idxs]
                 yi = self.y[idxs]
-
-                gradients = self.gradient(yi, xi, theta)
+                if self.analytic_derivative is None:
+                    gradients = grad(curr_costfunc(xi, yi))(theta)
+                else:
+                    gradients = self.analytic_derivative(xi, yi)(theta)
+                # gradients = uninitialized_gradient(xi, yi)(theta)
+                # gradients = self.gradient(yi, xi, theta)
                 change = self.scheduler.update_change(gradients)
 
-                theta = theta - change
+                theta = update_theta(theta, change)
 
-            self.errors = assign(self.errors, epoch, self.BaseCost(theta))
+            self.errors = assign(self.errors, epoch, curr_costfunc(theta))
             # self.errors[epoch] = self.BaseCost(self.y, self.X, theta)
 
         return theta

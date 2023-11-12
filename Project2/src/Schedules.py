@@ -476,12 +476,12 @@ def fast_timedecay(epochs, minibatch_size, minibatch_num, t0, t1, gradient):
 
 
 class TimeDecay(Scheduler):
-    def __init__(self, t0: float, t1: float, minibatch_size: int):
-        self.t0 = t0
-        self.t1 = t1
-        self.epochs = 0
-        self.minibatch_size = minibatch_size
-        self.minibatch_num = 0
+    def __init__(self, t0: int, t1: int, minibatch_size: int):
+        self.t0 = float(t0)
+        self.t1 = float(t1)
+        self.epochs = 0.0
+        self.minibatch_size = float(minibatch_size)
+        self.minibatch_num = 0.0
 
     def update_change(self, gradient: np.ndarray) -> np.ndarray:
         # t = self.epochs * self.minibatch_size + self.minibatch_num
@@ -501,4 +501,4 @@ class TimeDecay(Scheduler):
 
     def reset(self) -> None:
         self.epochs += 1
-        self.minibatch_num = 0
+        self.minibatch_num = 0.0

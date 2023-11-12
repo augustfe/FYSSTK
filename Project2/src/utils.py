@@ -9,6 +9,12 @@ def assign(arr, idx, val):
     return arr
 
 
+@jit
+def assign_row(arr, idx, val):
+    arr = arr.at[idx, :].set(val)
+    return arr
+
+
 @partial(jit, static_argnums=(1, 2))
 def design(x: jnp.ndarray, dim: int, n: int) -> jnp.ndarray:
     """
