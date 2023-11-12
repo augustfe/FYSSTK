@@ -1,4 +1,3 @@
-import numpy as onp
 from jax import grad, vmap, lax, jit
 import jax.numpy as np
 from typing import Callable

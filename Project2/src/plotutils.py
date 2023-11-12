@@ -1,11 +1,13 @@
-import matplotlib.pyplot as plt
+import matplotlib as mpl
+from matplotlib import colormaps, pyplot as plt
 import numpy as np
 from pathlib import Path
 from typing import Callable, Optional
-import matplotlib as mpl
-from matplotlib import colormaps
 import seaborn as sns
 from pandas import DataFrame
+
+mpl.rcParams["mathtext.fontset"] = "stix"
+mpl.rcParams["font.family"] = "STIXGeneral"
 
 
 def setColors(
@@ -276,3 +278,19 @@ def plotHeatmap(
     if showPlots:
         plt.show()
     plt.close(fig)
+
+
+def setup_axis(xlim, ylim):
+    _, ax = plt.subplots()
+
+    ax.set_aspect("equal")
+    ax.set_xlim(xlim)
+    ax.set_ylim(ylim)
+    ax.spines["left"].set_position("zero")
+    ax.spines["bottom"].set_position("zero")
+    ax.spines["right"].set_color("none")
+    ax.spines["top"].set_color("none")
+    for s in ax.spines.values():
+        s.set_zorder(0)
+
+    return ax
