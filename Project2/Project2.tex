@@ -23,6 +23,7 @@
 
 \usepackage{amsthm}
 \usepackage{enumitem}
+\usepackage{breakcites}
 
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{lemma}[theorem]{Lemma}
@@ -303,7 +304,7 @@ RMSprop, root mean square propagation, was first introduced in 2012, in lecture 
     w_{k+1}^{(n)} =& w_k^{(n)} - \frac{\eta}{\delta +  \sqrt{v_{k+1}^{(n)}}} g_k^{(n)}
 \end{align*}
 
- We have chosen to only give the element wise update rule, as for RMSprop, as the vector notation for the final equation is not very pretty. $\delta$ is a numerical stabilizer, $0\leq \beta \leq 1$ and $\mathbf{v_0}$ is usually initalized to the zero vector.
+ We have chosen to only give the element wise update rule, as for RMSprop, as the vector notation for the final equation is not very pretty. $\delta$ is a numerical stabilizer, $0\leq \beta \leq 1$ and $\mathbf{v_0}$ is usually initialised to the zero vector.
 \par
 \vspace{1mm}
 Like AdaGrad the update keeps some sort of memory of previous gradients. Where $\beta$ can be thought of as the strength of the memory; how much of the previous iterations should impact the next. This allows for some of the same benefits as AdaGrads decaying learningrate.
@@ -316,10 +317,10 @@ Adaprive moment estimation, most commonly known as ADAM. Is a optimization algor
     w_{k+1}^{(n)} =& w_k^{(n)} - \frac{\eta}{\delta + \sqrt{v_{k+1}^{(n)}}} m_{k+1}^{n}
 \end{align*}
 
-Here $0 \leq \beta_1,\beta_2 \leq 1$ 
+Here $0 \leq \beta_1,\beta_2 < 1$ 
 \par
 \vspace{1mm}
-Notice that the denominator of $\mathbf{m_{k+1}}$ and $\mathbf{v_{k+1}}$ goes to 1 as $k \to \infty$.
+Notice that the denominator of $\mathbf{m_{k+1}}$ and $\mathbf{v_{k+1}}$ starts somewhere in $(0,1]$ and then increases to 1 as $k \to \infty$. This gives an amplification of the vectors, which subsides for larger $k$. This is meant to alleviate a bias towards zero as  $\mathbf{m_0}, \mathbf{v_0} = 0$ \cite{kingma2014adam}[section 3]
 
 \subsection{Neural Networks}
 % Neural networks are computational systems inspired by the networks of neurons in the brain.
@@ -506,8 +507,9 @@ For the sake of brevity, we restrict our self to one activation function for the
     \end{enumerate}
 \end{definition}
 
-\begin{theorem}
+\begin{theorem}[Composition of linear operators]
     Assume that $U, V, W$ are vector spaces over $\mathbb{R}$ and that $A: U \to V$, $B: V \to W$ are linear operators. Then $B \circ A$ is a linear operator.
+    \label{thm:Linear}
 \end{theorem}
 \begin{proof}
     Let $\boldsymbol{u}, \boldsymbol{v} \in V$, $\alpha, \beta \in \mathbb{R}$. Then
@@ -515,32 +517,61 @@ For the sake of brevity, we restrict our self to one activation function for the
         B(A(\alpha \boldsymbol{u} + \beta \boldsymbol{v})) &= B(\alpha A(\boldsymbol{u}) + \beta A(\boldsymbol{v}))
         = \alpha B(A(\boldsymbol{u})) + \beta B(A(\boldsymbol{v})),
     \end{align*}
-    showing that $B \circ A$ is a linear operator.
+    showing that $B \circ A$ is indeed a linear operator.
 \end{proof}
 
-Therefore, if we were to choose a linear activation function for the hidden layer, $\mathcal{N}$ would just be a composition of linear operators, and therefore be linear itself. We would then not get any benefit from adding multiple hidden layers, as it could just be represented as one linear operation. This greatly restricts the hypothesis space, which is why we opt for non-linear activation functions \cite[p.~72]{CholletFrançois2018DlwP}.
+Due to \autoref{thm:Linear}, if we were to choose a linear activation function for the hidden layer, $\mathcal{N}$ would just be a composition of linear operators, and therefore be linear itself. We would then not get any benefit from adding multiple hidden layers, as it could just be represented as one linear operation. This greatly restricts the hypothesis space, which is why we opt for non-linear activation functions \cite[p.~72]{CholletFrançois2018DlwP}.
 
 A common choice, and the one first presented in \cite{universalapprox}, is a so called sigmoidal function $\sigma$. A sigmoidal function is a function $\sigma: \mathbb{R} \to \mathbb{R}$ which satisfies
 \begin{equation*}
     \lim_{t \to +\infty} \sigma(t) = 1 \qquad \textnormal{and} \qquad \lim_{t \to -\infty} \sigma(t) = 0.
 \end{equation*}
-The most common choice is then the standard logistic function \cite{jentzen2023mathematical}, often just called the sigmoid function, defined by
+A simple function which satisfies this, is the $(0,1)$-clip function, defined by
 \begin{equation*}
-    f(x) = \frac{1}{1 + e^{-x}},
+    f(x) = 
+    \begin{cases}
+        1 & \textnormal{for } x \geq 1 \\
+        x & \textnormal{for } x \in (0,1) \\
+        0 & \textnormal{for } x \leq 0
+    \end{cases}.
 \end{equation*}
-which is clearly sigmoidal.
+The most common choice however is perhaps the standard logistic function \cite{jentzen2023mathematical}, often just called the sigmoid function, defined by
+\begin{equation*}
+    f(x) = \frac{1}{1 + e^{-x}}.
+\end{equation*}
+Both of these functions are clearly sigmoidal, illustrated in the plot in \autoref{fig:sigmoid}.
 
 \begin{figure}[ht]
     \centering
     \includegraphics[width=.7\textwidth]{activators/sigmoid.pdf}
-    \caption{A plot of the sigmoid activation function on $[-4, 4]$.}
+    \caption{A plot of the sigmoid and $(0,1)$-clip activation functions on $[-4, 4]$.}
     \label{fig:sigmoid}
 \end{figure}
+
+However, the activation functions do not have to be sigmoidal in order to satisfy the requirements for the Universal Approximation Theorem. In fact, it is enough to require that the activation function is non-polynomial \cite{nonpolynomial}. (\small{venter på svar fra Morten, virker for godt til å være sant}) 
+
+Another commonly used activation function is the rectified linear unit (ReLU), defined by
+\begin{equation*}
+    f(x) = \max(0, x) = \frac{x + |x|}{2} =
+    \begin{cases}
+        x & \textnormal{if } x \geq 0 \\
+        0 & \textnormal{if } x < 0
+    \end{cases}.
+\end{equation*}
+However, this function suffers from what some call dying ReLUs, where nodes in effect die by outputting constant $0$. To combat this, we introduce the leaky rectified linear unit (LReLU), defined by
+\begin{equation*}
+    f(x) =
+    \begin{cases}
+        x & \textnormal{if } x \geq 0 \\
+        \gamma x & \textnormal{if } x < 0
+    \end{cases}.
+\end{equation*}
+for some positive $\gamma \in \mathbb{R}$. 
 
 \begin{figure}[ht]
     \centering
     \includegraphics[width=.7\textwidth]{activators/RELU.pdf}
-    \caption{A plot of rectified linear unit (RELU) activation function on $[-2, 2]$.}
+    \caption{A plot of rectified linear unit (ReLU) activation function on $[-2, 2]$.}
     \label{fig:RELU}
 \end{figure}
 
