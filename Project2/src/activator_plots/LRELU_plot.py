@@ -15,11 +15,11 @@ def exaggerated_LRELU(x):
     return np.where(x > 0, x, 0.1 * x)
 
 
-ax.plot(x, exaggerated_LRELU(x), label="LRELU")
-ax.plot(x, RELU(x), ":", alpha=1, label="RELU")
+ax.plot(x, RELU(x), label="ReLU", linewidth=3)
+ax.plot(x, exaggerated_LRELU(x), "--", label="LReLU")
 ax.set_xlabel(r"$x$")
 ax.set_ylabel(r"$y$", rotation=0)
-ax.set_title(r"Leaky RELU (leak of $0.1$)")
+ax.set_title(r"Leaky ReLU ($\gamma = 0.1$) against ReLU")
 ax.legend()
 
-plt.savefig(path / "LRELU.pdf", bbox_inches="tight")
+plt.savefig(path / "LReLU.pdf", bbox_inches="tight")
