@@ -32,7 +32,7 @@ def gradient_descent(starting_point, learning_rate, num_iterations):
 
 # Set the hyperparameters
 learning_rate = 0.1
-num_iterations = 25
+num_iterations = 30
 starting_point = -4
 
 # Perform gradient descent and store the points
