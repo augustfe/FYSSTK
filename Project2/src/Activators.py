@@ -34,6 +34,20 @@ def sigmoid(X: np.ndarray) -> np.ndarray:
     #     return np.where(X > np.zeros(X.shape), np.ones(X.shape), np.zeros(X.shape))
 
 
+@jit
+def zero_one_clip(X: np.ndarray) -> np.ndarray:
+    """
+    Applies the zero-one clip activation function to the input array.
+
+    Args:
+        X (np.ndarray): The input array.
+
+    Returns:
+        np.ndarray: The output array after applying the zero-one clip function.
+    """
+    return np.clip(X, 0, 1)
+
+
 def softmax(X: np.ndarray) -> np.ndarray:
     """
     Computes the softmax activation function for a given input array.
