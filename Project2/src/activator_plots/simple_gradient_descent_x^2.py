@@ -1,5 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from pathlib import Path
+from plotutils import setup_axis, setColors
+
+path = Path(__file__).parent.parent.parent / "figures"
 
 
 # Define the function
@@ -28,7 +32,7 @@ def gradient_descent(starting_point, learning_rate, num_iterations):
 
 # Set the hyperparameters
 learning_rate = 0.1
-num_iterations = 100
+num_iterations = 25
 starting_point = -4
 
 # Perform gradient descent and store the points
@@ -38,12 +42,29 @@ points = gradient_descent(starting_point, learning_rate, num_iterations)
 x = np.linspace(-5, 5, 100)
 y = f(x)
 
-plt.plot(x, y, label="$f(x) = x^2$")
-plt.scatter(points, f(points), c="r")
-plt.legend(loc="upper left", bbox_to_anchor=(0.07, 0.93))
-plt.axis("off")
-# plt.title(f"$f(x) = x^2$")
+ax = setup_axis(xlim=[-5.1, 5.1], ylim=[-1, 25.2])
+ax.set_aspect("auto")
+
+iteration_counter = np.arange(1, num_iterations + 1)
+cmap, norm, sm = setColors(iteration_counter, cmap_name="viridis", norm_type="linear")
+
+ax.scatter(
+    points,
+    f(points),
+    color=cmap(norm(iteration_counter)),
+    label="Gradient Descent Path",
+    zorder=2.5,
+    s=100,
+)
+ax.plot(x, y, color="C0", label="$f(x) = x^2$", linewidth=3)
+plt.legend(loc="upper left", bbox_to_anchor=(0.5, 0.93), fontsize=12)
+plt.title(r"Gradient Descent on $f(x) = x^2$", fontsize=15)
+plt.xlabel(r"$x$", fontsize=12)
+plt.ylabel(r"$y$", fontsize=12, rotation=0)
+
+cbar = plt.colorbar(sm, ax=ax)
+cbar.ax.set_ylabel("Iteration number", fontsize=12)
 index = np.searchsorted(points, -1e-2, side="right")
 print(index)
 
-plt.show()
+plt.savefig(path / "simple_gradient_descent_x^2.pdf", bbox_inches="tight")
