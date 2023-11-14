@@ -8,17 +8,9 @@ from Schedules import Scheduler
 from sklearn.utils import resample
 from copy import deepcopy
 from tqdm import tqdm
-from utils import assign
+from utils import assign, vstack_arrs
 from line_profiler import profile
 from functools import partial
-
-
-@jit
-def fast_cost_calc(
-    cost_func: Callable, target: np.ndarray, prediction: np.ndarray
-) -> float:
-    "MOST TIME IS SPENT WITHIN BACK PROP"
-    ...
 
 
 @jit
@@ -39,12 +31,6 @@ def fast_dot_with_T(a, b):
 @jit
 def fast_plus_eq(a, b):
     return lax.add(a, b)
-
-
-@jit
-def output_delta(out_der, cost_func, z_layer, a_layer, target_batch):
-    cost_der = grad(cost_func(target_batch))
-    return lax.mul(out_der(z_layer), cost_der(a_layer))
 
 
 # @jit(static_argnames="lmbda")
@@ -175,7 +161,7 @@ class NeuralNet:
         scheduler: Scheduler,
         batches: int = 1,
         epochs: int = 100,
-        lmbda: float = 0,
+        lmbda: float = 0.0,
         X_val: Optional[np.ndarray] = None,
         target_val: Optional[np.ndarray] = None,
     ) -> dict[str, np.ndarray]:
@@ -238,6 +224,9 @@ class NeuralNet:
         validate = False
         if X_val is not None and target_val is not None:
             validate = True
+
+        # Cast to float for jax
+        lmbda = float(lmbda)
 
         # Training metrics
         train_errors = np.empty(epochs)
@@ -360,7 +349,8 @@ class NeuralNet:
 
         # Feed forward for all but output layer
         for i in range(len(self.weights) - 1):
-            z = a @ self.weights[i]
+            z = fast_dot(a, self.weights[i])
+            # z = a @ self.weights[i]
             self.z_layers.append(z)
             a = self.hidden_func(z)
 
@@ -383,7 +373,8 @@ class NeuralNet:
         #     self.a_layers.append(a)
 
         # Output layer
-        z = a @ self.weights[-1]
+        z = fast_dot(a, self.weights[-1])
+        # z = a @ self.weights[-1]
         a = self.output_func(z)
         self.a_layers.append(a)
         self.z_layers.append(z)
@@ -446,11 +437,9 @@ class NeuralNet:
 
         # gradient_weights += self.weights[i][1:, :] * lmbda
 
-        update_matrix = np.vstack(
-            [
-                self.schedulers_bias[i].update_change(gradient_bias),
-                self.schedulers_weight[i].update_change(gradient_weights),
-            ]
+        update_matrix = vstack_arrs(
+            self.schedulers_bias[i].update_change(gradient_bias),
+            self.schedulers_weight[i].update_change(gradient_weights),
         )
 
         self.weights[i] -= update_matrix
@@ -483,11 +472,9 @@ class NeuralNet:
             # )
             # gradient_weights += self.weights[i][1:, :] * lmbda
 
-            update_matrix = np.vstack(
-                [
-                    self.schedulers_bias[i].update_change(gradient_bias),
-                    self.schedulers_weight[i].update_change(gradient_weights),
-                ]
+            update_matrix = vstack_arrs(
+                self.schedulers_bias[i].update_change(gradient_bias),
+                self.schedulers_weight[i].update_change(gradient_weights),
             )
             # Update weights
             self.weights[i] -= update_matrix

@@ -1,6 +1,7 @@
 import jax.numpy as np
 from jax import lax, jit
 from functools import partial
+from line_profiler import profile
 
 
 class Scheduler:
@@ -281,6 +282,7 @@ class Adam(Scheduler):
         self.second: float = 0.0
         self.n_epochs: int = 1
 
+    @profile
     def update_change(self, gradient: np.ndarray) -> np.ndarray:
         """
         Update the parameters.
@@ -385,6 +387,7 @@ def fast_const(eta: float, gradient: np.ndarray) -> np.ndarray:
     return lax.mul(eta, gradient)
 
 
+@jit
 def fast_mom(
     momentum: np.ndarray, change: float, eta: float, gradient: np.ndarray
 ) -> np.ndarray:
@@ -610,6 +613,7 @@ def fast_adam_second(
     return second
 
 
+@jit
 def fast_adam(
     moment: np.ndarray,
     rho: float,
@@ -637,14 +641,16 @@ def fast_adam(
         moment,
         lax.sub(
             1.0,
-            lax.integer_pow(rho, n_epochs),
+            # lax.integer_pow(rho, n_epochs),
+            lax.pow(rho, n_epochs),
         ),
     )
     second_corrected = lax.div(
         second,
         lax.sub(
             1.0,
-            lax.integer_pow(rho2, n_epochs),
+            # lax.integer_pow(rho2, n_epochs),
+            lax.pow(rho2, n_epochs),
         ),
     )
     change = lax.div(

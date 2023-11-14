@@ -3,6 +3,7 @@ import jax.numpy as np
 from typing import Callable
 
 
+@jit
 def identity(X: np.ndarray) -> np.ndarray:
     """
     Identity activation function.
@@ -48,6 +49,7 @@ def zero_one_clip(X: np.ndarray) -> np.ndarray:
     return np.clip(X, 0, 1)
 
 
+@jit
 def softmax(X: np.ndarray) -> np.ndarray:
     """
     Computes the softmax activation function for a given input array.
@@ -63,6 +65,7 @@ def softmax(X: np.ndarray) -> np.ndarray:
     return np.exp(X) / (np.sum(np.exp(X), axis=-1, keepdims=True) + delta)
 
 
+@jit
 def RELU(X: np.ndarray) -> np.ndarray:
     """
     Rectified Linear Unit (ReLU) activation function.
@@ -73,9 +76,10 @@ def RELU(X: np.ndarray) -> np.ndarray:
     Returns:
         np.ndarray: Output array with values equal to X where X > 0, and 0 elsewhere.
     """
-    return np.where(X > np.zeros(X.shape), X, np.zeros(X.shape))
+    return np.where(X > np.zeros(X.shape), X, np.zeros(X.shape, dtype=float))
 
 
+@jit
 def LRELU(X: np.ndarray) -> np.ndarray:
     """
     Leaky Rectified Linear Unit activation function.
@@ -112,7 +116,7 @@ def derivate(func: Callable) -> Callable:
             Returns:
                 The derivative of the ReLU activation function.
             """
-            return np.where(X > 0, 1, 0)
+            return np.where(X > 0, 1.0, 0.0)
 
         return func
 
@@ -129,7 +133,7 @@ def derivate(func: Callable) -> Callable:
                 The derivative of the Leaky ReLU activation function.
             """
             delta = 10e-4
-            return np.where(X > 0, 1, delta)
+            return np.where(X > 0, 1.0, delta)
 
         return func
 
