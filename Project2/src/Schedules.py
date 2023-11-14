@@ -504,7 +504,7 @@ def fast_gt_inv(G_t: np.ndarray) -> np.ndarray:
     Returns:
         np.ndarray: Array of shape (n, n) representing the inverse of G_t.
     """
-    delta = 1e-8  # avoid division by zero
+    delta = 1e-7  # avoid division by zero
     G_t_inverse = lax.reciprocal(
         delta
         + lax.sqrt(
@@ -553,7 +553,7 @@ def fast_rmsprop(eta: float, gradient: np.ndarray, second: np.ndarray) -> np.nda
     Returns:
         np.ndarray: Array representing the RMSProp update.
     """
-    delta = 1e-8
+    delta = 1e-7
     change = lax.div(
         lax.mul(eta, gradient),
         lax.sqrt(
@@ -613,7 +613,7 @@ def fast_adam_second(
     return second
 
 
-@jit
+# @jit
 def fast_adam(
     moment: np.ndarray,
     rho: float,
@@ -636,11 +636,12 @@ def fast_adam(
     Returns:
         np.ndarray: A numpy array of shape (batch_size, num_params) representing the change in the parameters.
     """
-    delta = 1e-8  # avoid division by zero
+    delta = 1e-7  # avoid division by zero
+    # print(eta, moment, rho**n_epochs, second, rho2**n_epochs)
     moment_corrected = lax.div(
         moment,
         lax.sub(
-            1.0,
+            lax.add(1.0, delta),
             # lax.integer_pow(rho, n_epochs),
             lax.pow(rho, n_epochs),
         ),
@@ -648,7 +649,7 @@ def fast_adam(
     second_corrected = lax.div(
         second,
         lax.sub(
-            1.0,
+            lax.add(1.0, delta),
             # lax.integer_pow(rho2, n_epochs),
             lax.pow(rho2, n_epochs),
         ),

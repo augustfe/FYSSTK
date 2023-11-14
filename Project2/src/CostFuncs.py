@@ -11,7 +11,7 @@ def CostCrossEntropy_fast(X: np.ndarray, target: np.ndarray) -> float:
             lax.mul(
                 target,
                 lax.log(
-                    lax.add(X, 1e-10),
+                    lax.add(X, 1e-7),
                 ),
             )
         ),
@@ -24,6 +24,28 @@ def CostOLS_fast(X: np.ndarray, target: np.ndarray) -> float:
         1.0 / target.size,
         np.sum(
             lax.integer_pow(lax.sub(target, X), 2),
+        ),
+    )
+
+
+@jit
+def CostCrossEntropy_binary(X, target):
+    # NOTE: A delta of 1e-8 is too small, is rounded to zero by jit.
+    return -lax.mul(
+        (1.0 / target.shape[0]),
+        np.sum(
+            lax.add(
+                lax.mul(
+                    target,
+                    lax.log(lax.add(X, 1e-7)),
+                ),
+                lax.mul(
+                    lax.sub(1.0 + 1e-7, target),
+                    lax.log(
+                        lax.add(lax.sub(1.0, X), 1e-7),
+                    ),
+                ),
+            ),
         ),
     )
 
@@ -49,8 +71,8 @@ def CostCrossEntropy(target: np.ndarray) -> Callable:
         Returns:
             float: The cross-entropy cost function value.
         """
-        p0 = target * lax.log(X + 1e-10)
-        p1 = (1 - target) * lax.log(1 - X + 1e-10)
+        p0 = target * lax.log(X + 1e-7)
+        p1 = (1 - target) * lax.log(1 - X + 1e-7)
         return -(1.0 / target.size) * np.sum(p0 + p1)
 
     return func

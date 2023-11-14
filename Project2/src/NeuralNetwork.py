@@ -120,10 +120,14 @@ class NeuralNet:
             raise ValueError(f"Number of dimensions must be positive, not {dimensions}")
 
         self.dimensions = dimensions
-        self.hidden_func = hidden_func
-        self.output_func = output_func
-        self.cost_func = cost_func
+        self.hidden_func = jit(hidden_func)
+        self.output_func = jit(output_func)
+        self.cost_func = jit(cost_func)
+
+        # Calculate derivates here to same on jit
         self.cost_func_derivative = jit(grad(self.cost_func))
+        self.hidden_derivative = derivate(self.hidden_func)
+        self.output_derivative = derivate(self.output_func)
 
         self.seed = seed
 
@@ -242,8 +246,7 @@ class NeuralNet:
             raise ValueError(
                 f"Number of batches cannot exceed training points, {X_train.shape[0]} < {batches}"
             )
-        self.hidden_derivative = derivate(self.hidden_func)
-        self.output_derivative = derivate(self.output_func)
+
         # self.cost_func_derivative = grad(self.cost_func)
 
         batch_size = X_train.shape[0] // batches
@@ -253,7 +256,7 @@ class NeuralNet:
 
         # cost_function_train = self.cost_func(target_train)
         if validate:
-            cost_function_validate = self.cost_func(target_val)
+            # cost_function_validate = self.cost_func(target_val)
 
             # Validation metrics
             validation_errors = np.empty(epochs)
@@ -295,17 +298,16 @@ class NeuralNet:
             train_errors = assign(train_errors, e, train_error)
 
             if validate:
-                validation_error = cost_function_validate(X_val)
+                pred_val = self.predict(X_val)
+                validation_error = self.cost_func(pred_val, target_val)
                 validation_errors = assign(validation_errors, e, validation_error)
 
             if self.classification:
-                pred_train = self.predict(X_train)
                 train_accuracy = self.accuracy(pred_train, target_train)
                 train_accuracies = assign(train_accuracies, e, train_accuracy)
 
             if validate and self.classification:
-                pred_validate = self.predict(X_val)
-                pred_accuracy = self.accuracy(pred_validate, target_val)
+                pred_accuracy = self.accuracy(pred_val, target_val)
                 validation_accuracies = assign(validation_accuracies, e, pred_accuracy)
 
         scores = {"train_errors": train_errors}
@@ -353,6 +355,12 @@ class NeuralNet:
             # z = a @ self.weights[i]
             self.z_layers.append(z)
             a = self.hidden_func(z)
+            # print(
+            #     np.isnan(a).any(),
+            #     np.isnan(z).any(),
+            #     np.isnan(tmp_a).any(),
+            #     np.isnan(self.weights[i]).any(),
+            # )
 
             # Add bias layer
             a = setup_bias(a)
@@ -376,6 +384,7 @@ class NeuralNet:
         z = fast_dot(a, self.weights[-1])
         # z = a @ self.weights[-1]
         a = self.output_func(z)
+
         self.a_layers.append(a)
         self.z_layers.append(z)
 
@@ -419,6 +428,11 @@ class NeuralNet:
 
             left = self.output_derivative(self.z_layers[i + 1])
             right = self.cost_func_derivative(self.a_layers[i + 1], target_batch)
+            # print("a:", self.a_layers[i + 1])
+            # print(target_batch)
+            # print(right)
+            # quit()
+
             # delta_matrix = output_derivative(
             #     self.z_layers[i + 1]
             # ) * cost_func_derivative(self.a_layers[i + 1])
@@ -431,6 +445,7 @@ class NeuralNet:
         gradient_weights = calc_grad_w(
             self.a_layers[i][:, 1:], delta_matrix, self.weights[i][1:, :], lmbda
         )
+
         # gradient_weights = fast_plus_eq(
         #     gradient_weights, fast_mul(self.weights[i][1:, :], lmbda)
         # )
@@ -510,6 +525,10 @@ class NeuralNet:
         self.classification = self.cost_func.__name__ in [
             "CostLogReg",
             "CostCrossEntropy",
+            "CostCrossEntropy_fast",
+            "CostCrossEntropy_binary" "BinaryCrossEntropy_fast",
+            "CostCrossEntropy_binary",
+            "oops",
         ]
 
     def predict(self, X: np.ndarray, *, theshold: float = 0.5) -> np.ndarray:
@@ -525,7 +544,7 @@ class NeuralNet:
         """
         predict = self.feed_forward(X)
         if self.classification:
-            return np.where(predict > theshold, 1, 0)
+            return np.where(predict > theshold, 1.0, 0.0)
         return predict
 
 

@@ -5,6 +5,10 @@ from pathlib import Path
 from typing import Callable, Optional
 import seaborn as sns
 from pandas import DataFrame
+from NeuralNetwork import NeuralNet
+
+# from mpl_toolkits.mplot3d import Axes3D
+from matplotlib.ticker import LinearLocator, FormatStrFormatter
 
 mpl.rcParams["mathtext.fontset"] = "stix"
 mpl.rcParams["font.family"] = "STIXGeneral"
@@ -294,3 +298,63 @@ def setup_axis(xlim, ylim):
         s.set_zorder(0)
 
     return ax
+
+
+def plot_Franke(
+    FFNN: NeuralNet,
+    x: np.ndarray,
+    y: np.ndarray,
+    z: np.ndarray,
+    title: str = "Franke's function",
+):
+    xnew = np.linspace(0, 1, 100)
+    ynew = np.linspace(0, 1, 100)
+    xnew, ynew = np.meshgrid(xnew, ynew)
+    znew = FFNN.predict(
+        np.c_[xnew.ravel().reshape(-1, 1), ynew.ravel().reshape(-1, 1)]
+    ).reshape(100, 100)
+
+    fig = plt.figure(figsize=plt.figaspect(0.5))
+
+    ax = fig.add_subplot(1, 2, 1, projection="3d")
+    surf = ax.plot_surface(
+        x,
+        y,
+        z.reshape(x.shape),
+        cmap="viridis",
+        linewidth=0,
+        antialiased=False,
+    )
+
+    # Customize the z axis.
+    ax.set_zlim(-0.10, 1.40)
+    ax.zaxis.set_major_locator(LinearLocator(10))
+    ax.zaxis.set_major_formatter(FormatStrFormatter("%.02f"))
+    ax.set_title("Input data")
+
+    # Add a color bar which maps values to colors.
+    fig.colorbar(surf, shrink=0.5, aspect=10)
+
+    ax = fig.add_subplot(1, 2, 2, projection="3d")
+    surf = ax.plot_surface(
+        xnew,
+        ynew,
+        znew,
+        cmap="viridis",
+        linewidth=0,
+        antialiased=True,
+    )
+
+    # Customize the z axis.
+    ax.set_zlim(-0.10, 1.40)
+    ax.zaxis.set_major_locator(LinearLocator(10))
+    ax.zaxis.set_major_formatter(FormatStrFormatter("%.02f"))
+    ax.set_title("Output data")
+
+    # Add a color bar which maps values to colors.
+    fig.colorbar(surf, shrink=0.5, aspect=10)
+
+    fig.suptitle(title)
+
+    plt.tight_layout()
+    return fig
