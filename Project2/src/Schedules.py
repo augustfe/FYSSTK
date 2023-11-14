@@ -490,7 +490,7 @@ def fast_adamoment(
     return change
 
 
-@partial(jit, static_argnums=(1,))
+@jit
 def fast_gt_inv(G_t: np.ndarray) -> np.ndarray:
     """
     Computes the inverse of a matrix G_t using JAX's jit and lax libraries.

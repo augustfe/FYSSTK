@@ -134,4 +134,4 @@ def derivate(func: Callable) -> Callable:
         return func
 
     else:
-        return grad(vmap(func))
+        return jit(vmap(vmap(grad(func))))

@@ -1,13 +1,64 @@
 import jax.numpy as np
 import numpy as onp
-from jax import grad, vmap
+from jax import grad, vmap, jit, lax
 from typing import Optional, Callable
 from Activators import sigmoid, derivate
-from CostFuncs import CostCrossEntropy, CostOLS
+from CostFuncs import CostCrossEntropy, CostOLS_fast
 from Schedules import Scheduler
 from sklearn.utils import resample
 from copy import deepcopy
 from tqdm import tqdm
+from utils import assign
+from line_profiler import profile
+from functools import partial
+
+
+@jit
+def fast_cost_calc(
+    cost_func: Callable, target: np.ndarray, prediction: np.ndarray
+) -> float:
+    "MOST TIME IS SPENT WITHIN BACK PROP"
+    ...
+
+
+@jit
+def fast_mul(a, b):
+    return lax.mul(a, b)
+
+
+@jit
+def fast_dot(a, b):
+    return lax.dot(a, b)
+
+
+@jit
+def fast_dot_with_T(a, b):
+    return lax.dot(a, b.T)
+
+
+@jit
+def fast_plus_eq(a, b):
+    return lax.add(a, b)
+
+
+@jit
+def output_delta(out_der, cost_func, z_layer, a_layer, target_batch):
+    cost_der = grad(cost_func(target_batch))
+    return lax.mul(out_der(z_layer), cost_der(a_layer))
+
+
+# @jit(static_argnames="lmbda")
+@partial(jit, static_argnames="lmbda")
+def calc_grad_w(a_layer, delta_matrix, weight_matrix, lmbda):
+    gradient_weights = lax.dot(a_layer.T, delta_matrix)
+    gradient_weights = lax.add(gradient_weights, lax.mul(weight_matrix, lmbda))
+    return gradient_weights
+
+
+@jit
+def setup_bias(X_batch: np.ndarray) -> np.ndarray:
+    bias = lax.mul(np.ones((X_batch.shape[0], 1)), 0.01)
+    return np.hstack([bias, X_batch])
 
 
 class NeuralNet:
@@ -46,7 +97,7 @@ class NeuralNet:
         dimensions: tuple[int],
         hidden_func: Callable = sigmoid,
         output_func: Callable = sigmoid,
-        cost_func: Callable = CostOLS,
+        cost_func: Callable = CostOLS_fast,
         seed: Optional[int] = None,
     ) -> None:
         """
@@ -86,6 +137,7 @@ class NeuralNet:
         self.hidden_func = hidden_func
         self.output_func = output_func
         self.cost_func = cost_func
+        self.cost_func_derivative = jit(grad(self.cost_func))
 
         self.seed = seed
 
@@ -95,6 +147,7 @@ class NeuralNet:
         self.reset_weights()
         self.set_classification()
 
+    @profile
     def reset_weights(self) -> None:
         """
         Resets the weights of the neural network.
@@ -114,6 +167,7 @@ class NeuralNet:
 
             self.weights.append(weight_array)
 
+    @profile
     def fit(
         self,
         X_train: np.ndarray,
@@ -199,13 +253,16 @@ class NeuralNet:
             raise ValueError(
                 f"Number of batches cannot exceed training points, {X_train.shape[0]} < {batches}"
             )
+        self.hidden_derivative = derivate(self.hidden_func)
+        self.output_derivative = derivate(self.output_func)
+        # self.cost_func_derivative = grad(self.cost_func)
 
         batch_size = X_train.shape[0] // batches
 
         # One step of bootstrap
         X_train, target_train = resample(X_train, target_train)
 
-        cost_function_train = self.cost_func(target_train)
+        # cost_function_train = self.cost_func(target_train)
         if validate:
             cost_function_validate = self.cost_func(target_val)
 
@@ -244,22 +301,23 @@ class NeuralNet:
                 bias_scheduler.reset()
 
             pred_train = self.predict(X_train)
-            train_error = cost_function_train(pred_train)
-            train_errors[e] = train_error
+            train_error = self.cost_func(pred_train, target_train)
+            # train_error = cost_function_train(pred_train)
+            train_errors = assign(train_errors, e, train_error)
 
             if validate:
                 validation_error = cost_function_validate(X_val)
-                validation_errors[e] = validation_error
+                validation_errors = assign(validation_errors, e, validation_error)
 
             if self.classification:
                 pred_train = self.predict(X_train)
                 train_accuracy = self.accuracy(pred_train, target_train)
-                train_accuracies[e] = train_accuracy
+                train_accuracies = assign(train_accuracies, e, train_accuracy)
 
             if validate and self.classification:
                 pred_validate = self.predict(X_val)
                 pred_accuracy = self.accuracy(pred_validate, target_val)
-                validation_accuracies[e] = pred_accuracy
+                validation_accuracies = assign(validation_accuracies, e, pred_accuracy)
 
         scores = {"train_errors": train_errors}
         if validate:
@@ -271,6 +329,7 @@ class NeuralNet:
 
         return scores
 
+    @profile
     def feed_forward(self, X_batch: np.ndarray) -> np.ndarray:
         """
         Performs a feed forward pass through the neural network.
@@ -291,8 +350,9 @@ class NeuralNet:
             X_batch = X_batch.reshape((1, X_batch.size))
 
         # Add a bias
-        bias = np.ones((X_batch.shape[0], 1))
-        X_batch = np.hstack([bias, X_batch])
+        X_batch = setup_bias(X_batch)
+        # bias = np.ones((X_batch.shape[0], 1)) * 0.01
+        # X_batch = np.hstack([bias, X_batch])
 
         a = X_batch
         self.a_layers.append(a)
@@ -305,8 +365,9 @@ class NeuralNet:
             a = self.hidden_func(z)
 
             # Add bias layer
-            bias = np.ones((a.shape[0], 1)) * 0.01
-            a = np.hstack([bias, a])
+            a = setup_bias(a)
+            # bias = np.ones((a.shape[0], 1)) * 0.01
+            # a = np.hstack([bias, a])
             self.a_layers.append(a)
 
         # for weight in self.weights[:-1]:
@@ -330,6 +391,7 @@ class NeuralNet:
         # Return the output layer
         return a
 
+    @profile
     def back_propagate(
         self, X_batch: np.ndarray, target_batch: np.ndarray, lmbda: float
     ) -> None:
@@ -348,8 +410,6 @@ class NeuralNet:
             ValueError:
                 If the shapes of prediction and target do not correspond.
         """
-        hidden_derivative = derivate(self.hidden_func)
-        output_derivative = derivate(self.output_func)
 
         # Start with output layer
         i = len(self.weights) - 1
@@ -357,22 +417,34 @@ class NeuralNet:
         if self.output_func.__name__ == "softmax":
             delta_matrix = self.a_layers[i + 1] - target_batch
         else:
-            cost_func_derivative = grad(self.cost_func(target_batch))
-            print(self.z_layers[i + 1].shape)
+            # delta_matrix = output_delta(
+            #     self.output_derivative,
+            #     self.cost_func,
+            #     self.z_layers[i + 1],
+            #     self.a_layers[i + 1],
+            #     target_batch,
+            # )
+            # cost_func_derivative = grad(self.cost_func(target_batch))
 
-            left = output_derivative(self.z_layers[i + 1].ravel())
-            right = cost_func_derivative(self.a_layers[i + 1])
-
-            delta_matrix = left * right
+            left = self.output_derivative(self.z_layers[i + 1])
+            right = self.cost_func_derivative(self.a_layers[i + 1], target_batch)
             # delta_matrix = output_derivative(
             #     self.z_layers[i + 1]
             # ) * cost_func_derivative(self.a_layers[i + 1])
+            delta_matrix = fast_mul(left, right)
 
         # Output gradient
-        gradient_weights = self.a_layers[i][:, 1:].T @ delta_matrix
+        # gradient_weights = fast_dot(self.a_layers[i][:, 1:].T, delta_matrix)
+        # gradient_weights = self.a_layers[i][:, 1:].T @ delta_matrix
         gradient_bias = np.sum(delta_matrix, axis=0).reshape(1, delta_matrix.shape[1])
+        gradient_weights = calc_grad_w(
+            self.a_layers[i][:, 1:], delta_matrix, self.weights[i][1:, :], lmbda
+        )
+        # gradient_weights = fast_plus_eq(
+        #     gradient_weights, fast_mul(self.weights[i][1:, :], lmbda)
+        # )
 
-        gradient_weights += self.weights[i][1:, :] * lmbda
+        # gradient_weights += self.weights[i][1:, :] * lmbda
 
         update_matrix = np.vstack(
             [
@@ -386,18 +458,30 @@ class NeuralNet:
         # Back propagate the hidden layers
         for i in range(len(self.weights) - 2, -1, -1):
             # Calculate error for layer
-            delta_matrix = (
-                self.weights[i + 1][1:, :] @ delta_matrix.T
-            ).T * hidden_derivative(self.z_layers[i + 1])
+            left = fast_dot_with_T(self.weights[i + 1][1:, :], delta_matrix)
+            # left = fast_dot(self.weights[i + 1][1:, :], delta_matrix.T)
+            right = self.hidden_derivative(self.z_layers[i + 1])
+
+            delta_matrix = fast_mul(left.T, right)
+            # delta_matrix = (
+            #     self.weights[i + 1][1:, :] @ delta_matrix.T
+            # ).T * hidden_derivative(self.z_layers[i + 1])
 
             # Calculate gradients
-            gradient_weights = self.a_layers[i][:, 1:].T @ delta_matrix
+            # gradient_weights = fast_dot(self.a_layers[i][:, 1:].T, delta_matrix)
+            # gradient_weights = self.a_layers[i][:, 1:].T @ delta_matrix
             gradient_bias = np.sum(delta_matrix, axis=0).reshape(
                 1, delta_matrix.shape[1]
             )
+            gradient_weights = calc_grad_w(
+                self.a_layers[i][:, 1:], delta_matrix, self.weights[i][1:, :], lmbda
+            )
 
             # Regularize
-            gradient_weights += self.weights[i][1:, :] * lmbda
+            # gradient_weights = fast_plus_eq(
+            #     gradient_weights, fast_mul(self.weights[i][1:, :], lmbda)
+            # )
+            # gradient_weights += self.weights[i][1:, :] * lmbda
 
             update_matrix = np.vstack(
                 [
