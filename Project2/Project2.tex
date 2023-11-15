@@ -100,12 +100,34 @@ This project will first take a look at the theory behind neural network. Startin
 \subsection{Regression}
 
 \subsubsection{OLS}
-Ordinary least squares is a method used to best fit a line to a set of data points. It minimizes the sum of squared residuals, which means it finds the distance between the input data points and the points along the line. The goal is to find the best relationship between a independent variable $\mathbf{x}$ (the input data) and a dependent variable $\mathbf{y}$ (the correct data).
-Let $f: X \rightarrow Y$ be a continuous function such that
+
+%Ordinary least squares is a method used to best fit a line to a set of data points. It minimizes the sum of squared residuals, which means it finds the distance between the input data points and the points along the line. The goal is to find the best relationship between a independent variable $\mathbf{x}$ (the input data) and a dependent variable $\mathbf{y}$ (the observed data).
+%Assume there exists some functional relationship between a set of variables $\mathbf{x}$ and a single stochastic variable $y$. We may denote these as explanatory and response variables. 
+
+Ordinary least squares is a method used to best fit a line to a set of data points. It minimizes the sum of squared residuals, which means it finds the distance between the input data points and the points along the line. The goal is to find the best relationship between a independent variable $\mathbf{x}$ (the input data) and a dependent variable $\mathbf{y}$ (the observed data).
+
 \begin{equation*}
-    \mathbf{y} = f(\mathbf{x}) + \epsilon
+    y = f(\mathbf{x}) + \epsilon
 \end{equation*}
-where $\mathbf{y} \in Y$ is our correct data, $\mathbf{x} \in X$ is the input data and $\epsilon$ is the error term given as $\epsilon \sim N(0,\sigma^2)$. Looking to approximate $f$, we consider $n$ samples and assume that there are $p$ characteristics which define each of the samples, such that $y_i = f(\mathbf{x}_i) + \epsilon_i$, with $\mathbf{x}_i = [x_{i,0},x_{i,1},...,x_{i,p-1}]$. The approximation of $f$ should give us $\mathbf{\Tilde{y}}$ such that $\tfrac{1}{n}(\mathbf{y} - \mathbf{\Tilde{y}})$ is minimized. \\
+
+$\epsilon$ is 
+the stochastic noise inherent in $y$. We may assume $\epsilon \sim N(0,\sigma^2)$.
+For example one could denote $y$ as being the number of beach goers and our explanatory variables could be the temperature, the wind speed, the time of the day, the number of ice cream flavours available and so on.
+
+ We are then looking for an approximation of $f$ which gives $\tilde{\boldsymbol{y}}$ such that the MSE, $\frac{1}{n} \left( \boldsymbol{y} - \tilde{\boldsymbol{y}} \right)^2$, is minimized. In order to approximate $f$, we consider $n$ samples of $\boldsymbol{y}$ and assume that there are $p$ characteristics which define each of the samples, such that $y_i = f(\boldsymbol{x}_i) + \varepsilon_i$ where $\boldsymbol{x}_i = \left[x_{i,0}, x_{i, 1}, \ldots, x_{i, p-1} \right]$.
+
+We gather this information in a matrix $\textbf{X}$, called the design matrix, such that
+\begin{equation*}
+    \textbf{X} =
+    \begin{bmatrix}
+        x_{0,0} & x_{0,1} & \ldots & x_{0, p-1} \\
+        x_{1,0} & x_{1,1} & \ldots & x_{1, p-1} \\
+        \vdots & \vdots & \ddots & \vdots \\
+        x_{n,0} & x_{n,1} & \ldots & x_{n, p-1}
+    \end{bmatrix}.
+\end{equation*}
+
+where $\mathbf{y} \in Y$ is our observed data, $\mathbf{x} \in X$ is the input data and $\epsilon$ is the error term given as $\epsilon \sim N(0,\sigma^2)$. Looking to approximate $f$, we consider $n$ samples and assume that there are $p$ characteristics which define each of the samples, such that $y_i = f(\mathbf{x}_i) + \epsilon_i$, with $\mathbf{x}_i = [x_{i,0},x_{i,1},...,x_{i,p-1}]$. The approximation of $f$ should give us $\mathbf{\Tilde{y}}$ such that $\tfrac{1}{n}(\mathbf{y} - \mathbf{\Tilde{y}})$ is minimized. \\
 ... \\
 We assume a linear relationship such that $y_i = \mathbf{x}_i \cdot \bm{\beta} + \epsilon$. We can write this more compact as
 \begin{equation*}
@@ -167,8 +189,16 @@ Finding again the partial derivatives, we get
     \boldsymbol{\beta} = \left(\textbf{X}^T \textbf{X} + \boldsymbol{I}_p \lambda \right)^{-1} \textbf{X}^T \boldsymbol{y}
 \end{gather*}
 For a more detailed explanation of ridge regression, see (Project 1 link)
-
 \subsubsection{Logistic regression}
+For some problems, such as classification, a linear regression model such as OLS does not work properly. In classification problems, the variables are discrete (i.e. categories) and the goal is not to predict a response to continuous variables. Assume that we have two different categories, $\{1,0\}$ and let
+\begin{equation*}
+    \mathbf{\hat{y}} = \hat{f}(\mathbf{x}_i) = \mathbf{X}\bm{\beta}
+\end{equation*}
+as in the previous sections. By using the logistic function, we can compute the probability of whether any data point is in the first or second category.
+\begin{equation*}
+    p(\mathbf{X}) = \frac{e^{\mathbf{X}\bm{\beta}}}{1 + e^{\mathbf{X}\bm{\beta}}} 
+\end{equation*}
+This function is a transformation of the linear regression model to guarantee that the output is a probability. 
 Temporary notes
 \begin{itemize}
     \item transformation of a linear model to guarantee that the output is a probability
@@ -196,17 +226,17 @@ The scalar in front of the gradient term, here $\eta_k$, is called the learning 
 This is also known as simultaneous relaxation and under certain conditions on the Hessian it can be shown that 
 $\mathbf{w_k}$ converges to $\mathbf{\xi}$  given that $\mathbf{w_0}$ is close enough to $\xi$ \cite[p.~117--118]{introNumeric}
 For non differentiable functions we may still obtain convergence by clever choice of $\eta_k$ and numerical approximations of the gradient. 
-\autoref{fig:simple_gradient_descent} shows a simple example of 100 iterations performed on $f(w) = w^2$ with $\eta = 0.01$
+\autoref{fig:simple_gradient_descent} shows a simple example of 30 iterations performed on $f(w) = w^2$ with $\eta = 0.01$
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.68\textwidth]{Project2/figures/simple_gradient_descent.png}
+    \includegraphics[width=0.68\textwidth]{figures/simple_gradient_descent_x^2.pdf}
     \caption{Gradient Descent on the function $f(x)=x^2$, starting from $w_0 = -4$ with $\eta = 0.01$, ran for 30 iterations.}
     \label{fig:simple_gradient_descent}
 \end{figure}
 For this simple example the iteration converged quickly, reaching a absolute value less than 0.001 after only 27 iterations. Gradient descent is not always this efficient. 
 
-The two natural weaknesses of gradient descent are neatly explained in \cite[p.~65--71]{MLRefined}. The first stems from the gradient being always perpendicular to the contour line. This is easily proved through parameterization.
+The two natural weaknesses of gradient descent are neatly explained in \cite[p.~65--71]{MLRefined}. The first stems from the gradient always being perpendicular to the contour line. This is easily proved through parameterization.
 
 
 \begin{lemma}
@@ -275,24 +305,24 @@ descent can be ameliorated using the momentum-accelerated gradient descent}
 \subsubsection{AdaGrad}
 The Adaptive gradient optimizer, or AdaGrad was introduced by \cite{duchi2011adaptive} and its update rule is given by
 
-\[ w_{k+1}= w_{k}-\eta \mathbf{G_{k}}^{\circ -1/2} \odot \mathbf{\nabla f(w_k)} \]
-where $\odot$ is the Hadamard product, $\circ$ is the Hadamard power. $G_k$ is then the sum of the Hadamard squares of the previous gradients 
-\begin{equation}
-    G_k = \sum_{i = 0}^k \mathbf{g_i}^{\circ 2} = \sum_{i = 0}^k \mathbf{\nabla f(w_i)}^{\circ 2} = \sum_{i = 0}^k \mathbf{\nabla f(w_i)} \odot \mathbf{\nabla f(w_i)}
-\end{equation}
+\[ w_{k+1}= w_{k}-\eta \hspace{1mm} diag\left(\mathbf{G_{k}}\right)^{-1/2} \odot \mathbf{ g_k} \]
+where $\odot$ is the Hadamard product and $G_k$ is the sum of the outerproducts of the previous gradients
+\begin{equation*}
+    G_k = \sum_{i = 0}^k \mathbf{g_i} \mathbf{g_i^T}
+\end{equation*}
 
- Element wise we have that $G_{k}^{(n)}$ ( the $n$-th component of $G_k$) is the sum of the squares of the previous gradients in direction $n$
+ We thus have that $diag\left(G_{k}\right)^{(n)}$ ( the $n^{th}$component of $diag\left(G_k\right)$) is the sum of the squares of the previous gradients in direction $n$
  \[
- G_{k}^{(n)} = \sum_{i=0}^k  \left(g_k^{(n)}\right)^2 
+ diag\left(G_{k}\right)^{(n)} = \sum_{i=0}^k  \left(g_k^{(n)}\right)^2 
  \]
 
  Normally a small numerical stabiliser is added to $G_k$ to avoid division by zero
  \[
- w_{k+1}^{(n)}= w_{k}^{(n)}- \frac{\eta}{\delta + \sqrt{G_{k}^{(n)}}} \odot g_k^{(n)}
+ w_{k+1}^{(n)}= w_{k}^{(n)}- \frac{\eta}{ \sqrt{\delta+diag\left(G_{k}\right)^{(n)}}} \odot g_k^{(n)}
  \]
  
 
-As $G_k^{(n)}$ increases, the step size in direction $n$ decreases, which reduces the emphasis on that particular direction as it is traversed. This is the core concept of AdaGrad's design. AdaGrad is most effective when two conditions are met: first, when we need to move the same distance in each dimension, and second, when we have an appropriate choice of $\eta$. Opting for a too small $\eta$ could result in the algorithm converging very slowly or coming to a halt due to the decaying step size. Conversely, selecting a too large $\eta$ could lead to also sluggish convergence. Thus, selecting an appropriate value of $\eta$ is vital to ensuring efficient functioning of the algorithm. 
+As $diag\left(G_k\right)^{(n)}$ increases, the step size in direction $n$ decreases, which reduces the emphasis on that particular direction as it is traversed. This is the core concept of AdaGrad's design. AdaGrad is most effective when two conditions are met: first, when we need to move the same distance in each dimension, and second, when we have an appropriate choice of $\eta$. Opting for a too small $\eta$ could result in the algorithm converging very slowly or coming to a halt due to the decaying step size. Conversely, selecting a too large $\eta$ could lead to also sluggish convergence. Thus, selecting an appropriate value of $\eta$ is vital to ensuring efficient functioning of the algorithm. 
 
 
 \subsubsection{RMSprop}
@@ -300,8 +330,8 @@ RMSprop, root mean square propagation, was first introduced in 2012, in lecture 
 \cite{NNforML-Lecture6} It's update rule is defined as 
 
 \begin{align*}
-    \mathbf{v_{k+1}} =& \beta \mathbf{v_{k}} + (1-\beta) \mathbf{g_k}^{\circ 2}\\
-    w_{k+1}^{(n)} =& w_k^{(n)} - \frac{\eta}{\delta +  \sqrt{v_{k+1}^{(n)}}} g_k^{(n)}
+    \mathbf{v_{k+1}} =& \rho \mathbf{v_{k}} + (1-\rho) \mathbf{g_k}^{\circ 2}\\
+    w_{k+1}^{(n)} =& w_k^{(n)} - \frac{\eta}{  \sqrt{\delta + v_{k+1}^{(n)}}} g_k^{(n)}
 \end{align*}
 
  We have chosen to only give the element wise update rule, as for RMSprop, as the vector notation for the final equation is not very pretty. $\delta$ is a numerical stabilizer, $0\leq \beta \leq 1$ and $\mathbf{v_0}$ is usually initialised to the zero vector.
@@ -312,15 +342,19 @@ Like AdaGrad the update keeps some sort of memory of previous gradients. Where $
 \subsubsection{ADAM}
 Adaprive moment estimation, most commonly known as ADAM. Is a optimization algorithm which combines the some of the aspects from RMSprop with momentum. It's update is given by
 \begin{align*}
-    \mathbf{m_{k+1}} =& \frac{\beta_1 \mathbf{m_k} + (1- \beta_1) \mathbf{g_k}}{\left(1 - \beta_1^{k+1}\right)}\\
-    \mathbf{v_{k+1}} =& \frac{\beta_2 \mathbf{v_k} + (1-\beta_2) \mathbf{g_k}^{\circ 2}}{\left(1-\beta_2^{k+1}\right)}\\
-    w_{k+1}^{(n)} =& w_k^{(n)} - \frac{\eta}{\delta + \sqrt{v_{k+1}^{(n)}}} m_{k+1}^{n}
+    \mathbf{m_{k+1}} =& \frac{\rho_1 \mathbf{m_k} + (1- \rho_1) \mathbf{g_k}}{\left(1 - \rho_1^{k+1}\right)}\\
+    \mathbf{v_{k+1}} =& \frac{\rho_2 \mathbf{v_k} + (1-\rho_2) \mathbf{g_k}^{\circ 2}}{\left(1-\rho_2^{k+1}\right)}\\
+    w_{k+1}^{(n)} =& w_k^{(n)} - \frac{\eta}{ \sqrt{\delta+v_{k+1}^{(n)}}} m_{k+1}^{n}
 \end{align*}
 
 Here $0 \leq \beta_1,\beta_2 < 1$ 
 \par
 \vspace{1mm}
-Notice that the denominator of $\mathbf{m_{k+1}}$ and $\mathbf{v_{k+1}}$ starts somewhere in $(0,1]$ and then increases to 1 as $k \to \infty$. This gives an amplification of the vectors, which subsides for larger $k$. This is meant to alleviate a bias towards zero as  $\mathbf{m_0}, \mathbf{v_0} = 0$ \cite{kingma2014adam}[section 3]
+Notice that the denominator of $\mathbf{m_{k+1}}$ and $\mathbf{v_{k+1}}$ starts somewhere in $(0,1]$ and then increases to 1 as $k \to \infty$. This gives an amplification of $\mathbf{m_k}$ and $\mathbf{v_k}$, which subsides for larger $k$. This is meant to alleviate a bias towards zero as  $\mathbf{m_0}, \mathbf{v_0} = 0$ \cite{kingma2014adam}[section 3]
+
+%It may be tempting to conclude that every subsequent algorithm is superior to its predecessor. However, this is not strictly true.
+\vspace{2mm}
+Optimization algorithms can be used to minimize any specific function. However, the latter three are all designed for minimizing a particular set of functions; the cost functions of Artificial Neural Networks (ANNs). These cost functions measure the error made by ANNs in predicting observed values from input data. How these predictions are made and adjusted is the topic of section 3.
 
 \subsection{Neural Networks}
 % Neural networks are computational systems inspired by the networks of neurons in the brain.
@@ -334,58 +368,14 @@ Notice that the denominator of $\mathbf{m_{k+1}}$ and $\mathbf{v_{k+1}}$ starts 
 % $\ldots$\\
 Neural networks are computational systems inspired by the networks of neurons within the brain. In the brain, when a neuron receives an electrical impulse above a certain threshold, it sends an electrical signal to the neurons connected to it, causing a chain reaction. In order to mimic this, an artificial neural network is set up with a number of layers, each with a set of artificial neurons. The first layer is commonly called the input layer, which is followed by a number of hidden layers, culminating in the final layer called the output layer.
 
-\begin{figure}[ht]
-\centering
-\def\layersep{2.5cm}
-\def\nodeinlayersep{1.2cm}
-\begin{tikzpicture}[shorten >=1pt,->,draw=black!50, node distance=\layersep]
-    \tikzstyle{every pin edge}=[<-,shorten <=1pt]
-    \tikzstyle{neuron}=[circle, fill=black!25,minimum size=20pt,inner sep=0pt]
-    \tikzstyle{input neuron}=[neuron, fill=red!50];
-    \tikzstyle{output neuron}=[neuron, fill=orange!50];
-    \tikzstyle{hidden neuron}=[neuron, fill=blue!50, minimum size=20pt];
-    \tikzstyle{hidden neuron2}=[neuron, fill=blue!50, minimum size=20pt];
 
-    \foreach \name / \y in {0,...,2}
-        \node[input neuron] (I-\name) at (0,-\y) {};
-
-    \foreach \name / \y in {0,...,3}
-        \path[yshift=0.5cm]
-            node[hidden neuron] (H1-\name) at (\layersep,-\y cm) {};
-
-    \foreach \name / \y in {0,...,3}
-        \path[yshift=0.5cm]
-            node[hidden neuron2] (H2-\name) at (2*\layersep,-\y cm) {};    
-
-    \foreach \name / \y in {0,...,1}
-        % \node[output neuron,pin={[pun edge={->}]right:Output \#\y}, right of=H2-2] (O-\name) at (3*\layersep, -\y cm) {};
-        \path[yshift=-0.5cm]
-            node[output neuron] (O-\name) at (3*\layersep, -\y cm) {};
-
-
-    \foreach \source in {0,...,2}
-        \foreach \dest in {0,...,3}
-            \path (I-\source) edge (H1-\dest);
-
-    \foreach \source in {0,...,3}
-        \foreach \dest in {0,...,3}
-            \path (H1-\source) edge (H2-\dest);
-
-    \foreach \source in {0,...,3}
-        \foreach \dest in {0,...,1}
-            \path (H2-\source) edge (O-\dest);
-\end{tikzpicture}
-\caption{Illustration of a fully connected feed-forward neural network with an input layer (red), two hidden layers (blue) and an output layer (orange).}
-\label{fig:SimpleFFNN}
-\end{figure}
-
-The \textit{feed-forward} neural network (FFNN), was the first, and perhaps simplest, artificial neural network (\textbf{SOURCE}). Each node is connected to nodes in the next layer, with a weight $w \in \mathbb{R}$ attached to each edge. Additionally, we attach one weight $b \in \mathbb{R}$ to the node itself, called the bias. Henceforth, we describe the \textit{fully connected} feed-forward neural network, where the nodes are connected to \textit{all} nodes in the next layer, illustrated in \autoref{fig:SimpleFFNN}.
+The \textit{feed-forward} neural network (FFNN), was the first, and perhaps simplest, artificial neural network (\textbf{SOURCE}). Each node is connected to nodes in the next layer, with a weight $w \in \mathbb{R}$ attached to each edge, representing the strength of the connection between them. Additionally, we attach a bias $b \in \mathbb{R}$ to the node itself, also refereed to as the offset. Henceforth, we describe the \textit{fully connected} feed-forward neural network, where the nodes are connected to \textit{all} nodes in the next layer, illustrated in \autoref{fig:SimpleFFNN}.
 
 Information in this network moves from left to right. The value of a node is dependent on the weights and values of the previous layer, as well as the bias. Let $N_l \in \mathbb{N}$ be the number of nodes in layer $l$ with the input layer being $l = 0$. We then calculate
 \begin{equation*}
     z_{i}^1 = \sum_{j = 0}^{N_0 - 1} w_{ij}^1 x_j + b_i^1 \qquad \textnormal{for} \ i = 0, 1, \ldots, N_1 - 1,
 \end{equation*}
-with $w^l_{ij}, b^l_i \in \mathbb{R}$ being the weight connecting nodes $i$ and $j$ in layer $l$ and bias of node $i$, and $x_j \in \mathbb{R}$ being $j$-th input. We call $z$ the activation value. Let $f^l: \mathbb{R} \to \mathbb{R}$ be a function, called the activation function for the $l$-th layer. We calculate the output of the node by $a_i^l = f^l(z_i^l)$. For the following layers, we calculate a \textit{feed-forward pass}
+with $w^l_{ij}$ being the weight connecting node $i$ in layer $l$ and node $j$ in layer $l-1$, $b_i^l$ the bias of node $i$ and $x_j$ the $j^{th}$ input. We call $z$ the activation value. Let $f^l: \mathbb{R} \to \mathbb{R}$ be a function, called the activation function for the $l^{\text{th}}$ layer. We calculate the output of the node by $a_i^l = f^l(z_i^l)$. For the following layers, we calculate a \textit{feed-forward pass}
 \begin{equation*}
     a_i^l = f^l(z_{i}^l) = f^l \left( \sum_{j = 0}^{N_l - 1} w_{ij}^l a_j^{l-1} + b_i^{l} \right) \qquad \textnormal{for} \ i = 0, 1, \ldots, N_l - 1,
 \end{equation*}
@@ -448,7 +438,7 @@ illustrated in \autoref{fig:FeedForward}.
 \label{fig:FeedForward}
 \end{figure}
 
-We gather the weights connecting the $l$-th and $(l-1)$-th layers in a $N_{l} \times N_{l-1}$ matrix $\mathbf{W}_l$, and the biases and outputs in $N_l \times 1$ column vectors $\mathbf{b}_l, \mathbf{y}_l$ as follows.
+We gather the weights connecting the $l^{th}$ and $(l-1)^{th}$ layers in a $N_{l} \times N_{l-1}$ matrix $\mathbf{W}_l$, and the biases and outputs in $N_l \times 1$ column vectors $\mathbf{b}_l, \mathbf{y}_l$ as follows.
 \begin{equation*}
     \mathbf{W}_l = 
     \begin{bmatrix}
@@ -577,13 +567,104 @@ for some positive $\gamma \in \mathbb{R}$.
 
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=.7\textwidth]{activators/LRELU.pdf}
+    \includegraphics[width=.7\textwidth]{activators/LReLU.pdf}
     \caption{A plot of leaky rectified linear unit (LRELU) activation function on $[-2, 1]$, with $\gamma=0.1$, against RELU.}
     \label{fig:LRELU}
 \end{figure}
 
+\subsubsection{Minimizing the cost function: Back propagation}
 
-\subsubsection{Back propagation}
+Once obtaining the values of our output layer $\mathcal{N}(\boldsymbol{x})$ its immediately natural to evaluate how well our model performed. That is the loss from the expected output values
+
+\[
+L(\mathcal{N}(\boldsymbol{x}), \mathbf{y})
+\]
+The mean over $n$ such losses gives us the cost function
+\[
+C(\mathcal{N}, \boldsymbol{x}^*, \mathbf{y}^*) = \frac{1}{n} \sum_{i=0}^{n}L(\mathcal{N}(\boldsymbol{x}^{(i)}), \mathbf{y}^{(i)})
+\]
+Here we let $\mathbf{x}^*$ and $\mathbf{y}^*$ denote the matrices containing the column vectors $\mathbf{x}^{(i)}$ and $\mathbf{y}^{(i)}$. These matrices are commonly referred to as our labeled data or our training data. This cost function is our optimization problem, the function we wish to minimize. 
+
+\[
+\argmin_{\mathcal{N}} C(\mathcal{N}, \boldsymbol{x}^*, \mathbf{y}^*) 
+\]
+$\mathcal{N}$ consists of three components: our weights, biases and activation functions. Minimizing with respect to the activation functions is not necessary, as by the Universal Approximation Theorem, there are many that will suffice. By minimizing with respect to the weights and biases we get the back propagation algorithm.
+
+Letting $\eta$ and $\mu$ encompass all the different learning rates by our methods in section 2.2 we get the general iteration on layer $l$
+\begin{align*}
+    \hat{w_{i,j}^{l}} =\hspace{1mm}&
+    w_{i,j}^{l} - \eta \frac{\partial C}{\partial {w_{i,j}^{l}}}\\
+    \hat{b_i^{l}} =\hspace{1mm}& b_i^{l} - \mu  \frac{\partial C}{\partial b_i^l} 
+\end{align*}
+
+Finding these partial derivatives is the key to our algorithm.
+
+ We return to $a_i^l$ begin the value of node $i$ in layer $l$, $z_i^l$ the value before activation. Then for some arbitrary layer $l$ we get by the chain rule
+
+\begin{align*}
+    \frac{\partial C}{\partial w_{i,j}^l} =& \frac{\partial C}{\partial a_i^l} \frac{\partial f^l}{\partial a_i^l} \frac{\partial z_i^l}{\partial w_{i,j}^l} \\
+    \frac{\partial C}{\partial b_i^l} = & \frac{\partial C}{\partial a_i^l} \frac{\partial f^l}{\partial a_i^l} \frac{\partial z_i^l}{\partial b_i^l}
+\end{align*}
+The third factors of these products simplifies to
+
+\begin{align*}
+    \frac{\partial z_{i}^l }{\partial w_{i,j}^l} = &  \frac{\partial}{\partial w_{i,j}^l} \sum_{k = 0}^{N_l - 1} w_{i,k}^L a_k^{l-1} + b_i^l = a_j^{l-1}\\
+    \frac{\partial z_i^l}{\partial b_i^l} = 1
+\end{align*}
+\noindent
+The first $\frac{\partial C}{\partial a_i^l}$ can be expanded using the chain rule again.
+
+\begin{align*}
+    \frac{\partial C}{\partial a_i^l} = \sum_{j=0}^{N_{l+1}-1} \frac{\partial C}{\partial a_j^{l+1}} \frac{\partial_i}{}
+\end{align*}
+
+
+\begin{figure}[ht]
+\centering
+\def\layersep{2.5cm}
+\def\nodeinlayersep{1.2cm}
+\begin{tikzpicture}[shorten >=1pt,->,draw=black!50, node distance=\layersep]
+    \tikzstyle{every pin edge}=[<-,shorten <=1pt]
+    \tikzstyle{neuron}=[circle, fill=black!25,minimum size=20pt,inner sep=0pt]
+    \tikzstyle{hidden neuron}=[neuron, fill=blue!50, minimum size=20pt];
+    \tikzstyle{hidden neuron2}=[neuron, fill=blue!50, minimum size=20pt];
+    \tikzstyle{hidden neuron opaque}=[neuron, fill=blue, minimum size=20pt, opacity=0.2];  % New style for opaque neurons
+
+
+    \foreach \name / \y in {0}
+        \path[yshift=0.5cm]
+            node[hidden neuron] (H1-\name) at (\layersep,-\y cm) {};
+
+    \foreach \name / \y in {1,...,3} 
+        \path[yshift=0.5cm]
+            node[hidden neuron opaque] (H1-\name) at (\layersep,-\y cm) {};
+
+    \foreach \name / \y in {0,...,3}
+        \path[yshift=0.5cm]
+            node[hidden neuron2] (H2-\name) at (2*\layersep,-\y cm) {};    
+
+
+    \foreach \source in {0}
+        \foreach \dest in {0,...,3}
+            \path (H1-\source) edge (H2-\dest);
+
+\end{tikzpicture}
+\caption{lol}
+\label{fig:thingy}
+\end{figure}
+
+
+
+Gathering $\frac{\partial C}{\partial a_i^l}$ $\frac{\partial f^l}{\partial a_i^l}$ to one variable $\delta_{i,j}^{l}$ we get
+\begin{align*}
+    \frac{\partial C}{\partial w_{i,j}^l} =& \delta_{i,j}^{l} a_j^{l-1} \\
+    \frac{\partial C}{\partial b_i^l} = & \delta_{i,j}^{l} 
+\end{align*}
+
+
+
+
+\subsubsection{Cost functions}
 
 \section{Method}
 
