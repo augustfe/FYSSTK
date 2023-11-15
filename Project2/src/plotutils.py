@@ -12,6 +12,7 @@ from matplotlib.ticker import LinearLocator, FormatStrFormatter
 
 mpl.rcParams["mathtext.fontset"] = "stix"
 mpl.rcParams["font.family"] = "STIXGeneral"
+mpl.rcParams["figure.titlesize"] = 15
 
 
 def setColors(
@@ -62,7 +63,8 @@ def PlotPredictionPerVariable(
     n_epochs: int = 500,
     savePlots: bool = False,
     showPlots: bool = True,
-    figsPath: Path = Path(__file__).parent.parent / "figures",
+    figsPath: Path = None,
+    saveName: str = None,
 ) -> None:
     r"""
     Plots predicted polynomials for different values of a variable parameter.
@@ -120,7 +122,7 @@ def PlotPredictionPerVariable(
     plt.tight_layout()
 
     if savePlots:
-        plt.savefig(figsPath / f"{title}.png")
+        plt.savefig(figsPath / f"{saveName}.pdf")
     if showPlots:
         plt.show()
     plt.close(fig)
@@ -138,7 +140,8 @@ def PlotErrorPerVariable(
     colormap: str = "viridis",
     savePlots: bool = False,
     showPlots: bool = True,
-    figsPath: Path = Path(__file__).parent.parent / "figures",
+    figsPath: Path = None,
+    saveName: str = None,
 ) -> None:
     r"""
     Plots training error for different values of a variable parameter.
@@ -187,7 +190,7 @@ def PlotErrorPerVariable(
     plt.tight_layout()
 
     if savePlots:
-        plt.savefig(figsPath / f"{title}.png")
+        plt.savefig(figsPath / f"{saveName}.pdf")
     if showPlots:
         plt.show()
     plt.close(fig)
@@ -203,7 +206,8 @@ def plotThetas(
     colormap: str = "viridis",
     savePlots: bool = False,
     showPlots: bool = True,
-    figsPath: Path = Path(__file__).parent.parent / "figures",
+    figsPath: Path = None,
+    saveName: str = None,
 ) -> None:
     r"""
     Plots the values of theta for different values of eta.
@@ -255,7 +259,7 @@ def plotThetas(
     plt.ylabel(r"$\theta$")
     plt.title(title)
     if savePlots:
-        plt.savefig(figsPath / f"{title}.png")
+        plt.savefig(figsPath / f"{saveName}.pdf")
     if showPlots:
         plt.show()
     plt.close()
@@ -269,7 +273,8 @@ def plotHeatmap(
     colormap: str = "viridis",
     savePlots: bool = False,
     showPlots: bool = True,
-    figsPath: Path = Path(__file__).parent.parent / "figures",
+    figsPath: Path = None,
+    saveName: str = None,
 ) -> None:
     fig, ax = plt.subplots()
     sns.heatmap(df, cmap=colormap, ax=ax)
@@ -278,7 +283,7 @@ def plotHeatmap(
     ax.set_ylabel(y_label)
     plt.tight_layout()
     if savePlots:
-        plt.savefig(figsPath / f"{title}.png")
+        plt.savefig(figsPath / f"{saveName}.pdf")
     if showPlots:
         plt.show()
     plt.close(fig)

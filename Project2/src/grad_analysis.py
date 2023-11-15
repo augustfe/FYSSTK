@@ -20,8 +20,8 @@ from plotutils import (
 from typing import Callable
 import pandas as pd
 from sklearn.metrics import mean_squared_error
-from line_profiler import profile
 from utils import assign, assign_row
+from pathlib import Path
 
 
 class GradAnalysis:
@@ -38,6 +38,9 @@ class GradAnalysis:
         true_theta: np.ndarray = None,
         base_x: np.ndarray = None,
         lmbda: float = None,
+        showPlots: bool = True,
+        savePlots: bool = False,
+        figspath: Path = None,
     ) -> None:
         self.x_vals = x_vals
         self.y_vals = y_vals
@@ -47,6 +50,10 @@ class GradAnalysis:
         self.cost_func = cost_func
         self.derivative_func = derivative_func
         self.lmbda = lmbda
+
+        self.savePlots = savePlots
+        self.showPlots = showPlots
+        self.figspath = figspath
 
         if self.seed is not None:
             onp.random.seed(self.seed)
@@ -173,6 +180,10 @@ class GradAnalysis:
             error_arr,
             eta_vals,
             title="Error per epoch (Constant)",
+            savePlots=self.savePlots,
+            showPlots=self.showPlots,
+            figsPath=self.figspath,
+            saveName="constant_error",
         )
         PlotPredictionPerVariable(
             self.base_x,
@@ -181,12 +192,20 @@ class GradAnalysis:
             title="Predicted polynomials (Constant)",
             n_epochs=self.n_epochs,
             target_func=self.target_func,
+            savePlots=self.savePlots,
+            showPlots=self.showPlots,
+            figsPath=self.figspath,
+            saveName="constant_prediction",
         )
         plotThetas(
             theta_arr,
             eta_vals,
             title="Model parameters (Constant)",
             true_theta=self.true_theta,
+            savePlots=self.savePlots,
+            showPlots=self.showPlots,
+            figsPath=self.figspath,
+            saveName="constant_thetas",
         )
 
     def momentum_analysis(
@@ -194,15 +213,19 @@ class GradAnalysis:
         eta_vals: np.ndarray,
         rho_vals: np.ndarray,
         dim: int = 2,
-        showPlots: bool = True,
-        savePlots: bool = False,
     ) -> None:
         schedulers = [Momentum(eta, 0.9) for eta in eta_vals]
         theta_arr, error_arr = self.error_and_theta_vals_gd(schedulers, dim)
         pred_arr = self.pred_per_theta(self.base_x, theta_arr, dim)
 
         PlotErrorPerVariable(
-            error_arr, eta_vals, title=r"Error per epoch (Momentum) $\rho=0.9$"
+            error_arr,
+            eta_vals,
+            title=r"Error per epoch (Momentum) $\rho=0.9$",
+            savePlots=self.savePlots,
+            showPlots=self.showPlots,
+            figsPath=self.figspath,
+            saveName="momentum_error_eta",
         )
         PlotPredictionPerVariable(
             self.base_x,
@@ -211,12 +234,20 @@ class GradAnalysis:
             title=r"Predicted polynomials (Momentum) $\rho=0.9$",
             n_epochs=self.n_epochs,
             target_func=self.target_func,
+            savePlots=self.savePlots,
+            showPlots=self.showPlots,
+            figsPath=self.figspath,
+            saveName="momentum_prediction_eta",
         )
         plotThetas(
             theta_arr,
             eta_vals,
             title=r"Model parameters (Momentum) $\rho=0.9$",
             true_theta=self.true_theta,
+            savePlots=self.savePlots,
+            showPlots=self.showPlots,
+            figsPath=self.figspath,
+            saveName="momentum_thetas_eta",
         )
 
         schedulers = [Momentum(0.001, rho) for rho in rho_vals]
@@ -228,6 +259,10 @@ class GradAnalysis:
             rho_vals,
             title=r"Error per epoch (Momentum) $\eta=0.001$",
             variable_label=r"$\rho$",
+            savePlots=self.savePlots,
+            showPlots=self.showPlots,
+            figsPath=self.figspath,
+            saveName="momentum_error_rho",
         )
         PlotPredictionPerVariable(
             self.base_x,
@@ -237,6 +272,10 @@ class GradAnalysis:
             n_epochs=self.n_epochs,
             target_func=self.target_func,
             variable_label=r"$\rho$",
+            savePlots=self.savePlots,
+            showPlots=self.showPlots,
+            figsPath=self.figspath,
+            saveName="momentum_prediction_rho",
         )
         plotThetas(
             theta_arr,
@@ -245,6 +284,10 @@ class GradAnalysis:
             true_theta=self.true_theta,
             variable_label=r"$\rho$",
             variable_type="linear",
+            savePlots=self.savePlots,
+            showPlots=self.showPlots,
+            figsPath=self.figspath,
+            saveName="momentum_thetas_rho",
         )
 
         n_rho = 25
@@ -263,9 +306,13 @@ class GradAnalysis:
         )
         plotHeatmap(
             df,
-            title=f"Error after {self.n_epochs} epochs",
+            title=f"Error after {self.n_epochs} epochs (Momentum)",
             x_label=r"$\eta$",
             y_label=r"$\rho$",
+            savePlots=self.savePlots,
+            showPlots=self.showPlots,
+            figsPath=self.figspath,
+            saveName="momentum_heatmap_eta_rho",
         )
 
     def adagrad_analysis(
@@ -281,6 +328,10 @@ class GradAnalysis:
             error_arr,
             eta_vals,
             title=r"Error per epoch (Adagrad)",
+            savePlots=self.savePlots,
+            showPlots=self.showPlots,
+            figsPath=self.figspath,
+            saveName="adagrad_error",
         )
         PlotPredictionPerVariable(
             self.base_x,
@@ -289,12 +340,20 @@ class GradAnalysis:
             title=r"Predicted polynomials (Adagrad)",
             n_epochs=self.n_epochs,
             target_func=self.target_func,
+            savePlots=self.savePlots,
+            showPlots=self.showPlots,
+            figsPath=self.figspath,
+            saveName="adagrad_prediction",
         )
         plotThetas(
             theta_arr,
             eta_vals,
             title=r"Model parameters (Adagrad)",
             true_theta=self.true_theta,
+            savePlots=self.savePlots,
+            showPlots=self.showPlots,
+            figsPath=self.figspath,
+            saveName="adagrad_thetas",
         )
 
     def adagrad_momentum_analysis(
@@ -302,8 +361,6 @@ class GradAnalysis:
         eta_vals: np.ndarray,
         rho_vals: np.ndarray,
         dim: int = 2,
-        showPlots: bool = True,
-        savePlots: bool = False,
     ) -> None:
         schedulers = [AdagradMomentum(eta, 0.9) for eta in eta_vals]
         theta_arr, error_arr = self.error_and_theta_vals_gd(schedulers, dim)
@@ -313,6 +370,10 @@ class GradAnalysis:
             error_arr,
             eta_vals,
             title=r"Error per epoch (AdagradMomentum) $\rho=0.9$",
+            savePlots=self.savePlots,
+            showPlots=self.showPlots,
+            figsPath=self.figspath,
+            saveName="adagrad_momentum_error_eta",
         )
         PlotPredictionPerVariable(
             self.base_x,
@@ -321,12 +382,20 @@ class GradAnalysis:
             title=r"Predicted polynomials (AdagradMomentum) $\rho=0.9$",
             n_epochs=self.n_epochs,
             target_func=self.target_func,
+            savePlots=self.savePlots,
+            showPlots=self.showPlots,
+            figsPath=self.figspath,
+            saveName="adagrad_momentum_prediction_eta",
         )
         plotThetas(
             theta_arr,
             eta_vals,
             title=r"Model parameters (AdagradMomentum) $\rho=0.9$",
             true_theta=self.true_theta,
+            savePlots=self.savePlots,
+            showPlots=self.showPlots,
+            figsPath=self.figspath,
+            saveName="adagrad_momentum_thetas_eta",
         )
 
         schedulers = [AdagradMomentum(0.1, rho) for rho in rho_vals]
@@ -338,6 +407,10 @@ class GradAnalysis:
             rho_vals,
             title=r"Error per epoch (AdagradMomentum) $\eta=0.1$",
             variable_label=r"$\rho$",
+            savePlots=self.savePlots,
+            showPlots=self.showPlots,
+            figsPath=self.figspath,
+            saveName="adagrad_momentum_error_rho",
         )
         PlotPredictionPerVariable(
             self.base_x,
@@ -347,6 +420,10 @@ class GradAnalysis:
             n_epochs=self.n_epochs,
             target_func=self.target_func,
             variable_label=r"$\rho$",
+            savePlots=self.savePlots,
+            showPlots=self.showPlots,
+            figsPath=self.figspath,
+            saveName="adagrad_momentum_prediction_rho",
         )
         plotThetas(
             theta_arr,
@@ -355,6 +432,10 @@ class GradAnalysis:
             true_theta=self.true_theta,
             variable_label=r"$\rho$",
             variable_type="linear",
+            savePlots=self.savePlots,
+            showPlots=self.showPlots,
+            figsPath=self.figspath,
+            saveName="adagrad_momentum_thetas_rho",
         )
 
         n_rho = 75
@@ -368,13 +449,21 @@ class GradAnalysis:
             [AdagradMomentum(eta, rho) for eta in heat_eta] for rho in heat_rho
         ]
         error_arr = self.error_per_variables(schedulers, dim)
-
         df = pd.DataFrame(
             error_arr,
             index=[f"{rho:.2f}" for rho in heat_rho],
             columns=[f"{eta:.2e}" for eta in heat_eta],
         )
-        plotHeatmap(df, title=f"Error after {self.n_epochs} epochs")
+        plotHeatmap(
+            df,
+            title=f"Error after {self.n_epochs} epochs (AdagradMomentum)",
+            x_label=r"$\eta$",
+            y_label=r"$\rho$",
+            savePlots=self.savePlots,
+            showPlots=self.showPlots,
+            figsPath=self.figspath,
+            saveName="adagrad_momentum_heatmap_eta_rho",
+        )
 
     def adam_analysis(
         self,
@@ -393,6 +482,10 @@ class GradAnalysis:
             error_arr,
             eta_vals,
             title=r"Error per epoch (Adam) $\rho=0.9$, $\rho_2=0.999$",
+            savePlots=self.savePlots,
+            showPlots=self.showPlots,
+            figsPath=self.figspath,
+            saveName="adam_error_eta",
         )
         PlotPredictionPerVariable(
             self.base_x,
@@ -401,12 +494,20 @@ class GradAnalysis:
             title=r"Predicted polynomials (Adam) $\rho=0.9$, $\rho_2=0.999$",
             n_epochs=self.n_epochs,
             target_func=self.target_func,
+            savePlots=self.savePlots,
+            showPlots=self.showPlots,
+            figsPath=self.figspath,
+            saveName="adam_prediction_eta",
         )
         plotThetas(
             theta_arr,
             eta_vals,
             title=r"Model parameters (Adam) $\rho=0.9$, $\rho_2=0.999$",
             true_theta=self.true_theta,
+            savePlots=self.savePlots,
+            showPlots=self.showPlots,
+            figsPath=self.figspath,
+            saveName="adam_thetas_eta",
         )
 
         schedulers = [Adam(0.1, rho, 0.999) for rho in rho_vals]
@@ -417,7 +518,11 @@ class GradAnalysis:
             error_arr,
             rho_vals,
             title=r"Error per epoch (Adam) $\eta=0.1$, $\rho_2=0.999$",
-            variable_label=r"$\rho$",
+            variable_label=r"$\rho_1$",
+            savePlots=self.savePlots,
+            showPlots=self.showPlots,
+            figsPath=self.figspath,
+            saveName="adam_error_rho1",
         )
         PlotPredictionPerVariable(
             self.base_x,
@@ -426,15 +531,23 @@ class GradAnalysis:
             title=r"Predicted polynomials (Adam) $\eta=0.1$, $\rho_2=0.999$",
             n_epochs=self.n_epochs,
             target_func=self.target_func,
-            variable_label=r"$\rho$",
+            variable_label=r"$\rho_1$",
+            savePlots=self.savePlots,
+            showPlots=self.showPlots,
+            figsPath=self.figspath,
+            saveName="adam_prediction_rho1",
         )
         plotThetas(
             theta_arr,
             rho_vals,
             title=r"Model parameters (Adam) $\eta=0.1$, $\rho_2=0.999$",
             true_theta=self.true_theta,
-            variable_label=r"$\rho$",
+            variable_label=r"$\rho_1$",
             variable_type="linear",
+            savePlots=self.savePlots,
+            showPlots=self.showPlots,
+            figsPath=self.figspath,
+            saveName="adam_thetas_rho1",
         )
 
         schedulers = [Adam(0.1, 0.9, rho2) for rho2 in rho2_vals]
@@ -443,16 +556,24 @@ class GradAnalysis:
         PlotErrorPerVariable(
             error_arr,
             rho2_vals,
-            title=r"Error per epoch (Adam) $\eta=0.1$, $\rho=0.9$",
+            title=r"Error per epoch (Adam) $\eta=0.1$, $\rho_1=0.9$",
             variable_label=r"$\rho_2$",
+            savePlots=self.savePlots,
+            showPlots=self.showPlots,
+            figsPath=self.figspath,
+            saveName="adam_error_rho2",
         )
         plotThetas(
             theta_arr,
             rho2_vals,
-            title=r"Model parameters (Adam) $\eta=0.1$, $\rho=0.9$",
+            title=r"Model parameters (Adam) $\eta=0.1$, $\rho_2=0.9$",
             true_theta=self.true_theta,
             variable_label=r"$\rho_2$",
             variable_type="linear",
+            savePlots=self.savePlots,
+            showPlots=self.showPlots,
+            figsPath=self.figspath,
+            saveName="adam_thetas_rho2",
         )
 
         n_rho = 75
@@ -469,7 +590,16 @@ class GradAnalysis:
             index=[f"{rho:.2f}" for rho in heat_rho],
             columns=[f"{eta:.2e}" for eta in heat_eta],
         )
-        plotHeatmap(df, title=f"Error after {self.n_epochs} epochs")
+        plotHeatmap(
+            df,
+            title=rf"Error after {self.n_epochs} epochs (Adam) ($\rho_2=0.999$)",
+            x_label=r"$\eta$",
+            y_label=r"$\rho_1$",
+            savePlots=self.savePlots,
+            showPlots=self.showPlots,
+            figsPath=self.figspath,
+            saveName="adagrad_momentum_heatmap_eta_rho",
+        )
 
     def rms_prop_analysis(
         self,
@@ -487,6 +617,10 @@ class GradAnalysis:
             error_arr,
             eta_vals,
             title=r"Error per epoch (RMS_prop) $\rho=0.9$",
+            savePlots=self.savePlots,
+            showPlots=self.showPlots,
+            figsPath=self.figspath,
+            saveName="rms_prop_error_eta",
         )
         PlotPredictionPerVariable(
             self.base_x,
@@ -495,12 +629,20 @@ class GradAnalysis:
             title=r"Predicted polynomials (RMS_prop) $\rho=0.9$",
             n_epochs=self.n_epochs,
             target_func=self.target_func,
+            savePlots=self.savePlots,
+            showPlots=self.showPlots,
+            figsPath=self.figspath,
+            saveName="rms_prop_prediction_eta",
         )
         plotThetas(
             theta_arr,
             eta_vals,
             title=r"Model parameters (RMS_prop) $\rho=0.9$",
             true_theta=self.true_theta,
+            savePlots=self.savePlots,
+            showPlots=self.showPlots,
+            figsPath=self.figspath,
+            saveName="rms_prop_thetas_eta",
         )
 
         schedulers = [RMS_prop(0.01, rho) for rho in rho_vals]
@@ -512,6 +654,10 @@ class GradAnalysis:
             rho_vals,
             title=r"Error per epoch (RMS_prop) $\eta=0.01$",
             variable_label=r"$\rho$",
+            savePlots=self.savePlots,
+            showPlots=self.showPlots,
+            figsPath=self.figspath,
+            saveName="rms_prop_error_rho",
         )
         PlotPredictionPerVariable(
             self.base_x,
@@ -521,6 +667,10 @@ class GradAnalysis:
             n_epochs=self.n_epochs,
             target_func=self.target_func,
             variable_label=r"$\rho$",
+            savePlots=self.savePlots,
+            showPlots=self.showPlots,
+            figsPath=self.figspath,
+            saveName="rms_prop_prediction_rho",
         )
         plotThetas(
             theta_arr,
@@ -529,6 +679,10 @@ class GradAnalysis:
             true_theta=self.true_theta,
             variable_label=r"$\rho$",
             variable_type="linear",
+            savePlots=self.savePlots,
+            showPlots=self.showPlots,
+            figsPath=self.figspath,
+            saveName="rms_prop_thetas_rho",
         )
 
         # n_rho = 75
@@ -579,29 +733,41 @@ class GradAnalysis:
         PlotErrorPerVariable(
             error_arr,
             minibatches,
-            title=r"Error per epoch TimeDecay ($t_0 = 1$, $t_1 = 10$)",
+            title=r"Error per epoch (TimeDecay) $t_0 = 1$, $t_1 = 10$",
             variable_label="Minibatch size",
             variable_type="linear",
             colormap="viridis_r",
+            savePlots=self.savePlots,
+            showPlots=self.showPlots,
+            figsPath=self.figspath,
+            saveName="time_decay_error_minibatch",
         )
         plotThetas(
             theta_arr,
             minibatches,
-            title=r"Model parameters TimeDecay ($t_0 = 1$, $t_1 = 10$)",
+            title=r"Model parameters (TimeDecay) $t_0 = 1$, $t_1 = 10$",
             variable_label="Minibatch size",
             variable_type="linear",
             true_theta=self.true_theta,
+            savePlots=self.savePlots,
+            showPlots=self.showPlots,
+            figsPath=self.figspath,
+            saveName="time_decay_thetas_minibatch",
         )
         PlotPredictionPerVariable(
             self.base_x,
             pred_arr,
             minibatches,
-            title=r"Predicted polynomials TimeDecay ($t_0 = 1$, $t_1 = 10$)",
+            title=r"Predicted polynomials (TimeDecay) $t_0 = 1$, $t_1 = 10$",
             n_epochs=150,
             target_func=self.target_func,
             variable_label="Minibatch size",
             variable_type="linear",
             colormap="viridis_r",
+            savePlots=self.savePlots,
+            showPlots=self.showPlots,
+            figsPath=self.figspath,
+            saveName="time_decay_prediction_minibatch",
         )
 
         schedules = [
@@ -612,16 +778,26 @@ class GradAnalysis:
             Adam(0.01, 0.9, 0.999),
             RMS_prop(0.01, 0.9),
         ]
-        schedule_names = [
-            r"Constant ($\eta=0.01$)",
-            r"Momentum ($\eta=0.01$, $\rho=0.9$)",
-            r"Adagrad ($\eta=0.01$)",
-            r"AdagradMomentum ($\eta=0.01$, $\rho=0.9$)",
-            r"Adam ($\eta=0.01$, $\rho=0.9$, $\rho_2=0.999$)",
-            r"RMS_prop ($\eta=0.01$, $\rho=0.9$)",
+        schedule_titles = [
+            r"(Constant) $\eta=0.01$",
+            r"(Momentum) $\eta=0.01$, $\rho=0.9$",
+            r"(Adagrad) $\eta=0.01$",
+            r"(AdagradMomentum) $\eta=0.01$, $\rho=0.9$",
+            r"(Adam) $\eta=0.01$, $\rho_1=0.9$, $\rho_2=0.999$",
+            r"(RMS_prop) $\eta=0.01$, $\rho=0.9$",
+        ]
+        saveNames = [
+            "constant",
+            "momentum",
+            "adagrad",
+            "adagrad_momentum",
+            "adam",
+            "rms_prop",
         ]
         epoch_size = [60, 60, 150, 60, 40, 60]
-        for schedule, name, epoch in zip(schedules, schedule_names, epoch_size):
+        for schedule, title, epoch, saveName in zip(
+            schedules, schedule_titles, epoch_size, saveNames
+        ):
             error_arr, theta_arr = self.error_per_minibatch(
                 schedule, minibatches, epoch
             )
@@ -630,29 +806,41 @@ class GradAnalysis:
             PlotErrorPerVariable(
                 error_arr,
                 minibatches,
-                title=f"Error per epoch {name}",
+                title=f"Error per epoch {title}",
                 variable_label="Minibatch size",
                 variable_type="linear",
                 colormap="viridis_r",
+                savePlots=self.savePlots,
+                showPlots=self.showPlots,
+                figsPath=self.figspath,
+                saveName=f"{saveName}_error_minibatch",
             )
             plotThetas(
                 theta_arr,
                 minibatches,
-                title=f"Model parameters {name}",
+                title=f"Model parameters {title}",
                 variable_label="Minibatch size",
                 variable_type="linear",
                 true_theta=self.true_theta,
+                savePlots=self.savePlots,
+                showPlots=self.showPlots,
+                figsPath=self.figspath,
+                saveName=f"{saveName}_thetas_minibatch",
             )
             PlotPredictionPerVariable(
                 self.base_x,
                 pred_arr,
                 minibatches,
-                title=f"Predicted polynomials {name}",
+                title=f"Predicted polynomials {title}",
                 n_epochs=epoch,
                 target_func=self.target_func,
                 variable_label="Minibatch size",
                 variable_type="linear",
                 colormap="viridis_r",
+                savePlots=self.savePlots,
+                showPlots=self.showPlots,
+                figsPath=self.figspath,
+                saveName=f"{saveName}_prediction_minibatch",
             )
 
     def gd_main(self):
@@ -703,8 +891,12 @@ class GradAnalysis:
             theta_arr,
             lmbda_arr,
             true_theta=self.true_theta,
-            title=r"$\theta$ for different values of $\lambda$ (Constant Ridge)",
+            title=r"$\theta$ for different values of $\lambda$ (Constant Ridge) $\eta=0.1$",
             variable_label=r"$\lambda$",
+            savePlots=self.savePlots,
+            showPlots=self.showPlots,
+            figsPath=self.figspath,
+            saveName="constant_ridge_thetas",
         )
 
         schedulers = [Constant, Momentum, Adagrad, AdagradMomentum, Adam, RMS_prop]
@@ -724,7 +916,17 @@ class GradAnalysis:
             r"Adam ($\eta=0.01$, $\rho=0.9$, $\rho_2=0.999$)",
             r"RMS_prop ($\eta=0.01$, $\rho=0.9$)",
         ]
-        for schedule, param, schedule_name in zip(schedulers, params, schedule_names):
+        saveNames = [
+            "constant",
+            "momentum",
+            "adagrad",
+            "adagrad_momentum",
+            "adam",
+            "rms_prop",
+        ]
+        for schedule, param, schedule_name, saveName in zip(
+            schedulers, params, schedule_names, saveNames
+        ):
             error_arr = np.zeros((len(eta_arr), len(lmbda_arr)))
 
             for i, eta in enumerate(eta_arr):
@@ -753,4 +955,8 @@ class GradAnalysis:
                 title=f"Ridge {schedule_name}",
                 x_label=r"$\lambda$",
                 y_label=r"$\eta$",
+                savePlots=self.savePlots,
+                showPlots=self.showPlots,
+                figsPath=self.figspath,
+                saveName=f"{saveName}_ridge_heatmap_eta_lambda",
             )
