@@ -209,8 +209,8 @@ class NeuralNet:
             raise TypeError(f"Number of batches must be int, not {type(batches)}")
         if not isinstance(epochs, int):
             raise TypeError(f"Number of epochs must be int, not {type(epochs)}")
-        if not isinstance(lmbda, (int, float)):
-            raise TypeError(f"lmbda must be a number, not {type(lmbda)}")
+        # if not isinstance(lmbda, (int, float)):
+        #     raise TypeError(f"lmbda must be a number, not {type(lmbda)}")
 
         # Handle ValueErrors
         if batches <= 0:

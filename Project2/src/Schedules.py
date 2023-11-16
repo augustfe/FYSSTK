@@ -613,7 +613,7 @@ def fast_adam_second(
     return second
 
 
-# @jit
+@jit
 def fast_adam(
     moment: np.ndarray,
     rho: float,

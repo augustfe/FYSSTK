@@ -106,6 +106,7 @@ def derivate(func: Callable) -> Callable:
     """
     if func.__name__ == "RELU":
 
+        @jit
         def func(X: np.ndarray) -> np.ndarray:
             """
             Computes the derivative of the ReLU activation function.
@@ -122,6 +123,7 @@ def derivate(func: Callable) -> Callable:
 
     elif func.__name__ == "LRELU":
 
+        @jit
         def func(X: np.ndarray) -> np.ndarray:
             """
             Computes the derivative of the Leaky ReLU activation function.

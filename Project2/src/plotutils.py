@@ -289,7 +289,7 @@ def plotHeatmap(
     plt.close(fig)
 
 
-def setup_axis(xlim, ylim):
+def setup_axis(xlim: tuple[int], ylim: tuple[int]) -> plt.Axes:
     _, ax = plt.subplots()
 
     ax.set_aspect("equal")
@@ -311,6 +311,10 @@ def plot_Franke(
     y: np.ndarray,
     z: np.ndarray,
     title: str = "Franke's function",
+    savePlots: bool = False,
+    showPlots: bool = True,
+    figsPath: Path = None,
+    saveName: str = None,
 ):
     xnew = np.linspace(0, 1, 100)
     ynew = np.linspace(0, 1, 100)
@@ -321,12 +325,12 @@ def plot_Franke(
 
     fig = plt.figure(figsize=plt.figaspect(0.5))
 
-    ax = fig.add_subplot(1, 2, 1, projection="3d")
+    ax = fig.add_subplot(1, 3, 1, projection="3d")
     surf = ax.plot_surface(
         x,
         y,
         z.reshape(x.shape),
-        cmap="viridis",
+        cmap="coolwarm",
         linewidth=0,
         antialiased=False,
     )
@@ -340,14 +344,14 @@ def plot_Franke(
     # Add a color bar which maps values to colors.
     fig.colorbar(surf, shrink=0.5, aspect=10)
 
-    ax = fig.add_subplot(1, 2, 2, projection="3d")
+    ax = fig.add_subplot(1, 3, 2, projection="3d")
     surf = ax.plot_surface(
         xnew,
         ynew,
         znew,
-        cmap="viridis",
+        cmap="coolwarm",
         linewidth=0,
-        antialiased=True,
+        antialiased=False,
     )
 
     # Customize the z axis.
@@ -359,7 +363,29 @@ def plot_Franke(
     # Add a color bar which maps values to colors.
     fig.colorbar(surf, shrink=0.5, aspect=10)
 
-    fig.suptitle(title)
+    ax = fig.add_subplot(1, 3, 3, projection="3d")
+    surf = ax.plot_surface(
+        xnew,
+        ynew,
+        np.abs(z.reshape(x.shape) - znew),
+        cmap="coolwarm",
+        # offset=-1,
+        cstride=1,
+        rstride=1,
+        linewidth=0,
+        antialiased=False,
+    )
+    ax.zaxis.set_major_locator(LinearLocator(10))
+    ax.zaxis.set_major_formatter(FormatStrFormatter("%.02f"))
+    ax.set_title("Absolute error")
 
+    # Add a color bar which maps values to colors.
+    fig.colorbar(surf, shrink=0.5, aspect=10)
+    fig.suptitle(title)
     plt.tight_layout()
-    return fig
+
+    if savePlots:
+        plt.savefig(figsPath / f"{saveName}.pdf", bbox_inches="tight")
+    if showPlots:
+        plt.show()
+    plt.close(fig)
