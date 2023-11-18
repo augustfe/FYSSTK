@@ -598,7 +598,7 @@ class GradAnalysis:
             savePlots=self.savePlots,
             showPlots=self.showPlots,
             figsPath=self.figspath,
-            saveName="adagrad_momentum_heatmap_eta_rho",
+            saveName="adam_momentum_heatmap_eta_rho",
         )
 
     def rms_prop_analysis(
