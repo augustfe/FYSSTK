@@ -43,6 +43,9 @@
 \DeclareMathOperator*{\sgn}{sgn}
 \DeclareMathOperator*{\Bias}{Bias}
 \DeclareMathOperator*{\Var}{Var}
+\DeclareMathOperator*{\diag}{diag}
+
+\counterwithin{figure}{section}
 
 
 \title{Classification and Regression}
@@ -92,10 +95,16 @@
 \end{abstract}
 
 \section{Introduction}
-The idea of artificial intelligence is an old idea stretching back to the greeks of the late antiquity. "Automaton" is the word they used. A machine that could operate itself. The idea has kept fascinating humanity over the centuries, to Leonardo DaVinci and his mechanical knight, to "The turk" in the 18th century and to the modern area. In the 1940's, Warren McCullouch and Walter Pitts came up with a mathematical model to describe the neuron cell in the brain. They called this model threshold logic \textbf{(legg til kilde)}. Later, this model has inspired and evolved into what we call neural networks. Networks of cells made to mimick the brain and simulated on a computer to learn complex tasks it can solve on its own. \\
-In scientific research, the use of neural networks has exploded and the set of variations on different architectures keeps expanding. FFNN is the biggest category of artificial neural network (ANN) and other types of ANNs, such as recurrent neural networks, even builds upon it. This naturally makes it interesting to see how one can build a good FFNN model. \\
-The key part to a good neural network is optimization. As a neural network consists of layers upon layers of neurons connected to each other (as will be explained later), optimizing all the computations 
-This project will first take a look at the theory behind neural network. Starting with a theoretical aspect of optimization and moving to the theoretical models of feed forward neural network and logistic regression. Then moving on to the methods used in the project to test different techniques, as well as the results from these techniques. Further, the results will be discussed and lastly a conclusion of the project will be (something, cant find the word).
+The concept of self operating machines or `Automatos' has captured human imagination throughout history, stretching back as far as the ancient Greeks. This fascination endured through the centuries, influencing Leonardo DaVinci's vision of a mechanical knight to the ``Turk"
+the infamous 18th-century fraudulent chess-playing machine.
+
+Fast forward to the 1940's, Warren McCullouch and Walter Pitts came up with a mathematical model to describe the neuron cell in the brain. They called this model threshold logic \parencite{mcculloch1943logical}. This marked the genesis of what we now recognize as artificial neural networks (ANNs).
+
+ANNs, inspired by the intricate workings of the human brain, are composed of interconnected neurons or nodes. These nodes, assembled into multiple layers, function to discern patterns and process data in a way that emulates the human neural activity.
+
+A particular type of ANNs is the Feed-Forward Neural Networks (FFNNs). In FFNNs, the information moves in only one direction—from the input layer, through the hidden layers (if any), and to the output layer. The term ``feed-forward" refers to this unidirectional flow of data, with no cycles or loops in the network. Essentially, FFNNs create a straightforward pathway for data.
+
+This project will first take a look at the theory behind neural network. Starting with how models are evaluated and optimized, then the theoretical aspects of optimization and moving to the theoretical models of feed forward neural network. Then moving on to the methods used in the project to test different techniques, as well as the results from these techniques. Further, the results will be discussed and lastly a conclusion of the project will be (something, cant find the word).
 
 \newpage
 
@@ -561,17 +570,17 @@ RMSprop, root mean square propagation, was first introduced in 2012, in lecture 
 Like AdaGrad the update keeps some sort of memory of previous gradients. Where $\beta$ can be thought of as the strength of the memory; how much of the previous iterations should impact the next. This allows for some of the same benefits as AdaGrads decaying learningrate.
 
 \subsubsection{ADAM}
-Adaprive moment estimation, most commonly known as ADAM. Is a optimization algorithm which combines the some of the aspects from RMSprop with momentum. It's update is given by
+Adaprive moment estimation, most commonly known as ADAM, is a optimization algorithm which combines some of the aspects from RMSprop with momentum. It's update is given by
 \begin{align*}
-    \mathbf{m_{k+1}} =& \frac{\rho_1 \mathbf{m_k} + (1- \rho_1) \mathbf{g_k}}{\left(1 - \rho_1^{k+1}\right)}\\
-    \mathbf{v_{k+1}} =& \frac{\rho_2 \mathbf{v_k} + (1-\rho_2) \mathbf{g_k}^{\circ 2}}{\left(1-\rho_2^{k+1}\right)}\\
+    \mathbf{m}_{k+1} =& \frac{\rho_1 \mathbf{m}_k + (1- \rho_1) \mathbf{g}_k}{\left(1 - \rho_1^{k+1}\right)}\\
+    \mathbf{v}_{k+1} =& \frac{\rho_2 \mathbf{v}_k + (1-\rho_2) \mathbf{g}_k^{\circ 2}}{\left(1-\rho_2^{k+1}\right)}\\
     w_{k+1}^{(n)} =& w_k^{(n)} - \frac{\eta}{ \sqrt{\delta+v_{k+1}^{(n)}}} m_{k+1}^{n}
 \end{align*}
 
 Here $0 \leq \beta_1,\beta_2 < 1$ 
 \par
 \vspace{1mm}
-Notice that the denominator of $\mathbf{m_{k+1}}$ and $\mathbf{v_{k+1}}$ starts somewhere in $(0,1]$ and then increases to 1 as $k \to \infty$. This gives an amplification of $\mathbf{m_k}$ and $\mathbf{v_k}$, which subsides for larger $k$. This is meant to alleviate a bias towards zero as  $\mathbf{m_0}, \mathbf{v_0} = 0$ \parencite[Section 3]{kingma2014adam}
+Notice that the denominator of $\mathbf{m}_{k+1}$ and $\mathbf{v}_{k+1}$ starts somewhere in $(0,1]$ and then increases to 1 as $k \to \infty$. This gives an amplification of $\mathbf{m}_k$ and $\mathbf{v}_k$, which subsides for larger $k$. This is meant to alleviate a bias towards zero as  $\mathbf{m}_0, \mathbf{v}_0 = 0$ \parencite[Section 3]{kingma2014adam}
 
 %It may be tempting to conclude that every subsequent algorithm is superior to its predecessor. However, this is not strictly true.
 \vspace{2mm}
@@ -847,7 +856,7 @@ for some positive $\gamma \in \mathbb{R}$.
 
 Two other important functions that are particularly used on the output layer for multi-class classification problems, are the $\argmax$ and $softmax$ functions.
 
-The $\argmax$ function delivers the index or position associated with the highest value from a numeric input vector. If  each node in the output layer denotes the models predicted probability of an input being classified in the corresponding class, it becomes clear that the $\argmax$ function essentially provides the predicted class or classification. This function is however, is not differentiable and therefore is not suited for training. Which will be clear by section 2.3.2.
+The $\argmax$ function delivers the index or position associated with the highest value from a numeric input vector. If  each node in the output layer denotes the models predicted probability of an input being classified in the corresponding class, it becomes clear that the $\argmax$ function essentially provides the predicted class or classification. This function is however not differentiable and therefore is not suited for training. Which will be clear by section 2.3.2.
 
 The $softmax$ function is used to convert any vector to a valid discrete probability distribution. It is given by
 \[
@@ -1099,7 +1108,7 @@ To be able to structure our code better, we developed a simple package which can
 \newpage
 \section{Results}
 
-\subsection{Univariate analysis}
+\subsection{Analysis of univariate polynomial}
 We began with the very simple case of attempting to fit (\ref{eq:simplepoly}) using Gradient Descent with a constant learning rate, with OLS as our cost function.
 \begin{figure}[ht]%
     \centering
@@ -1123,7 +1132,7 @@ As we see in \autoref{fig:GDconstanttheta} and \autoref{fig:GDconstanterror}, we
 \begin{figure}[H]%
     \centering
     \includegraphics[width=8cm]{Project2/figures/polynomial_grad/OLS_autodiff/constant_prediction.pdf}
-    \caption{Predicted polynomials for the resulting parameter values $\theta$ from Gradient descent with constant learning rate after 500 epochs.}
+    \caption{Predicted polynomials for the resulting parameter values $\boldsymbol{\theta}$ from Gradient descent with constant learning rate after 500 epochs.}
     \label{fig:GDconstantpred}
 \end{figure}
 
@@ -1152,9 +1161,43 @@ As we see in \autoref{fig:GDmomentumrho}, we get greatly improved convergence re
 \begin{figure}[H]%
     \centering
     \includegraphics[width=8cm]{Project2/figures/polynomial_grad/OLS_autodiff/momentum_prediction_eta.pdf}
-    \caption{Predicted polynomials for the resulting parameter values $\theta$ from Gradient descent with constant learning rate after 500 epochs.}
+    \caption{Predicted polynomials for the resulting parameter values $\boldsymbol{\theta}$ from Gradient Descent with momentum after 500 epochs.}
     \label{fig:GDmomentumpred}
 \end{figure}
+
+In \autoref{fig:GDmomentumeta} and \autoref{fig:GDmomentumpred} we now see convergence for much smaller values of $\eta$. In \autoref{fig:GDmomentumheatmap} we see what a great effect our choice of $\rho$ has, both converging faster and becoming more unstable for higher values. Note the extremely skewed range of $\rho$, generated with $\arctan$ to highlight the details for higher values.
+
+\begin{figure}[H]%
+    \centering
+    \includegraphics[width=8cm]{Project2/figures/polynomial_grad/OLS_autodiff/momentum_heatmap_eta_rho.pdf}
+    \caption{Heatmap of error after 500 epochs for varying momentum values $\rho$ and learning rates $\eta$.}
+    \label{fig:GDmomentumheatmap}
+\end{figure}
+
+\begin{figure}[H]%
+    \centering
+    \subfloat[\centering Error for varying $\eta$.]{{\includegraphics[width=5.5cm]{Project2/figures/polynomial_grad/OLS_analytic/adagrad_error.pdf} }}%
+    \qquad
+    \subfloat[\centering Parameters $\theta$ for varying $\eta$.]{{\includegraphics[width=5.5cm]{Project2/figures/polynomial_grad/OLS_autodiff/adagrad_thetas.pdf} }}%
+    \caption{Gradient descent with Adagrad over 500 epochs with varying $\eta$.}%
+    \label{fig:GDadagrad}%
+\end{figure}
+
+In \autoref{fig:GDadagrad} we see that Adagrad is considerably less sensitive to our choice of $\eta$, and it is interesting to note that we see the expected behaviour of Adagrad adjusting each parameter, removing the peak for $\theta_2$ seen previously, and being much more uniform. This is seen in \autoref{fig:GDadagradpred}, and note that it does not \textit{overshoot} the target.
+
+\begin{figure}[H]%
+    \centering
+    \includegraphics[width=8cm]{Project2/figures/polynomial_grad/OLS_autodiff/adagrad_prediction.pdf}
+    \caption{Predicted polynomials for the resulting parameter values $\boldsymbol{\theta}$ using Adagrad after 500 epochs.}
+    \label{fig:GDadagradpred}
+\end{figure}
+
+% temp so we don't mess with eachothers layout
+\newpage
+
+\subsection{Franke Function}
+
+\subsection{Tumor Classification}
 
 \newpage
 \section{Discussion}
