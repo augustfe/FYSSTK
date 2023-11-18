@@ -290,8 +290,8 @@ class GradAnalysis:
             saveName="momentum_thetas_rho",
         )
 
-        n_rho = 25
-        n_eta = 25
+        n_rho = 75
+        n_eta = 75
         heat_rho = np.arctan(np.linspace(0, 10, n_rho))
         heat_rho = heat_rho / np.max(heat_rho)
         heat_eta = np.logspace(-7, -1, n_eta)
