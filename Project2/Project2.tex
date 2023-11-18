@@ -104,7 +104,7 @@ ANNs, inspired by the intricate workings of the human brain, are composed of int
 
 A particular type of ANNs is the Feed-Forward Neural Networks (FFNNs). In FFNNs, the information moves in only one direction—from the input layer, through the hidden layers (if any), and to the output layer. The term ``feed-forward" refers to this unidirectional flow of data, with no cycles or loops in the network. Essentially, FFNNs create a straightforward pathway for data.
 
-This project will first take a look at the theory behind neural network. Starting with how models are evaluated and optimized, then the theoretical aspects of optimization and moving to the theoretical models of feed forward neural network. Then moving on to the methods used in the project to test different techniques, as well as the results from these techniques. Further, the results will be discussed and lastly a conclusion of the project will be (something, cant find the word).
+In this project we initially take a look at the theory. We begin by delving into the mechanisms through which models are evaluated and further optimized, before probing into the theoretical foundation behind ANNs themselves. Then we pivot to the methods used to implement the theory and the results therefrom.
 
 \newpage
 
@@ -1190,6 +1190,42 @@ In \autoref{fig:GDadagrad} we see that Adagrad is considerably less sensitive to
     \includegraphics[width=8cm]{Project2/figures/polynomial_grad/OLS_autodiff/adagrad_prediction.pdf}
     \caption{Predicted polynomials for the resulting parameter values $\boldsymbol{\theta}$ using Adagrad after 500 epochs.}
     \label{fig:GDadagradpred}
+\end{figure}
+
+Introducing momentum leads to the same tendencies seen previously.
+
+\begin{figure}[H]%
+    \centering
+    \subfloat[\centering Error for varying $\eta$.]{{\includegraphics[width=5.5cm]{Project2/figures/polynomial_grad/OLS_autodiff/adagrad_momentum_error_eta.pdf} }}%
+    \qquad
+    \subfloat[\centering Parameters $\theta$ for varying $\eta$.]{{\includegraphics[width=5.5cm]{Project2/figures/polynomial_grad/OLS_autodiff/adagrad_momentum_thetas_eta.pdf} }}%
+    \caption{Gradient descent with Adagrad Momentum over 500 epochs with varying $\eta$, $\rho=0.9$.}%
+    \label{fig:GDadagradmomentumeta}%
+\end{figure}
+
+\begin{figure}[H]%
+    \centering
+    \subfloat[\centering Error for varying $\rho$.]{{\includegraphics[width=5.5cm]{Project2/figures/polynomial_grad/OLS_autodiff/adagrad_momentum_error_rho.pdf} }}%
+    \qquad
+    \subfloat[\centering Parameters $\theta$ for varying $\rho$.]{{\includegraphics[width=5.5cm]{Project2/figures/polynomial_grad/OLS_autodiff/adagrad_momentum_thetas_rho.pdf} }}%
+    \caption{Gradient descent with Adagrad Momentum over 500 epochs with varying $\rho$, $\eta=0.1$.}%
+    \label{fig:GDadagradmomentumrho}%
+\end{figure}
+
+\begin{figure}[H]%
+    \centering
+    \subfloat[\centering Error for varying $\rho$.]{{\includegraphics[width=5.5cm]{Project2/figures/polynomial_grad/OLS_autodiff/adagrad_momentum_error_rho.pdf} }}%
+    \qquad
+    \subfloat[\centering Parameters $\theta$ for varying $\rho$.]{{\includegraphics[width=5.5cm]{Project2/figures/polynomial_grad/OLS_autodiff/adagrad_momentum_thetas_rho.pdf} }}%
+    \caption{Gradient descent with Adagrad Momentum over 500 epochs with varying $\rho$, $\eta=0.1$.}%
+    \label{fig:GDadagradmomentumrho}%
+\end{figure}
+
+\begin{figure}[H]%
+    \centering
+    \includegraphics[width=8cm]{Project2/figures/polynomial_grad/OLS_autodiff/adagrad_momentum_heatmap_eta_rho.pdf}
+    \caption{Heatmap of $\eta$ vs. $\rho$ for Adagrad Momentum, with 500 epochs.}
+    \label{fig:GDadagradmomentumpred}
 \end{figure}
 
 % temp so we don't mess with eachothers layout
