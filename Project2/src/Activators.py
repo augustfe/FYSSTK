@@ -66,7 +66,7 @@ def softmax(X: np.ndarray) -> np.ndarray:
 
 
 @jit
-def RELU(X: np.ndarray) -> np.ndarray:
+def ReLU(X: np.ndarray) -> np.ndarray:
     """
     Rectified Linear Unit (ReLU) activation function.
 
