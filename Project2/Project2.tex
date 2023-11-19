@@ -266,13 +266,23 @@ Maximizing this equation is what we call the method of maximum likelihood. To si
     & =  - \sum_{i=1}^{n} y_i\boldsymbol{x_i} \boldsymbol{\beta} - log(1 + e^{\boldsymbol{x_i \beta} })
 \end{align*}
 
-Note that the first equation is just the binary cross entropy cost without $\frac{1}{n}$. The same cost function used for binary classification, even when there is not a linear relationship between the features and the observed categories. To minimize, we differentiate with respect to $\boldsymbol{\beta}$. 
+Note that the first equation is just the binary cross entropy cost without $\frac{1}{n}$. The same cost function used for binary classification, even when there is not a linear relationship between the features and the observed categories. The minima with respect to $\boldsymbol{\beta}$ is found at $\frac{\partial \ell }{\partial \boldsymbol{\beta}} = 0$ 
 
 \begin{align*}
     \frac{\partial \ell }{\partial \boldsymbol{\beta}} &= - \sum_{i=1}^{n} y_i\boldsymbol{x_i}  - \frac{\boldsymbol{x_i} e^{\boldsymbol{x_i\beta}}}{1 + e^{\boldsymbol{x_i \beta} }}\\
-    &= - \sum_{i=1}^{n}\boldsymbol{x_i} \left(y_i  - \frac{1}{1 + e^{\boldsymbol{x_i \beta} }}\right)\\
-    &= - \sum_{i=1}^{n}\boldsymbol{x_i} \left(y_i  - 1 + p(\boldsymbol{x_i})\right)
+    &= - \sum_{i=1}^{n}\boldsymbol{x_i} \left(y_i  -  p(\boldsymbol{x_i})\right) = \boldsymbol{0}
 \end{align*}
+
+This gives $p$ non linear equations
+
+This can also be expressed using matrix notation
+
+\[
+\frac{\partial \ell }{\partial \boldsymbol{\beta}}  = \boldsymbol{X} (\boldsymbol{y} - \boldsymbol{p}) = 
+\]
+
+Here $\boldsymbol{0}$ denotes the $nxn$ zero matrix, $\mathbf{X}$ is our design matrix, containing or n $\boldsymbol{x_i}$s as column vectors and $\boldsymbol{y}$ consists of our observed categories and $\boldsymbol{p}$ our predicted category($\boldsymbol{p_i} = p(\boldsymbol{x_i})$)
+
 
 % First, the derivative of the sigmoid function is
 % \begin{equation*}
@@ -414,57 +424,48 @@ Here we see momentum gradient descent performed on the same ill conditioned prob
 \subsubsection{AdaGrad}
 The Adaptive gradient optimizer, or AdaGrad was introduced by \textcite{duchi2011adaptive} and its update rule is given by
 \begin{equation*}
-    w_{k+1}= w_{k}-\eta \hspace{1mm} diag\left(\mathbf{G}_{k}\right)^{-1/2} \odot \mathbf{g}_k 
+    \boldsymbol{w}_{k+1} = \boldsymbol{w}_{k} - \eta \diag\left( G_{k} \right)^{-1/2} \odot \boldsymbol{g}_k
 \end{equation*}
 where $\odot$ is the Hadamard product and $G_k$ is the sum of the outerproducts of the previous gradients
 \begin{equation*}
-    G_k = \sum_{i = 0}^k \mathbf{g}_i \mathbf{g}_i^T
+    G_k = \sum_{i = 0}^k \boldsymbol{g}_i \boldsymbol{g}_i^T.
 \end{equation*}
 
- We thus have that $diag\left(G_{k}\right)^{(n)}$ ( the $n^{th}$component of $diag\left(G_k\right)$) is the sum of the squares of the previous gradients in direction $n$
- \[
- diag\left(G_{k}\right)^{(n)} = \sum_{i=0}^k  \left(g_k^{(n)}\right)^2 
- \]
+We thus have that $\diag\left(G_{k}\right)^{(n)}$ (the $n^{th}$ component of $\diag\left(G_k\right)$) is the sum of the squares of the previous gradients in direction $n$
+\begin{equation*}
+    \diag\left(G_{k}\right)^{(n)} = \sum_{i=0}^k  \left(g_k^{(n)}\right)^2 .
+\end{equation*}
+Normally a small numerical stabiliser is added to $G_k$ to avoid division by zero, giving us
+\begin{equation*}
+    \boldsymbol{w}_{k+1}^{(n)}= \boldsymbol{w}_{k}^{(n)}- \frac{\eta}{\sqrt{\delta + \diag \left( G_{k} \right)^{(n)}}} \odot g_k^{(n)}.
+\end{equation*}
 
- Normally a small numerical stabiliser is added to $G_k$ to avoid division by zero
- \[
- w_{k+1}^{(n)}= w_{k}^{(n)}- \frac{\eta}{ \sqrt{\delta+diag\left(G_{k}\right)^{(n)}}} \odot g_k^{(n)}
- \]
- 
-
-As $diag\left(G_k\right)^{(n)}$ increases, the step size in direction $n$ decreases, which reduces the emphasis on that particular direction as it is traversed. This is the core concept of AdaGrad's design. AdaGrad is most effective when two conditions are met: first, when we need to move the same distance in each dimension, and second, when we have an appropriate choice of $\eta$. Opting for a too small $\eta$ could result in the algorithm converging very slowly or coming to a halt due to the decaying step size. Conversely, selecting a too large $\eta$ could lead to also sluggish convergence. Thus, selecting an appropriate value of $\eta$ is vital to ensuring efficient functioning of the algorithm. 
-
+As $\diag\left(G_k\right)^{(n)}$ increases, the step size in direction $n$ decreases, which reduces the emphasis on that particular direction as it is traversed. This is the core concept of AdaGrad's design. AdaGrad is most effective when two conditions are met: first, when we need to move the same distance in each dimension, and second, when we have an appropriate choice of $\eta$. Opting for a too small $\eta$ could result in the algorithm converging very slowly or coming to a halt due to the decaying step size. Conversely, selecting a too large $\eta$ could lead to sluggish convergence. Thus, selecting an appropriate value of $\eta$ is vital to ensuring efficient functioning of the algorithm. 
 
 \subsubsection{RMSprop}
 RMSprop, root mean square propagation, was first introduced in 2012, in lecture 6 of the Coursera course ``Neural Networks for Machine Learning" by Geoff Hinton
-\parencite{NNforML-Lecture6} It's update rule is defined as 
+\parencite{NNforML-Lecture6}. It's update rule is defined as 
 
 \begin{align*}
-    \mathbf{v}_{k+1} =& \rho \mathbf{v}_{k} + (1-\rho) \mathbf{g}_k^{\circ 2}\\
+    \boldsymbol{v}_{k+1} =& \rho \boldsymbol{v}_{k} + (1-\rho) \boldsymbol{g}_k^{\circ 2}\\
     w_{k+1}^{(n)} =& w_k^{(n)} - \frac{\eta}{  \sqrt{\delta + v_{k+1}^{(n)}}} g_k^{(n)}
 \end{align*}
+where $^{\circ 2}$ is the Hadamard power defined by $\boldsymbol{x}^{\circ 2} = \boldsymbol{x} \odot \boldsymbol{x}$.
 
- $^{\circ}$ is the Hadamard power
- \[
- \mathbf{g_k}^{\circ 2} = \mathbf{g_k} \odot \mathbf{g_k}  
- \]
- We have chosen to only give the element wise update rule, as for RMSprop, as the vector notation for the final equation is not very pretty. $\delta$ is a numerical stabilizer, $0\leq \beta \leq 1$ and $\mathbf{v}_0$ is usually initialised to the zero vector.
-\par
-\vspace{1mm}
-Like AdaGrad the update keeps some sort of memory of previous gradients. Where $\beta$ can be thought of as the strength of the memory; how much of the previous iterations should impact the next. This allows for some of the same benefits as AdaGrads decaying learning rate.
+We have chosen to only give the element wise update rule, as the vector notation for the final equation is not very pretty for RMSprop. $\delta$ is a numerical stabilizer, $0 \leq \rho \leq 1$ and $\boldsymbol{v}_0$ is usually initialised to the zero vector.
+
+Like AdaGrad, the update keeps some sort of memory of previous gradients. Where $\rho$ can be thought of as the strength of the memory, i.e. how much of the previous iterations should impact the next. This allows for some of the same benefits as AdaGrads decaying learning rate.
 
 \subsubsection{ADAM}
-Adaprive moment estimation, most commonly known as ADAM, is a optimization algorithm which combines some of the aspects from RMSprop with momentum. It's update is given by
+Adaptive moment estimation, most commonly known as ADAM, is a optimization algorithm which combines some of the aspects from RMSprop with momentum. It's update is given by
 \begin{align*}
-    \mathbf{m}_{k+1} =& \frac{\rho_1 \mathbf{m}_k + (1- \rho_1) \mathbf{g}_k}{\left(1 - \rho_1^{k+1}\right)}\\
-    \mathbf{v}_{k+1} =& \frac{\rho_2 \mathbf{v}_k + (1-\rho_2) \mathbf{g}_k^{\circ 2}}{\left(1-\rho_2^{k+1}\right)}\\
-    w_{k+1}^{(n)} =& w_k^{(n)} - \frac{\eta}{ \sqrt{\delta+v_{k+1}^{(n)}}} m_{k+1}^{n}
+    \boldsymbol{m}_{k+1} =& \frac{\rho_1 \boldsymbol{m}_k + (1- \rho_1) \boldsymbol{g}_k}{\left(1 - \rho_1^{k+1}\right)}\\
+    \boldsymbol{v}_{k+1} =& \frac{\rho_2 \boldsymbol{v}_k + (1-\rho_2) \boldsymbol{g}_k^{\circ 2}}{\left(1-\rho_2^{k+1}\right)}\\
+    w_{k+1}^{(n)} =& w_k^{(n)} - \frac{\eta}{ \sqrt{\delta+v_{k+1}^{(n)}}} m_{k+1}^{n},
 \end{align*}
+where $0 \leq \rho_1,\rho_2 < 1$.
 
-Here $0 \leq \beta_1,\beta_2 < 1$ 
-\par
-\vspace{1mm}
-Notice that the denominator of $\mathbf{m}_{k+1}$ and $\mathbf{v}_{k+1}$ starts somewhere in $(0,1]$ and then increases to 1 as $k \to \infty$. This gives an amplification of $\mathbf{m}_k$ and $\mathbf{v}_k$, which subsides for larger $k$. This is meant to alleviate a bias towards zero as  $\mathbf{m}_0, \mathbf{v}_0 = 0$ \parencite[Section 3]{kingma2014adam}
+Notice that the denominator of $\boldsymbol{m}_{k+1}$ and $\boldsymbol{v}_{k+1}$ starts somewhere in $(0,1]$ and then increases to 1 as $k \to \infty$. This gives an amplification of $\boldsymbol{m}_k$ and $\boldsymbol{v}_k$, which subsides for larger $k$. This is meant to alleviate a bias towards zero as $\boldsymbol{m}_0, \boldsymbol{v}_0 = 0$ \parencite[Section 3]{kingma2014adam}.
 \label{AdamAmp}.
 %It may be tempting to conclude that every subsequent algorithm is superior to its predecessor. However, this is not strictly true.
 % \vspace{2mm}
@@ -478,15 +479,6 @@ Time-based decay removes the need for the user to fix the learning rate $\eta$ t
 where $e$ is the number of epochs passed, $M$ is the size of batches, and $m$ is the number of minibatches computed in the current epoch. Thus the earlier iterations are given higher priority, as $\eta \to 0$ as $e \to \infty$, with $\eta = \frac{t_0}{t_1}$ for the first iteration.
 
 \subsection{Neural Networks}
-% Neural networks are computational systems inspired by the networks of neurons in the brain.
-
-% A neural network mainly consists of an input layer of nodes, a set of weights, an activation function, a hidden layer of nodes and a layer of output nodes. The input nodes are usually called features. Each node is connected to all nodes in the next layer and the edge between them have a weight on it. In the next layer, each input to the node is multiplied with its own weight and then summed together. These nodes are usually what we would call an artificial neuron.\\
-% Let $f: X \rightarrow X$ be a function (?), then we can define the artificial neuron as
-% \begin{equation*}
-%     y = f\left( \sum_{i=1}^{n}w_ix_i \right)
-% \end{equation*}
-% \\
-% $\ldots$\\
 Neural networks are computational systems inspired by the networks of neurons within the brain. In the brain, when a neuron receives an electrical impulse above a certain threshold, it sends an electrical signal to the neurons connected to it, causing a chain reaction. In order to mimic this, an artificial neural network is set up with a number of layers, each with a set of artificial neurons. The first layer is commonly called the input layer, which is followed by a number of hidden layers, culminating in the final layer called the output layer.
 
 \begin{figure}[ht]
@@ -534,7 +526,7 @@ Neural networks are computational systems inspired by the networks of neurons wi
 \label{fig:SimpleFFNN}
 \end{figure}
 
-The \textit{feed-forward} neural network (FFNN), was the first, and perhaps simplest, artificial neural network (\textbf{SOURCE}). Each node is connected to nodes in the next layer, with a weight $w \in \mathbb{R}$ attached to each edge, representing the strength of the connection between them. Additionally, we attach a bias $b \in \mathbb{R}$ to the node itself, also refereed to as the offset. Henceforth, we describe the \textit{fully connected} feed-forward neural network, where the nodes are connected to \textit{all} nodes in the next layer, illustrated in \autoref{fig:SimpleFFNN}.
+The \textit{feed-forward} neural network (FFNN), was one of the first, and perhaps simplest, artificial neural network. Each node is connected to nodes in the next layer, with a weight $w \in \mathbb{R}$ attached to each edge, representing the strength of the connection between them. Additionally, we attach a bias $b \in \mathbb{R}$ to the node itself, also refereed to as the offset. Henceforth, we describe the \textit{fully connected} feed-forward neural network, where the nodes are connected to \textit{all} nodes in the next layer, illustrated in \autoref{fig:SimpleFFNN}.
 
 
 Information in this network moves from left to right. The value of a node is dependent on the weights and values of the previous layer, as well as the bias. Let $N_l \in \mathbb{N}$ be the number of nodes in layer $l$ with the input layer being $l = 0$. We then calculate
@@ -1249,6 +1241,85 @@ Perhaps the most interesting graph, is seen in \autoref{fig:SGDadagradmomentum} 
 \newpage
 \subsection{Franke's function}
 With a better understanding of how drastic our choices of hyperparameters can affect our final results, we begin by exploring Franke's function through the use of a neural network. There are a lot of moving parts, with varying learning rates, regularization terms, activation function, etc. In order to get any results, we fix the hyperparameters for the schedulers from what has previously been shown to work, namely $\rho/\rho_1 = 0.9$, $\rho_2 = 0.999$. We also restrict ourselves to 100 epochs with a minibatch size of 40. For the sake of consistency, the neural networks all consisted of three hidden layers of width respectively 75, 75 and 100. Due to computational constraints, we only applied a $80 / 20$ train-validation split to see how well the networks perform on unseen data.
+
+Note that due to a typo, the $y$-axis of the heatmaps are labeled $\rho$ when they should be $\lambda$. What follows are heatmaps of the final validation error for varying combinations of scheduler and hidden function, plotted in $\log$-scale.
+\begin{figure}[H]%
+    \centering
+    \subfloat[\centering Sigmoid]{{\includegraphics[width=5.5cm]{Project2/figures/franke/constant/sigmoid_validation_error_heatmap.pdf} }}%
+    \qquad
+    \subfloat[\centering (0,1)-clip]{{\includegraphics[width=5.5cm]{Project2/figures/franke/constant/zero_one_clip_validation_error_heatmap.pdf} }}%
+    \caption{Heatmap of $\eta$ vs. $\lambda$ for constant scheduler}%
+    \label{fig:FrankeConstant}%
+\end{figure}
+
+\begin{figure}[H]%
+    \centering
+    \subfloat[\centering Sigmoid]{{\includegraphics[width=5.5cm]{Project2/figures/franke/momentum/sigmoid_validation_error_heatmap.pdf} }}%
+    \qquad
+    \subfloat[\centering (0,1)-clip]{{\includegraphics[width=5.5cm]{Project2/figures/franke/momentum/zero_one_clip_validation_error_heatmap.pdf} }}%
+    \\% 
+    \subfloat[\centering ReLU]{{\includegraphics[width=5.5cm]{Project2/figures/franke/momentum/relu_validation_error_heatmap.pdf} }}%
+    \qquad
+    \subfloat[\centering LReLU]{{\includegraphics[width=5.5cm]{Project2/figures/franke/momentum/lrelu_validation_error_heatmap.pdf} }}%
+    \caption{Heatmap of $\eta$ vs. $\lambda$ for momentum scheduler}%
+    \label{fig:FrankeMomentum}%
+\end{figure}
+
+\begin{figure}[H]%
+    \centering
+    \subfloat[\centering Sigmoid]{{\includegraphics[width=5.5cm]{Project2/figures/franke/adagrad/sigmoid_validation_error_heatmap.pdf} }}%
+    \qquad
+    \subfloat[\centering (0,1)-clip]{{\includegraphics[width=5.5cm]{Project2/figures/franke/adagrad/zero_one_clip_validation_error_heatmap.pdf} }}%
+    \\% 
+    \subfloat[\centering ReLU]{{\includegraphics[width=5.5cm]{Project2/figures/franke/adagrad/relu_validation_error_heatmap.pdf} }}%
+    \qquad
+    \subfloat[\centering LReLU]{{\includegraphics[width=5.5cm]{Project2/figures/franke/adagrad/lrelu_validation_error_heatmap.pdf} }}%
+    \caption{Heatmap of $\eta$ vs. $\lambda$ for Adagrad scheduler}%
+    \label{fig:FrankeAdagrad}%
+\end{figure}
+
+\begin{figure}[H]%
+    \centering
+    \subfloat[\centering Sigmoid]{{\includegraphics[width=5.5cm]{Project2/figures/franke/adagradmomentum/sigmoid_validation_error_heatmap.pdf} }}%
+    \qquad
+    \subfloat[\centering (0,1)-clip]{{\includegraphics[width=5.5cm]{Project2/figures/franke/adagradmomentum/zero_one_clip_validation_error_heatmap.pdf} }}%
+    \\% 
+    \subfloat[\centering ReLU]{{\includegraphics[width=5.5cm]{Project2/figures/franke/adagradmomentum/relu_validation_error_heatmap.pdf} }}%
+    \qquad
+    \subfloat[\centering LReLU]{{\includegraphics[width=5.5cm]{Project2/figures/franke/adagradmomentum/lrelu_validation_error_heatmap.pdf} }}%
+    \caption{Heatmap of $\eta$ vs. $\lambda$ for AdagradMomentum scheduler}%
+    \label{fig:FrankeAdagradMomentum}%
+\end{figure}
+
+\begin{figure}[H]%
+    \centering
+    \subfloat[\centering Sigmoid]{{\includegraphics[width=5.5cm]{Project2/figures/franke/rms_prop/sigmoid_validation_error_heatmap.pdf} }}%
+    \qquad
+    \subfloat[\centering (0,1)-clip]{{\includegraphics[width=5.5cm]{Project2/figures/franke/rms_prop/zero_one_clip_validation_error_heatmap.pdf} }}%
+    \\% 
+    \subfloat[\centering ReLU]{{\includegraphics[width=5.5cm]{Project2/figures/franke/rms_prop/relu_validation_error_heatmap.pdf} }}%
+    \qquad
+    \subfloat[\centering LReLU]{{\includegraphics[width=5.5cm]{Project2/figures/franke/rms_prop/lrelu_validation_error_heatmap.pdf} }}%
+    \caption{Heatmap of $\eta$ vs. $\lambda$ for RMSprop scheduler}%
+    \label{fig:FrankeRMSprop}%
+\end{figure}
+
+\begin{figure}[H]%
+    \centering
+    \subfloat[\centering Sigmoid]{{\includegraphics[width=5.5cm]{Project2/figures/franke/adam/sigmoid_validation_error_heatmap.pdf} }}%
+    \qquad
+    \subfloat[\centering (0,1)-clip]{{\includegraphics[width=5.5cm]{Project2/figures/franke/adam/zero_one_clip_validation_error_heatmap.pdf} }}%
+    \\% 
+    \subfloat[\centering ReLU]{{\includegraphics[width=5.5cm]{Project2/figures/franke/adam/relu_validation_error_heatmap.pdf} }}%
+    \qquad
+    \subfloat[\centering LReLU]{{\includegraphics[width=5.5cm]{Project2/figures/franke/adam/lrelu_validation_error_heatmap.pdf} }}%
+    \caption{Heatmap of $\eta$ vs. $\lambda$ for Adam scheduler}%
+    \label{fig:FrankeAdam}%
+\end{figure}
+
+Selecting the top performers from each, we get
+
+
 
 \subsection{Tumor classification}
 
