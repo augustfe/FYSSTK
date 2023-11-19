@@ -36,6 +36,7 @@
 
 % \bibliographystyle{apalike}
 \usepackage{hyperref}
+\usepackage{cleveref}
 \hypersetup{breaklinks=true,colorlinks=true,linkcolor=blue,citecolor=blue,filecolor=magenta,urlcolor=blue}
 
 \DeclareMathOperator*{\argmax}{arg\,max}
@@ -278,10 +279,10 @@ This gives $p$ non linear equations
 This can also be expressed using matrix notation
 
 \[
-\frac{\partial \ell }{\partial \boldsymbol{\beta}}  = \boldsymbol{X} (\boldsymbol{y} - \boldsymbol{p}) = 
+\frac{\partial \ell }{\partial \boldsymbol{\beta}}  = \boldsymbol{X} (\boldsymbol{y} - \boldsymbol{p}) = \boldsymbol{0}
 \]
 
-Here $\boldsymbol{0}$ denotes the $nxn$ zero matrix, $\mathbf{X}$ is our design matrix, containing or n $\boldsymbol{x_i}$s as column vectors and $\boldsymbol{y}$ consists of our observed categories and $\boldsymbol{p}$ our predicted category($\boldsymbol{p_i} = p(\boldsymbol{x_i})$)
+Here $\boldsymbol{0}$ denotes the $nxn$ zero matrix, $\mathbf{X}$ is our design matrix, containing or n $\boldsymbol{x_i}$s as column vectors, $\boldsymbol{y}$ consists of our observed categories and $\boldsymbol{p}$ our predicted category($\boldsymbol{p_i} = p(\boldsymbol{x_i})$)
 
 
 % First, the derivative of the sigmoid function is
@@ -1257,10 +1258,6 @@ Note that due to a typo, the $y$-axis of the heatmaps are labeled $\rho$ when th
     \subfloat[\centering Sigmoid]{{\includegraphics[width=5.5cm]{Project2/figures/franke/momentum/sigmoid_validation_error_heatmap.pdf} }}%
     \qquad
     \subfloat[\centering (0,1)-clip]{{\includegraphics[width=5.5cm]{Project2/figures/franke/momentum/zero_one_clip_validation_error_heatmap.pdf} }}%
-    \\% 
-    \subfloat[\centering ReLU]{{\includegraphics[width=5.5cm]{Project2/figures/franke/momentum/relu_validation_error_heatmap.pdf} }}%
-    \qquad
-    \subfloat[\centering LReLU]{{\includegraphics[width=5.5cm]{Project2/figures/franke/momentum/lrelu_validation_error_heatmap.pdf} }}%
     \caption{Heatmap of $\eta$ vs. $\lambda$ for momentum scheduler}%
     \label{fig:FrankeMomentum}%
 \end{figure}
@@ -1319,15 +1316,123 @@ Note that due to a typo, the $y$-axis of the heatmaps are labeled $\rho$ when th
 
 Selecting the top performers from each, we get
 
+\begin{figure}[H]%
+    \centering
+    \subfloat[\centering Sigmoid]{{\includegraphics[width=8.5cm]{Project2/figures/franke/constant/constant_sigmoid_surface.pdf} }}%
+    \\
+    \subfloat[\centering (0,1)-clip]{{\includegraphics[width=8.5cm]{Project2/figures/franke/constant/constant_zero_one_clip_surface.pdf} }}%
+    \caption{Predicted surface and absolute error with constant scheduler.}%
+    \label{fig:FrankeConstantsurf}%
+\end{figure}
 
+In \autoref{fig:FrankeConstantsurf} we see drastically different surfaces visually, however they had comparable validation error as seen in \autoref{fig:FrankeConstant}. 
 
+\begin{figure}[H]%
+    \centering
+    \subfloat[\centering Sigmoid]{{\includegraphics[width=8.5cm]{Project2/figures/franke/momentum/momentum_sigmoid_surface.pdf} }}%
+    \\
+    \subfloat[\centering (0,1)-clip]{{\includegraphics[width=8.5cm]{Project2/figures/franke/momentum/momentum_zero_one_clip_surface.pdf} }}%
+    \caption{Predicted surface and absolute error with momentum scheduler.}%
+    \label{fig:FrankeMomentumsurf}%
+\end{figure}
+
+Selecting the top performers from \autoref{fig:FrankeMomentum} generated \autoref{fig:FrankeMomentumsurf}. Note that (b) supposedly had better results, which might be due to it having slimmer ``peaks'', rather than (a)'s more continuous errors.
+
+\begin{figure}[H]%
+    \centering
+    \subfloat[\centering Adam]{{\includegraphics[width=8.5cm]{Project2/figures/franke/adam/adam_ReLU_surface.pdf} }}%
+    \\
+    \subfloat[\centering Adagrad]{{\includegraphics[width=8.5cm]{Project2/figures/franke/adagrad/adagrad_ReLU_surface.pdf} }}%
+    \caption{Predicted surfaces using ReLU, with Adam and Adagrad.}%
+    \label{fig:FrankeReLU}%
+\end{figure}
+
+We had wildly inconsistent results using ReLU and LReLU, illustrated in \autoref{fig:FrankeReLU}, the reason for this is as of the time of writing unknown to the authors.
+
+\begin{figure}[H]%
+    \centering
+    \subfloat[\centering Adam with sigmoid]{{\includegraphics[width=8.5cm]{Project2/figures/franke/adam/adam_sigmoid_surface.pdf} }}%
+    \\
+    \subfloat[\centering AdagradMomentum with (0,1)-clip]{{\includegraphics[width=8.5cm]{Project2/figures/franke/adagradmomentum/adagradmomentum_zero_one_clip_surface.pdf} }}%
+    \caption{Top performing predictions of Franke's function.}%
+    \label{fig:FrankeBest}%
+\end{figure}
+
+Our top performers were found with the combination of the Adam scheduler and sigmoid activation functions, and Adagrad Momentum with (0,1)-clip, illustrated in \autoref{fig:FrankeBest}. Keep in mind that these results were generated with a comparatively small neural network, run over a limited number of iterations.
+
+\newpage
 \subsection{Tumor classification}
+When exploring the optimal parameters, we ran into the same issues with ReLU and LReLU as seen previously, illustrated here in \autoref{fig:cancerRelu}. They are therefore excluded from this section.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=8cm]{Project2/figures/cancer_classification/ReLU_Adam_accuracy.pdf}
+    \caption{Accuracy when using ReLU as the hidden activation function.}
+    \label{fig:cancerRelu}
+\end{figure}
+
+\begin{figure}[H]%
+    \centering
+    \subfloat[\centering Sigmoid]{{\includegraphics[width=5.5cm]{Project2/figures/cancer_classification/sigmoid_Constant_accuracy.pdf} }}%
+    \qquad
+    \subfloat[\centering (0,1)-clip]{{\includegraphics[width=5.5cm]{Project2/figures/cancer_classification/zero_one_clip_Constant_accuracy.pdf} }}%
+    \caption{Heatmap of $\eta$ vs. $\lambda$ for constant scheduler.}%
+    \label{fig:CancerConstant}%
+\end{figure}
+
+\begin{figure}[H]%
+    \centering
+    \subfloat[\centering Sigmoid]{{\includegraphics[width=5.5cm]{Project2/figures/cancer_classification/sigmoid_Momentum_accuracy.pdf} }}%
+    \qquad
+    \subfloat[\centering (0,1)-clip]{{\includegraphics[width=5.5cm]{Project2/figures/cancer_classification/zero_one_clip_Momentum_accuracy.pdf} }}%
+    \caption{Heatmap of $\eta$ vs. $\lambda$ for Momentum scheduler.}%
+    \label{fig:CancerMomentum}%
+\end{figure}
+
+\begin{figure}[H]%
+    \centering
+    \subfloat[\centering Sigmoid]{{\includegraphics[width=5.5cm]{Project2/figures/cancer_classification/sigmoid_Adagrad_accuracy.pdf} }}%
+    \qquad
+    \subfloat[\centering (0,1)-clip]{{\includegraphics[width=5.5cm]{Project2/figures/cancer_classification/zero_one_clip_Adagrad_accuracy.pdf} }}%
+    \caption{Heatmap of $\eta$ vs. $\lambda$ for Adagrad scheduler.}%
+    \label{fig:CancerAdagrad}%
+\end{figure}
+
+\begin{figure}[H]%
+    \centering
+    \subfloat[\centering Sigmoid]{{\includegraphics[width=5.5cm]{Project2/figures/cancer_classification/sigmoid_AdagradMomentum_accuracy.pdf} }}%
+    \qquad
+    \subfloat[\centering (0,1)-clip]{{\includegraphics[width=5.5cm]{Project2/figures/cancer_classification/zero_one_clip_AdagradMomentum_accuracy.pdf} }}%
+    \caption{Heatmap of $\eta$ vs. $\lambda$ for AdagradMomentum scheduler.}%
+    \label{fig:CancerAdagradMomentum}%
+\end{figure}
+
+\begin{figure}[H]%
+    \centering
+    \subfloat[\centering Sigmoid]{{\includegraphics[width=5.5cm]{Project2/figures/cancer_classification/sigmoid_Adam_accuracy.pdf} }}%
+    \qquad
+    \subfloat[\centering (0,1)-clip]{{\includegraphics[width=5.5cm]{Project2/figures/cancer_classification/zero_one_clip_Adam_accuracy.pdf} }}%
+    \caption{Heatmap of $\eta$ vs. $\lambda$ for Adam scheduler.}%
+    \label{fig:CancerAdam}%
+\end{figure}
+
+\begin{figure}[H]%
+    \centering
+    \subfloat[\centering Sigmoid]{{\includegraphics[width=5.5cm]{Project2/figures/cancer_classification/sigmoid_RMS_prop_accuracy.pdf} }}%
+    \qquad
+    \subfloat[\centering (0,1)-clip]{{\includegraphics[width=5.5cm]{Project2/figures/cancer_classification/zero_one_clip_RMS_prop_accuracy.pdf} }}%
+    \caption{Heatmap of $\eta$ vs. $\lambda$ for RMSprop scheduler.}%
+    \label{fig:CancerRMS_prop}%
+\end{figure}
+
+\Cref{fig:CancerConstant,fig:CancerMomentum,fig:CancerAdagrad,fig:CancerRMS_prop,fig:CancerAdagradMomentum,fig:CancerAdam} illustrate the validation accuracy for the different schedulers and hidden activation functions. Note that brighter colors are considered better here.
+
 
 \newpage
 \section{Discussion}
 
 \section{Conclusion}
 
+% Når kommer du hjem att philip
 \section{References}
 
 \printbibliography
