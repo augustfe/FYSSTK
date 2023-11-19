@@ -275,15 +275,16 @@ def plotHeatmap(
     showPlots: bool = True,
     figsPath: Path = None,
     saveName: str = None,
+    annot: bool = False,
 ) -> None:
     fig, ax = plt.subplots()
-    sns.heatmap(df, cmap=colormap, ax=ax)
+    sns.heatmap(df, cmap=colormap, ax=ax, annot=annot, fmt=".3f")
     plt.title(title)
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_label)
     plt.tight_layout()
     if savePlots:
-        plt.savefig(figsPath / f"{saveName}.pdf")
+        plt.savefig(figsPath / f"{saveName}.pdf", bbox_inches="tight")
     if showPlots:
         plt.show()
     plt.close(fig)

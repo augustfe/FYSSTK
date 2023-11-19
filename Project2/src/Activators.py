@@ -76,7 +76,9 @@ def ReLU(X: np.ndarray) -> np.ndarray:
     Returns:
         np.ndarray: Output array with values equal to X where X > 0, and 0 elsewhere.
     """
-    return np.where(X > np.zeros(X.shape), X, np.zeros(X.shape, dtype=float))
+    return np.where(
+        X > np.zeros(X.shape, dtype=float), X, np.zeros(X.shape, dtype=float)
+    )
 
 
 @jit
@@ -104,7 +106,7 @@ def derivate(func: Callable) -> Callable:
     Returns:
         The derivative of the input activation function.
     """
-    if func.__name__ == "RELU":
+    if func.__name__ == "ReLU":
 
         @jit
         def func(X: np.ndarray) -> np.ndarray:
