@@ -389,3 +389,31 @@ def plot_Franke(
     if showPlots:
         plt.show()
     plt.close(fig)
+
+
+def plot_validation_train(
+    scores: dict[str, np.ndarray[float]],
+    title: str = "Error",
+    savePlots: bool = False,
+    showPlots: bool = True,
+    figsPath: Path = None,
+    saveName: str = None,
+) -> None:
+    fig, ax = plt.subplots()
+    train_error = scores["train_errors"]
+    ax.plot(train_error, label="Train")
+    validation_error = scores["validation_errors"]
+    ax.plot(validation_error, label="Validation")
+
+    ax.set_ylabel("Cost")
+    ax.set_xlabel(r"$n_{epochs}$")
+    ax.set_title(title)
+    ax.legend()
+
+    plt.tight_layout()
+
+    if savePlots:
+        plt.savefig(figsPath / f"{saveName}_error_val.pdf", bbox_inches="tight")
+    if showPlots:
+        plt.show()
+    plt.close(fig)
