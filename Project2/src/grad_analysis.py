@@ -41,6 +41,7 @@ class GradAnalysis:
         showPlots: bool = True,
         savePlots: bool = False,
         figspath: Path = None,
+        polynomial: bool = True,
     ) -> None:
         self.x_vals = x_vals
         self.y_vals = y_vals
@@ -50,6 +51,7 @@ class GradAnalysis:
         self.cost_func = cost_func
         self.derivative_func = derivative_func
         self.lmbda = lmbda
+        self.polynomial = polynomial
 
         self.savePlots = savePlots
         self.showPlots = showPlots
@@ -85,6 +87,7 @@ class GradAnalysis:
                 self.derivative_func,
                 schedule,
                 lmbda=self.lmbda,
+                polynomial=self.polynomial,
             )
 
             theta_arr = assign_row(
@@ -111,6 +114,7 @@ class GradAnalysis:
             self.derivative_func,
             Constant(0.1),
             lmbda=self.lmbda,
+            polynomial=self.polynomial,
         )
         for i, row in enumerate(schedules):
             for j, schedule in enumerate(row):
@@ -134,6 +138,7 @@ class GradAnalysis:
             self.derivative_func,
             Constant(1),
             lmbda=self.lmbda,
+            polynomial=self.polynomial,
         )
         for i, theta in enumerate(theta_arr):
             pred_arr = assign_row(pred_arr, i, DummyGrad.predict(x, theta, dim))
@@ -158,6 +163,7 @@ class GradAnalysis:
                 self.derivative_func,
                 schedule,
                 lmbda=self.lmbda,
+                polynomial=self.polynomial,
             )
             theta_arr = assign_row(
                 theta_arr,
@@ -717,6 +723,7 @@ class GradAnalysis:
                 self.derivative_func,
                 schedule,
                 lmbda=self.lmbda,
+                polynomial=self.polynomial,
             )
             theta_arr = assign_row(
                 theta_arr,
@@ -843,28 +850,28 @@ class GradAnalysis:
                 saveName=f"{saveName}_prediction_minibatch",
             )
 
-    def gd_main(self):
+    def gd_main(self, dim: int = 2):
         eta_num = 75
         eta_arr = np.logspace(-5, -1, eta_num)
-        self.constant_analysis(eta_arr)
+        self.constant_analysis(eta_arr, dim)
 
         rho_num = 75
         rho_arr = np.linspace(1 / self.n_points, 1, rho_num)
-        self.momentum_analysis(eta_arr, rho_arr)
+        self.momentum_analysis(eta_arr, rho_arr, dim)
 
         # NOTE: Adagrad is less sensitive to the learning rate, so we can use larger values
         eta_arr = np.logspace(-3, 0, eta_num)
-        self.adagrad_analysis(eta_arr)
+        self.adagrad_analysis(eta_arr, dim)
 
         eta_arr = np.logspace(-5, 0, eta_num)
         rho_arr = np.linspace(1 / self.n_points, 0.99, rho_num)
-        self.adagrad_momentum_analysis(eta_arr, rho_arr)
+        self.adagrad_momentum_analysis(eta_arr, rho_arr, dim)
 
         rho2_num = 75
         rho2_arr = np.linspace(0.05, 0.999, rho2_num)
-        self.adam_analysis(eta_arr, rho_arr, rho2_arr)
+        self.adam_analysis(eta_arr, rho_arr, rho2_arr, dim)
 
-        self.rms_prop_analysis(eta_arr, rho_arr)
+        self.rms_prop_analysis(eta_arr, rho_arr, dim)
 
     def ridge_analysis(self, eta_arr: np.ndarray, lmbda_arr: np.ndarray):
         ynew = self.target_func(self.base_x)
@@ -878,6 +885,7 @@ class GradAnalysis:
             self.derivative_func,
             Constant(0.1),
             lmbda=0.1,
+            polynomial=self.polynomial,
         )
         for i, lmbda in enumerate(lmbda_arr):
             Gradient.lmbda = lmbda

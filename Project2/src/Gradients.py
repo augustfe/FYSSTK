@@ -58,6 +58,7 @@ class Gradients:
         scheduler: Scheduler = Constant,
         dim: int = 2,
         lmbda: float = None,
+        polynomial: bool = True,
     ) -> None:
         """
         Initializes the Gradients object.
@@ -84,7 +85,10 @@ class Gradients:
         self.n = n
         self.x = x
         self.y = y
-        self.X = design(x, dim, len(x))
+        if polynomial:
+            self.X = design(x, dim, len(x))
+        else:
+            self.X = x
         self.lmbda = lmbda
         self.dim = dim
         self.cost_func = cost_func
