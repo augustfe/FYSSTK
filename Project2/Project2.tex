@@ -95,16 +95,18 @@
 \end{abstract}
 
 \section{Introduction}
-The concept of self operating machines or `Automatos' has captured human imagination throughout history, stretching back as far as the ancient Greeks. This fascination endured through the centuries, influencing Leonardo DaVinci's vision of a mechanical knight to the ``Turk"
-the infamous 18th-century fraudulent chess-playing machine.
+The concept of self operating machines or `Automatons' has captured human imagination throughout history, stretching back as far as the ancient Greeks. This fascination has endured throughout the centuries, influencing Leonardo DaVinci's vision of a mechanical knight to \textit{the Mechanical Turk}, the infamous 18th-century fraudulent chess-playing machine.
 
-Fast forward to the 1940's, Warren McCullouch and Walter Pitts came up with a mathematical model to describe the neuron cell in the brain. They called this model threshold logic \parencite{mcculloch1943logical}. This marked the genesis of what we now recognize as artificial neural networks (ANNs).
+Fast forward to the 1940's, Warren McCulloch and Walter Pitts came up with a mathematical model to describe the neuron cell in the brain. They called this model threshold logic \parencite{mcculloch1943logical}. This marked the genesis of what we now recognize as artificial neural networks (ANNs).
 
 ANNs, inspired by the intricate workings of the human brain, are composed of interconnected neurons or nodes. These nodes, assembled into multiple layers, function to discern patterns and process data in a way that emulates the human neural activity.
 
-A particular type of ANNs is the Feed-Forward Neural Networks (FFNNs). In FFNNs, the information moves in only one direction—from the input layer, through the hidden layers (if any), and to the output layer. The term ``feed-forward" refers to this unidirectional flow of data, with no cycles or loops in the network. Essentially, FFNNs create a straightforward pathway for data.
+A particular type of ANNs is the Feed-Forward Neural Networks (FFNNs). In FFNNs, the information moves in only one direction—from the input layer, through the hidden layers (if any), and to the output layer. The term \textit{feed-forward} refers to this unidirectional flow of data, with no cycles or loops in the network. Essentially, FFNNs create a straightforward pathway for data.
 
-In this project we initially take a look at the theory. We begin by delving into the mechanisms through which models are evaluated and further optimized, before probing into the theoretical foundation behind ANNs themselves. Then we pivot to the methods used to implement the theory and the results therefrom.
+The objective of this project is to investigate the application of FFNNs and other conventional methodologies in addressing regression and classification issues. Apart from FFNNs, we deploy linear regression techniques like OLS and Ridge to anticipate a bivariate polynomial. For tackling classification tasks, we employ logistic regression along with FFNNs.
+
+Our study begins with a detailed exposition of the theoretical concepts underpinning our implementations, which is followed by a description of the implementations themselves. Subsequently, we present the results and engage in a discussion to interpret the findings.
+
 
 \newpage
 
@@ -116,12 +118,11 @@ In machine learning, the primary goal is to make accurate predictions based on k
 Alternatively, it could predict whether a given image depicts a cat, a dog, a horse, or some other animal, a scenario referred to as multi-class classification. Similarly, algorithms can also forecast sequences of data, such as the words that come next in a sentence, generally considered as sequence prediction problems. In all these scenarios, the machine learning model uses patterns recognized from training data to make these predictions. The measure of accuracy from these predictions subsequently determines the subsequent course of action, i.e., optimizing the model's performance, which is where the concept of a cost function comes in
 
 
-The cost function serves as a measure for a model's performance on a specific data set. It is what defines the multidimensional 'cost surface' we wish to minimize with respect to our model parameters. The choice of cost function is thus very important. The optimal cost function is dependent on the specific task at hand – whether it be regression, binary classification, or multi-class classification.
+The cost function serves as a measure for a model's performance on a specific data set. It is what defines the multidimensional \textit{cost surface} we wish to minimize with respect to our model parameters. The choice of cost function is thus very important. The optimal cost function is dependent on the specific task at hand – whether it be regression, binary classification, or multi-class classification.
 
-During regression analysis, where the aim is to predict a single response variable based on one or more independent variables. We assume our observed response (y) can be modeled as
-
+During regression analysis, where the aim is to predict a single response variable based on one or more independent variables. We assume our observed response $y$ can be modeled as
 \begin{equation*}
-    y = f(\mathbf{x}) + \epsilon
+    y = f(\boldsymbol{x}) + \epsilon
 \end{equation*}
 $\mathbf{x}$ are our dependent variables and $\epsilon$ is 
 the stochastic noise inherent in $y$. We may assume $\epsilon \sim N(0,\sigma^2)$.
@@ -138,31 +139,37 @@ We gather this information in a matrix $\textbf{X}$, called the design matrix, s
     \end{bmatrix}.
 \end{equation*}
 
+It is common practice to apply the \textit{Mean Squared Error} (MSE), defined by
+\begin{equation*}
+    \frac{1}{n} \sum_{i = 0}^{n-1} (y_i - \hat{y}_i)^2,
+\end{equation*}
+where $\hat{y}_i$ are our predictions, in order the measure the performance of our fitting. Additionally we often include regularization, in order to avoid overfitting and improve generalization. 
 
-It is common practice to use Mean Squared Error (MSE). Additionally, to avoid overfitting and improve generalization, we often include a $L1$ or $L2$ regularization term in the cost function. 
 
-\begin{align*}
-C_{LS} (\boldsymbol{\theta}(\mathbf{X})) =& \frac{1}{n} \sum_{i=1}^{n-1}\left(y_i - \boldsymbol{\theta}(\boldsymbol{x_i})\right)^2\\[1mm]
-C_{L-1} (\boldsymbol{\theta}(\mathbf{X}))= & \hspace{1mm} C_{LS}(\boldsymbol{\theta}(\mathbf{X})) + \lambda ||\boldsymbol{\theta}||_1\\[3mm]
-C_{L-2} (\boldsymbol{\theta}(\mathbf{X}))= & \hspace{1mm} C_{LS}(\boldsymbol{\theta}(\mathbf{X})) + \lambda  ||\boldsymbol{\theta}||_2
-\end{align*}
+% It is common practice to use Mean Squared Error (MSE). Additionally, to avoid overfitting and improve generalization, we often include a $L1$ or $L2$ regularization term in the cost function. 
 
-Here $\boldsymbol{\theta}$ denotes the parameters/weights of the network,  $\boldsymbol{X}$  the input data,  $\lambda$ the strength of the regularization and the subscript $LS$ denotes least squares. If our model is predicting a vector MSE might be used as a loss function instead.
+% \begin{align*}
+%     C_{LS} (\boldsymbol{\theta}(\mathbf{X})) &= \frac{1}{n} \sum_{i=1}^{n-1}\left(y_i - \boldsymbol{\theta}(\boldsymbol{x_i})\right)^2 \\
+%     C_{L1} (\boldsymbol{\theta}(\mathbf{X})) &=
+%     C_{LS}(\boldsymbol{\theta}(\mathbf{X})) + \lambda ||\boldsymbol{\theta}||_1 \\
+%     C_{L2} (\boldsymbol{\theta}(\mathbf{X})) &=
+%     C_{LS}(\boldsymbol{\theta}(\mathbf{X})) + \lambda  ||\boldsymbol{\theta}||_2
+% \end{align*}
 
-\begin{align*}
-C (\boldsymbol{\theta}(\mathbf{X})) =& \frac{1}{n} \sum_{i=1}^{n-1} \frac{1}{m}\sum_{j=1}^{m-1} \left(y_{i,j} - \boldsymbol{\theta}(\boldsymbol{x_i})\right)^2 =  \frac{1}{n} \sum_{i=1}^{n-1} MSE(\boldsymbol{y}_i - \boldsymbol{\theta(x_i)}) \\[1mm]
-C_{L-1} (\boldsymbol{\theta}(\mathbf{X}))= & \hspace{1mm} C(\boldsymbol{\theta}(\mathbf{X})) + \lambda ||\boldsymbol{\theta}||_1\\[3mm]
-C_{L-2} (\boldsymbol{\theta}(\mathbf{X}))= & \hspace{1mm} C(\boldsymbol{\theta}(\mathbf{X})) + \lambda  ||\boldsymbol{\theta}||_2
-\end{align*}
+% Here $\boldsymbol{\theta}$ denotes the parameters/weights of the network,  $\boldsymbol{X}$  the input data,  $\lambda$ the strength of the regularization and the subscript $LS$ denotes least squares. If our model is predicting a vector MSE might be used as a loss function instead.
+
+% \begin{align*}
+% C (\boldsymbol{\theta}(\mathbf{X})) =& \frac{1}{n} \sum_{i=1}^{n-1} \frac{1}{m}\sum_{j=1}^{m-1} \left(y_{i,j} - \boldsymbol{\theta}(\boldsymbol{x_i})\right)^2 =  \frac{1}{n} \sum_{i=1}^{n-1} MSE(\boldsymbol{y}_i - \boldsymbol{\theta(x_i)}) \\[1mm]
+% C_{L-1} (\boldsymbol{\theta}(\mathbf{X}))= & \hspace{1mm} C(\boldsymbol{\theta}(\mathbf{X})) + \lambda ||\boldsymbol{\theta}||_1\\[3mm]
+% C_{L-2} (\boldsymbol{\theta}(\mathbf{X}))= & \hspace{1mm} C(\boldsymbol{\theta}(\mathbf{X})) + \lambda  ||\boldsymbol{\theta}||_2
+% \end{align*}
 
 
 
 \subsubsection{OLS and Ridge}
-Whenever $\boldsymbol{\theta}$ is a linear function we recover ordinary least squares.
-
-The linear relationship we are assuming is such that $y_i = \mathbf{x}_i \cdot \bm{\beta} + \epsilon$. We can write this more compact as
+By assuming that there is a linear relationship between our samples $y$ and the characteristics, we can apply \textit{Ordinary Least Squares} (OLS) in order to find the parameters $\boldsymbol{\beta} = \left[ \beta_0, \ \beta_1,  \ \ldots, \ \beta_{p-1} \right]^T$ which minimizes the MSE. Our predictions are then calculated by $\hat{y}_i = \boldsymbol{x}_i \cdot \boldsymbol{\beta}$. In matrix notation this can be simplified to
 \begin{equation*}
-    \mathbf{y} =
+    \hat{\boldsymbol{y}} =
     \begin{bmatrix}
         x_{0,0} & x_{0,1} & \ldots & x_{0, p-1} \\
         x_{1,0} & x_{1,1} & \ldots & x_{1, p-1} \\
@@ -182,249 +189,125 @@ The linear relationship we are assuming is such that $y_i = \mathbf{x}_i \cdot \
         \vdots \\
         \epsilon_{p-1}
     \end{bmatrix}
-    = \mathbf{X}\bm{\beta} + \epsilon
+    = \mathbf{X}\boldsymbol{\beta} + \epsilon,
 \end{equation*}
-where the $\mathbf{X}$ is called the design matrix and $\bm{\beta}$ is called weights. Our optimal OLS model is thus given by
+where the $\mathbf{X}$ is called the design matrix and $\boldsymbol{\beta}$ is called weights. In this new notation, calculating the MSE can be written
 \begin{equation*}
-    \bm{\hat{\beta}} = \argmin_{\beta \in \mathbb{R}^p}\tfrac{1}{n}(\mathbf{y} - \mathbf{X}\bm{\beta})^T(\mathbf{y} - \mathbf{X}\bm{\beta})
+    \frac{1}{n} \left( \boldsymbol{y} - \hat{\boldsymbol{y}} \right)^T \left( \boldsymbol{y} - \hat{\boldsymbol{y}} \right)^T = \frac{1}{n} \left( \boldsymbol{y} - \mathbf{X}\boldsymbol{\beta} \right)^T \left( \boldsymbol{y} - \mathbf{X}\boldsymbol{\beta} \right)^T.
 \end{equation*}
+Minimizing this, we seek $\hat{\boldsymbol{\beta}}$ which through derivation can we found analytically as
+\begin{equation*}
+    \hat{\boldsymbol{\beta}} = \left( \mathbf{X}^T \mathbf{X} \right)^{-1} \mathbf{X}^T \boldsymbol{y}
+\end{equation*}
+whenever $\mathbf{X}^T \mathbf{X}$ is invertible.
 
-If we add our $L2$ regularization term we get ridge regression. We then wish to minimize
+If we add $L2$ regularization to this, i.e. by determining our cost through
 \begin{equation*}
-    \bm{\hat{\beta}} = \argmin_{\beta \in \mathbb{R}^p}\tfrac{1}{n}(\mathbf{y} - \mathbf{X}\bm{\beta})^T(\mathbf{y} - \mathbf{X}\bm{\beta}) + \lambda\bm{\beta}^2
+    \frac{1}{n} \left( \boldsymbol{y} - \hat{\boldsymbol{y}} \right)^T \left( \boldsymbol{y} - \hat{\boldsymbol{y}} \right)^T + \lambda \lVert \boldsymbol{\beta} \rVert_2^2,
 \end{equation*}
+we punish our prediction for assigning undue weight to individual characteristics, in effect motivating it to assign weights where they have the greatest impact. Note that $\lVert \boldsymbol{\beta} \rVert_2$ is the $\ell_2$ norm, defined by
+\begin{equation*}
+    \lVert \boldsymbol{x} \rVert_2 = \sqrt{\sum_{x_i \in \boldsymbol{x}} x_i^2},
+\end{equation*}
+hence the name. This is commonly referred to as Ridge regression, where the analytical solution $\hat{\boldsymbol{\beta}}$ can be found as
+\begin{equation*}
+    \hat{\boldsymbol{\beta}} = \left( \mathbf{X}^T \mathbf{X} + \lambda I_{p} \right)^{-1} \mathbf{X}^T \boldsymbol{y},
+\end{equation*}
+again only whenever $\mathbf{X}^T \mathbf{X} + \lambda I$ is invertible. $\lambda$ is referred to as a regularization- or hyperparameter, and determines how strict we are with preventing high values in $\boldsymbol{\beta}$.
 
 \subsubsection{Binary Classification}
-When we use MSE as a loss function, we're primarily asking the model, "How far is your prediction from the actual value?" This question is appropriate in regression, where we're predicting values on a continuous scale. However, in classification, we are more interested in getting the class label right, i.e., whether a prediction falls into class 0 or class 1, rather than exactly how far the predicted probability is from the actual value of 0 or 1.
+When we use MSE as a loss function, we're primarily asking the model, ``How far is your prediction from the actual value?" This question is appropriate within regression, where we're attempting to predict continuous values. In classification we are however more interested in getting discrete labels correct, i.e. whether a prediction falls into class 0 or class 1, rather than how far the predicted probability is from the actual value.
 
-Let's consider a binary classification problem and we have an example that belongs to class 1, but our model predicts it as class 0. So it's a complete misclassification, the square loss however is only 1! Instead of MSE we may use binary cross entropy (BCE).
+Let's consider a binary classification problem, where we have target which belongs to class 1, which our model predicts into class 0. This is a complete misclassification, however the squared error is only 1. We therefore need to consider a different measure of how far off our predictions are. We therefore apply \textit{Binary Cross-entropy} (BCE), sometimes referred to as \textit{log loss}.
 
- To find the BCE loss we evaluate the distance between our predicted probability value (p) and the actual value (which could be either y=0 or y=1). The loss function is given by
+To find the BCE loss we evaluate the distance between our predicted probability value $p$ with the actual value $y \in \{0, 1\}$. The loss function is given by
 
-\[
-L(y, p) = -ylog(p) - (1-y)log(1-p)
-\]
-If $y=1$ then
-\[
-L(y,p) = -log(p)
-\]
-Clearly  $L \to 0$ as $p \to 1$ and $L \to \infty$ as $p \to 0$
-if $y = 0$ then
-\[
-L(y,p) = -log(1-p)
-\]
-Here $L \to 0$ as $p \to 0$ and $L \to \infty$ as $p \to 1$
-The loss is thus much more appropriate.
+\begin{equation*}
+    L(y, p) = -y \log(p) - (1 - y)\log(1-p)
+\end{equation*}
+If $y=1$ we simply get $L(1,p) = -\log(p)$. Clearly $L \to 0$ as $p \to 1$ and $L \to \infty$ as $p \to 0$.
+If however $y = 0$, we get $L(0,p) = -log(1-p)$. We then see the reverse behaviour, where $L \to 0$ as $p \to 0$ and $L \to \infty$ as $p \to 1$. This measure of the loss is thus much more appropriate in a binary classification problem.
 
-
-The BCE cost function is simply mean of $n$ such losses.
-
-\[
-C(\mathbf{y}, \mathbf{p}) = \frac{1}{n} \sum_{i=1}^{n} L(y_i, p_i)
-\]
-
-Minimizing this is the purpose of a binary classifier
+The BCE cost function is then simply defined as the mean over $n$ evaluations of the loss, 
+\begin{equation*}
+    C(\boldsymbol{y}, \boldsymbol{p}) = \frac{1}{n} \sum_{i=0}^{n-1} L(y_i, p_i).
+\end{equation*}
+Minimizing this function is the purpose of a binary classifier.
 
 \subsubsection{Logistic Regression}
 %In classification problems, the variables are discrete (i.e. categories). As an example, in medicine, one might want to predict if someone has had a stroke or not given certain medical signs. Thus we have two categories, $\{\text{'Stroke'}, \text{'No\ stroke'}\}$ or simply $\{1,0\}$. 
-Logistic regression is a method for obtaining a binary classifier where we assume a linear relationship between the input features and the binary category.
+We obtain logistic regression as we attempt to predict the probability of labeling in $K$ classes through a function in $x$ \parencite[p.~119]{Hastie2009}. As we are dealing with probabilities, we require that all the predicted probabilities sum to $1$, and that they all lie in $[0, 1]$.
 
-
-We assume that the probability of features 
-$\mathbf{x}_i = \left[x_{i,0}, x_{i, 1}, \ldots, x_{i, p-1} \right]$ land us in category $\mathbf{y}$ ($0$ or $1$)is best modeled by
-
+For a given observation $\boldsymbol{x}_i$, we thus seek a function which will give us the probability of getting a value of $y_i$. In the binary case, where $y_i \in \{0, 1\}$, we apply the \textit{sigmoid} function, sometimes referred to as the logit function, defined by
 \begin{equation*}
-f(\mathbf{x_i}\bm{\beta})
+    p(t) = \frac{1}{1 + e^{-t}} = \frac{e^t}{1 + e^t}.
+\end{equation*}
+Note that $1 - p(t) = p(-t)$, satisfying our requirements.
+
+We assume that the probability of an observation with features $\boldsymbol{x}_i = \left[x_{i,0}, \ x_{i, 1}, \ \ldots, \ x_{i, p-1} \right]^T$ landing in category $\boldsymbol{y}$, either 0 or 1, can be modeled by $f(\mathbf{x_i} \cdot \boldsymbol{\beta})$, where $f: \mathbb{R} \to (0, 1)$. In a binary case, we thus get
+\begin{align*}
+    p\left( y_i = 1 | \boldsymbol{x}_i, \boldsymbol{\beta} \right) &= \frac{ e^{\boldsymbol{x}_i \boldsymbol{\beta}}}{1 + e^{\boldsymbol{x}_i \boldsymbol{\beta}}} \\
+    p\left( y_i = 0 | \boldsymbol{x}_i, \boldsymbol{\beta} \right) &= 1 - p\left( y_i = 1 | \boldsymbol{x}_i, \boldsymbol{\beta} \right)
+\end{align*}
+
+To fit this model we seek to find the parameters $\boldsymbol{\beta}$ which maximizes the likelihood function, which for a data set $\mathcal{D} = \{y_i, \boldsymbol{x}_i\}$ is defined as
+\begin{equation*}
+    L\left( \mathcal{D} | \boldsymbol{\beta} \right) = \prod_{i = 0}^{n-1} p\left( y_i = 1 | \boldsymbol{x}_i, \boldsymbol{\beta} \right)^{y_i} p\left( y_i = 0 | \boldsymbol{x}_i, \boldsymbol{\beta} \right)^{1 - y_i}
 \end{equation*}
 
-Where $f: \mathbb{R} \to (0,1)$. This ensures a valid probability for the predicted values. For logistic regression we use the logistic function, also known as the sigmoid function 
-\begin{equation*}
-    \sigma(z) = \frac{1}{1 + e^{-z}} = \frac{e^{z}}{1 + e^z}
-\end{equation*}
-We thus get for our prediction
-\begin{equation*}
-    p(\mathbf{x}_i) = \frac{e^{\mathbf{x}_i\bm{\beta}}}{1 + e^{\mathbf{x}_i\bm{\beta}}}
-\end{equation*}
-When the logarithm is taken, it reveals the linear relationship once more
-\begin{equation*}
-    \log(p(\mathbf{x}_i)) = \mathbf{x}_i\bm{\beta}
-\end{equation*}
-To fit this model we find the $\bm{\beta}$ which maximises the likelihood function
-\begin{equation*}
-    L(\bm{\beta}) = \prod_{i: y_i = 1}p(x_i)\prod_{j:y_j = 0}(1-p(x_j))
-\end{equation*}
-which we can write as
-\begin{equation*}
-    L(\bm{\beta}) = \prod_{i=1}^{n}P(y_i | \mathbf{x}_i,\bm{\beta})
-\end{equation*}
-where $n$ is the number of samples and $P(y_i | \mathbf{x}_i,\bm{\beta})$ is the probability of $y_i$ given the input $\mathbf{x}_i$ and the weights $\bm{\beta}$. Maximizing this equation is what we call the method of maximum likelihood. To simplify, we take the log of the equation and get the log-likelihood and also multiply with $-1$ such that it becomes a minimization problem instead of a maximization problem
-\begin{equation*}
-    \begin{split}
-        \ell(\bm{\beta}) & = -\sum_{i=1}^{n}(y_i\log(p(\mathbf{x}_i) + (1 - y_i)\log(1 - p(\mathbf{x}_i)) \\
-        & = -\sum_{i=1}^{n}(y_i\log(p(\mathbf{x}_i) + \log(1 - p(\mathbf{x}_i)) - y_i\log(1 - p(\mathbf{x}_i)) \\
-        & = -\sum_{i=1}^{n}(y_i\mathbf{x}_i\bm{\beta} + \log(1 - p(\mathbf{x}_i)))
-    \end{split}
-\end{equation*}
- This is just the binary cross entropy cost without $\frac{1}{n}$. The same cost function used for binary classification, even when there is not a linear relationship between the features and the observed categories. 
- To minimize, we differentiate with respect to $\bm{\beta}$. First, the derivative of the sigmoid function is
-\begin{equation*}
-    \frac{\partial \sigma(z)}{\partial z} = \sigma(z) - \sigma(z)^2 = \sigma(z)(1 - \sigma(z))
-\end{equation*}
+Maximizing this equation is what we call the method of maximum likelihood. To simplify, we take the $\log$ of the equation and get the \textit{log-likelihood} $\ell$ and also multiply with $-1$ such that it becomes a minimization problem instead of a maximization problem. We then get, writing $p(\boldsymbol{x}_i) = p\left( y_i = 1 | \boldsymbol{x}_i, \boldsymbol{\beta} \right)$,
+\begin{align*}
+    \ell(\boldsymbol{\beta})
+    &= -\sum_{i=1}^{n} y_i\log p(\boldsymbol{x}_i) + (1 - y_i)\log(1 - p(\boldsymbol{x}_i))  \label{eq:BCE_cost}\\
+    &= -\sum_{i=1}^{n} y_i\log p(\boldsymbol{x}_i) + \log(1 - p(\boldsymbol{x}_i)) - y_i\log(1 - p(\boldsymbol{x}_i)) \\
+    & = -\sum_{i=1}^{n} y_i\boldsymbol{x}_i\boldsymbol{\beta} + \log(1 - p(\boldsymbol{x}_i))\\
+    & = - \sum_{i=1}^{n} y_i\boldsymbol{x_i} \boldsymbol{\beta} + log(1 - \frac{e^{\boldsymbol{x_i} \boldsymbol{\beta}}}{1 + e^{\boldsymbol{x_i \beta}}})\\
+    & = - \sum_{i=1}^{n} y_i\boldsymbol{x_i} \boldsymbol{\beta} + log(\frac{1}{ 1 + e^{\boldsymbol{x_i \beta} }})\\
+    & =  - \sum_{i=1}^{n} y_i\boldsymbol{x_i} \boldsymbol{\beta} - log(1 + e^{\boldsymbol{x_i \beta} })
+\end{align*}
 
-\begin{comment}
-\subsubsection{Binary classification}
+Note that the first equation is just the binary cross entropy cost without $\frac{1}{n}$. The same cost function used for binary classification, even when there is not a linear relationship between the features and the observed categories. To minimize, we differentiate with respect to $\boldsymbol{\beta}$. 
 
-When we use MSE as a loss function, we're primarily asking the model, "How far is your prediction from the actual value?" This question is appropriate in regression, where we're predicting values on a continuous scale. However, in classification, we are more interested in getting the class label right, i.e., whether a prediction falls into class 0 or class 1, rather than exactly how far the predicted probability is from the actual value of 0 or 1.
+\begin{align*}
+    \frac{\partial \ell }{\partial \boldsymbol{\beta}} &= - \sum_{i=1}^{n} y_i\boldsymbol{x_i}  - \frac{\boldsymbol{x_i} e^{\boldsymbol{x_i\beta}}}{1 + e^{\boldsymbol{x_i \beta} }}\\
+    &= - \sum_{i=1}^{n}\boldsymbol{x_i} \left(y_i  - \frac{1}{1 + e^{\boldsymbol{x_i \beta} }}\right)\\
+    &= - \sum_{i=1}^{n}\boldsymbol{x_i} \left(y_i  - 1 + p(\boldsymbol{x_i})\right)
+\end{align*}
 
-Let's consider a binary classification problem:
+% First, the derivative of the sigmoid function is
+% \begin{equation*}
+%     \frac{\partial p(t)}{\partial t} = p(t) - p(t)^2 = p(t)(1 - p(t))
+% \end{equation*}
 
-Case 1) Suppose we have an example that belongs to class 1, but our model predicts it as class 0. So it's a complete misclassification. Case 2) A different data point also belongs to class 1, and this time, the model predicts 0.9, which is quite close to the actual value and is indeed predicting the correct class (as 0.9 is closer to 1).
 
-In both these cases, by focusing only on the MSE, we are more concerned with the difference between the predicted and actual values, not taking into account the notion of 'correctly classified' or 'misclassified'. For these reasons the binary cross entropy (BCE) is preferred.
 
-Binary Cross Entropy (BCE), we evaluate the distance between our predicted probability value (p) and the actual value (which could be either y=0 or y=1). The loss function is given by
+\subsubsection{Accuracy score}
 
-\[
-L(y, p) = -ylog(p) - (1-y)log(1-p)
-\]
-If $y=1$ then
-\[
-L(y,p) = -log(p)
-\]
-Clearly  $L \to 0$ as $p \to 1$ and $L \to \infty$ as $p \to 0$
-if $y = 0$ then
-\[
-L(y,p) = -log(1-p)
-\]
-Here $L \to 0$ as $p \to 0$ and $L \to \infty$ as $p \to 1$
-
-The BCE cost function is simply mean of $n$ such losses.
-
-\[
-C(\mathbf{y}, \mathbf{p}) = \frac{1}{n} \sum_{i=1}^{n} L(y_i, p_i)
-\]
-\end{comment}
-
-\begin{comment}
-\subsection{Regression}
-
-\subsubsection{OLS}
-
-%Ordinary least squares is a method used to best fit a line to a set of data points. It minimizes the sum of squared residuals, which means it finds the distance between the input data points and the points along the line. The goal is to find the best relationship between a independent variable $\mathbf{x}$ (the input data) and a dependent variable $\mathbf{y}$ (the observed data).
-%Assume there exists some functional relationship between a set of variables $\mathbf{x}$ and a single stochastic variable $y$. We may denote these as explanatory and response variables. 
-
-Ordinary least squares is a method used to best fit a line to a set of data points. It minimizes the sum of squared residuals, which means it finds the distance between the input data points and the points along the line. The goal is to find the best relationship between a independent variable $\mathbf{x}$ (the input data) and a dependent variable $\mathbf{y}$ (the observed data).
+The accuracy score, although not suited as a cost function for optimization, is a commonly used metric for evaluating classification models. It represents the proportion of correct predictions out of all predictions made, defined as
 
 \begin{equation*}
-    y = f(\mathbf{x}) + \epsilon
+    \text{Accuracy Score} = \frac{ \# \text{ of Correct Predictions}}{\text{Total} \text{ of Predictions}}.
 \end{equation*}
 
-$\epsilon$ is 
-the stochastic noise inherent in $y$. We may assume $\epsilon \sim N(0,\sigma^2)$.
-For example one could denote $y$ as being the number of beach goers and our explanatory variables could be the temperature, the wind speed, the time of the day, the number of ice cream flavours available and so on.
-
- We are then looking for an approximation of $f$ which gives $\tilde{\boldsymbol{y}}$ such that the MSE, $\frac{1}{n} \left( \boldsymbol{y} - \tilde{\boldsymbol{y}} \right)^2$, is minimized. In order to approximate $f$, we consider $n$ samples of $\boldsymbol{y}$ and assume that there are $p$ characteristics which define each of the samples, such that $y_i = f(\boldsymbol{x}_i) + \varepsilon_i$ where $\boldsymbol{x}_i = \left[x_{i,0}, x_{i, 1}, \ldots, x_{i, p-1} \right]$.
-
-We gather this information in a matrix $\textbf{X}$, called the design matrix, such that
-\begin{equation*}
-    \textbf{X} =
-    \begin{bmatrix}
-        x_{0,0} & x_{0,1} & \ldots & x_{0, p-1} \\
-        x_{1,0} & x_{1,1} & \ldots & x_{1, p-1} \\
-        \vdots & \vdots & \ddots & \vdots \\
-        x_{n,0} & x_{n,1} & \ldots & x_{n, p-1}
-    \end{bmatrix}.
-\end{equation*}
-
-where $\mathbf{y} \in Y$ is our observed data, $\mathbf{x} \in X$ is the input data and $\epsilon$ is the error term given as $\epsilon \sim N(0,\sigma^2)$. Looking to approximate $f$, we consider $n$ samples and assume that there are $p$ characteristics which define each of the samples, such that $y_i = f(\mathbf{x}_i) + \epsilon_i$, with $\mathbf{x}_i = [x_{i,0},x_{i,1},...,x_{i,p-1}]$. The approximation of $f$ should give us $\mathbf{\Tilde{y}}$ such that $\tfrac{1}{n}(\mathbf{y} - \mathbf{\Tilde{y}})$ is minimized. \\
-... \\
-We assume a linear relationship such that $y_i = \mathbf{x}_i \cdot \bm{\beta} + \epsilon$. We can write this more compact as
-\begin{equation*}
-    \mathbf{y} =
-    \begin{bmatrix}
-        x_{0,0} & x_{0,1} & \ldots & x_{0, p-1} \\
-        x_{1,0} & x_{1,1} & \ldots & x_{1, p-1} \\
-        \vdots & \vdots & \ddots & \vdots \\
-        x_{n,0} & x_{n,1} & \ldots & x_{n, p-1}
-    \end{bmatrix}
-    \begin{bmatrix}
-        \beta_0 \\
-        \beta_1 \\
-        \vdots \\
-        \beta_{p-1}
-    \end{bmatrix}
-    +
-    \begin{bmatrix}
-        \epsilon_0 \\
-        \epsilon_1 \\
-        \vdots \\
-        \epsilon_{p-1}
-    \end{bmatrix}
-    = \mathbf{X}\bm{\beta} + \epsilon
-\end{equation*}
-where the $\mathbf{X}$ is called the design matrix and $\bm{\beta}$ is called weights. Wanting to find
-\begin{equation*}
-    \bm{\hat{\beta}} = \argmin_{\beta \in \mathbb{R}^p}\tfrac{1}{n}(\mathbf{y} - \mathbf{X}\bm{\beta})^T(\mathbf{y} - \mathbf{X}\bm{\beta})
-\end{equation*}
-and knowing that
-\begin{equation*}
-    (\mathbf{y} - \mathbf{X}\bm{\beta})^T(\mathbf{y} - \mathbf{X}\bm{\beta}) = \mathbf{y}^T\mathbf{y} - 2\bm{\beta}^T\mathbf{X}^T\mathbf{y} + \bm{\beta}^T\mathbf{X}^T\mathbf{X}\bm{\beta}
-\end{equation*}
-we can compute the partial derivatives of the above expression and neglect the scaling factor $\tfrac{1}{n}$. This gives us
-\begin{gather*}
-    \frac{\partial}{\partial \boldsymbol{\beta}} \left( \boldsymbol{y}^T \boldsymbol{y} - 2 \boldsymbol{\beta}^T \textbf{X}^T \boldsymbol{y} + \boldsymbol{\beta}^T \textbf{X}^T \textbf{X} \boldsymbol{\beta} \right) = 0 \\
-    -2 \textbf{X}^T \boldsymbol{y} + 2 \textbf{X}^T \boldsymbol{X \beta} = 0 \\
-    2 \textbf{X}^T \boldsymbol{X \beta} = 2 \textbf{X}^T \boldsymbol{y} \\
-    \boldsymbol{\beta} = \left( \textbf{X}^T \textbf{X} \right)^{-1} \textbf{X}^T \boldsymbol{y}
-\end{gather*}
-Now we have an analytical expression for the weights, which is what we wanted.
-For a more detailed and longer explanation of OLS, including the expectation and variance of OLS, see (project 1 link goes here)
-
-\subsubsection{Ridge}
-Overfitting is the concept where the model learns the training data too well, and failing to generalize to other data sets. As an analogy, this would be similar to someone learning what numbered answer to answer on a test instead of actually learning the topic of the test. This can be a challenge in OLS and thus we introduce a regularization term in ridge regression. The new expression to minimize becomes
-\begin{equation*}
-    \bm{\hat{\beta}} = \argmin_{\beta \in \mathbb{R}^p}\tfrac{1}{n}(\mathbf{y} - \mathbf{X}\bm{\beta})^T(\mathbf{y} - \mathbf{X}\bm{\beta}) + \lambda\bm{\beta}^2
-\end{equation*}
-where the right hand side multiplies to
-\begin{equation*}
-    \frac{1}{n}(\mathbf{y}^T\mathbf{y} - 2\bm{\beta}^T\mathbf{X}^T\mathbf{y} + \bm{\beta}^T\mathbf{X}^T\mathbf{X}\bm{\beta}) + \lambda\bm{\beta}^T\bm{\beta}
-\end{equation*}
-Finding again the partial derivatives, we get
-\begin{gather*}
-    \frac{\partial}{\partial \boldsymbol{\beta}} \left( \left( \boldsymbol{y} - \textbf{X} \boldsymbol{\beta} \right)^2 + \lambda \boldsymbol{\beta}^2 \right) = 0 \\
-    -2 \textbf{X}^T \boldsymbol{y} + 2 \textbf{X}^T \boldsymbol{X \beta} + 2\lambda \boldsymbol{\beta} = 0 \\
-    \textbf{X}^T \boldsymbol{X \beta} + \lambda \boldsymbol{\beta} = \textbf{X}^T \boldsymbol{y} \\
-    \left(\textbf{X}^T \textbf{X} + \boldsymbol{I}_p \lambda \right) \boldsymbol{\beta} = \textbf{X}^T \boldsymbol{y} \\
-    \boldsymbol{\beta} = \left(\textbf{X}^T \textbf{X} + \boldsymbol{I}_p \lambda \right)^{-1} \textbf{X}^T \boldsymbol{y}
-\end{gather*}
-For a more detailed explanation of ridge regression, see (Project 1 link)
-\end{comment}
-
-
-
+While it provides a straightforward and intuitive measure of overall model performance, the accuracy score can be misleading in scenarios where classes are imbalanced. In such cases, other metrics like precision or the F1 score may provide a more complete picture of a model's performance. These metrics fall outside the scope of this project, and are thus excluded. Nevertheless, the accuracy score serves as a great start point for model evaluation and comparison
 
 \subsection{Optimization}
-
-%%At the core of most issues within machine learning and data analysis, we find an optimization problem.  In a perfect scenario we would like to like to find this analytically, however for various reasons, whether they be computational or purely mathematical in nature, this is often not possible. 
 As we've observed, the cost function is at the core of solving machine learning problems, which fundamentally involve optimization. That is we wish to find the minimum of a function. In a perfect scenario we would like to find this analytically, however for various reasons, whether they be computational or purely mathematical in nature, this is often not possible. Therefore we opt for iterative methods instead.
+
 \subsubsection{Gradient descent}
-
-Let  $$f: \mathbf{X}^n \rightarrow \mathbf{Y}$$ be the function we wish to minimize, where $ \mathbf{X} \subseteq \mathbb{R}^n, \mathbf{Y}\subseteq \mathbb{R}$. If $f$ is differentiable the extrema, $f(\mathbf{x^*})$, satisfy $\nabla \mathbf{f(w^*)} = \mathbf{0}$. Let $f(\boldsymbol{\xi})$ denote a local minima. Then we approximate $\boldsymbol{\xi}$ by the iteration
-
+Let  $f: \mathbf{X}^n \rightarrow \mathbf{Y}$ be the function we wish to minimize, where $ \mathbf{X}^n \subseteq \mathbb{R}^n, \mathbf{Y}\subseteq \mathbb{R}$. Let $\boldsymbol{w}^* \in \mathbf{X}^n$ be an extrema of a differentiable function $f$, it then satisfies $\nabla f(\boldsymbol{w}^*) = 0$. Let $\boldsymbol{\xi} \in \mathbf{X}^n$ be a local minima. We then approximate $\xi$ by the iteration
 \begin{equation}
 \begin{aligned} 
-    \mathbf{w}_{k+1} =& \mathbf{w}_k - \eta_k \nabla  \mathbf{f(\mathbf{w}_k)}\\
-    =& \mathbf{w}_k - \eta_k  \mathbf{g_k} 
+    \boldsymbol{w}_{k+1} =& \boldsymbol{w}_k - \eta_k \nabla  f \boldsymbol{w}_k) \\
+    =& \boldsymbol{w}_k - \eta_k  \boldsymbol{g}_k,
 \end{aligned}
 \label{eq:gradient_descent}
 \end{equation}
+denoting the gradient $\nabla f(\boldsymbol{w}_k)$ as $\boldsymbol{g}_k$.
 
 The scalar in front of the gradient term, here $\eta_k$, is called the learning rate. If we let it be constant we get gradient descent. For each iteration we move our approximation of the minima in the opposite direction of the gradient; the direction of maximum growth. 
 
-This is also known as simultaneous relaxation and under certain conditions on the Hessian it can be shown that 
-$\mathbf{w_k}$ converges to $\mathbf{\xi}$  given that $\mathbf{w_0}$ is close enough to $\xi$ \parencite[p.~117--118]{introNumeric}
-For non differentiable functions we may still obtain convergence by clever choice of $\eta_k$ and numerical approximations of the gradient. 
-\autoref{fig:simple_gradient_descent} shows a simple example of 30 iterations performed on $f(w) = w^2$ with $\eta = 0.01$
+This is also known as simultaneous relaxation and under certain conditions on the Hessian it can be shown that $\boldsymbol{w}_k$ converges to $\boldsymbol{\xi}$  given that $\boldsymbol{w}_0$ is close enough to $\boldsymbol{\xi}$ \parencite[p.~117--118]{introNumeric}. For non-differentiable functions we may still obtain convergence by clever choice of $\eta_k$ and numerical approximations of the gradient. \autoref{fig:simple_gradient_descent} shows a simple example of 30 iterations performed on $f(w) = w^2$ with $\eta = 0.01$.
 
 \begin{figure}[H]
     \centering
@@ -434,11 +317,10 @@ For non differentiable functions we may still obtain convergence by clever choic
 \end{figure}
 For this simple example the iteration converged quickly, reaching a absolute value less than 0.001 after only 27 iterations. Gradient descent is not always this efficient. 
 
-The two natural weaknesses of gradient descent are neatly explained in \parencite[p.~65--71]{MLRefined}. The first stems from the gradient always being perpendicular to the contour line. This is easily proved through parameterization.
-
+The two natural weaknesses of gradient descent are neatly explained in \textcite[p.~65--71]{MLRefined}. The first stems from the gradient always being perpendicular to the contour line. This is easily proved through parameterization.
 
 \begin{lemma}
-    Let $w(t)$ be a parametrization of a countour surface for a differentiable function $f: X^n \rightarrow Y$. Then $\nabla f \perp w(t) $ 
+    Let $w(t)$ be a parametrization of a contour surface for a differentiable function $f: X^n \rightarrow Y$. Then $\nabla f \perp w(t)$. 
 \end{lemma}
 
 \begin{proof}
@@ -446,7 +328,7 @@ $$f(w(t)) = C \Rightarrow \frac{d}{dt} f(w(t)) = 0 \Rightarrow \nabla f(w(t)) \c
 The result follows from $\frac{\partial w(t)}{\partial t}$ being parallel to the contour
 \end{proof}
 
-This may lead to Zig-zagging behavior for ill conditioned problems.
+This may lead to \textit{zig-zagging} behavior for ill conditioned problems, as seen in \autoref{fig:zigzagGradientDescent}.
 
 \begin{figure}[H]
     \centering
@@ -456,15 +338,16 @@ of gradient descent.}
     \label{fig:zigzagGradientDescent}
 \end{figure}
 
-The other challenge of gradient descent is its slow crawling behaviour in flatter regions of a function such as saddle points.  
-This is nicely illustrated by 50 iterations with $\eta = 0.1$ on the function 
-\[g(w) =  max^2(0, 1 + (3w - 2.3)^3) + max^2(0, 1 + (-3w + 0.7)^3)\]
+The other challenge of gradient descent is its slow crawling behaviour in flatter regions of a function such as saddle points. This is nicely illustrated by 50 iterations with $\eta = 0.1$ on the function 
+\begin{equation*}
+    g(w) =  \max\{0, 1 + (3w - 2.3)^3\}^2 + \max\{0, 1 + (-3w + 0.7)^3\}^2,
+\end{equation*}
+as seen in \autoref{fig:CrawlGradientDescent}.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.7\textwidth]{Project2/figures/Gradient_descent_saddle_crawl.jpeg}
-    \caption{Figure 3.14 \parencite[p.~70]{MLRefined} illustrating the slow crawling behaviour
-of gradient descent.}
+    \caption{Figure 3.14 from \parencite[p.~70]{MLRefined} illustrating the slow crawling behaviour of gradient descent.}
     \label{fig:CrawlGradientDescent}
 \end{figure}
 
@@ -473,18 +356,18 @@ When performing gradient descent for machine learning the function we are minimi
 \end{comment}
 
 \subsubsection{Stochastic gradient descent}
-Recall that the cost function is defined by the difference between our predictions and observed values. A large dataset thus gives a computationally expensive cost function and corresponding gradient. To combat this Stochastic gradient descent (or SGD) introduces the concept of batching.
+Recall that the cost function is defined as a measurement of the distance between our predictions and the observed values. A large dataset can therefore quickly turn computationally expensive, if we were to compute the cost function and corresponding gradient for everything all at once. To combat this, we often apply \textit{Stochastic gradient descent} (SGD).
 
+We first introduce batch gradient descent, where we split out dataset into \textit{batches} of size $M$. For each iteration, we compute the gradient for each batch individually, updating our estimate for each. Instead of computing the cost and corresponding gradient for all data points each time as in gradient descent, we thus only calculate it for a smaller subset, having the effect of requiring less iterations.
 
-Instead of computing the cost and corresponding gradient for all data points, we instead choose $M$ points at random without replacement (a batch), to calculate from. The cost surface achieved by this is truly a different surface from the one achieved by using all the data points, but the number of features and thus the dimentionality, is the same. For this method to work we are banking on there being enough overlap between the samples such that the gradient is expected to point in the same direction when calculated for all data points.
+In stochastic gradient descent, we apply the same method, differing by drawing a sample of $M$ random points from our data set with replacement. The cost surface achieved by this is truly a different surface from the one achieved by using all the data points, but the number of features and thus the dimentionality, is the same. For this method to work we are banking on there being enough overlap between the samples such that the gradient is expected to point in the same direction when calculated for all data points.
 
-
-It is common practice to organize our algorithm in a double loop. If we have $n$ samples in total the inner loop iterates over $\lfloor\frac{M}{n} \rfloor$. That is the number of batches that fit in our dataset. And the outer loop iterates over the number of epochs. Which is an arbitrary number. In the special case of $M = n$, there is only one batch and SGD becomes "vanilla" gradient descent. 
+It is common practice to organize our algorithm in a double loop. If we have $n$ samples in total the inner loop iterates over $\lfloor\frac{M}{n} \rfloor$. That is the number of batches that fit in our dataset. The outer loop iterates over the number of epochs.
 
 \newpage
 
 \begin{algorithm}[hbt!]
-\caption{Stochastic Gradient Descent with Batching}\label{alg:SGD}
+\caption{Batch Gradient Descent}\label{alg:SGD}
 \KwData{Dataset D={$x_1,...,x_n$}, Learning rate $\eta$, Batch Size M, No. of Epochs E}
 \KwResult{Model Parameters w}
 \For{i in range(E)}{
@@ -497,48 +380,45 @@ It is common practice to organize our algorithm in a double loop. If we have $n$
 }
 \end{algorithm}
  
-Let $\mathbf{x_i}$ be the $i_{th}$ batch and $i=1,...,m$, then we can rewrite (\ref{eq:gradient_descent}) as
+Let $\boldsymbol{x}_i$ be the $i$th batch for $i=1, \ldots, m$. We can rewrite (\ref{eq:gradient_descent}) as
 \begin{align*}
-        \mathbf{w_{j+1}} = \mathbf{w_j} - \eta_j\nabla\mathbf{f_i(x_i)}
+        \boldsymbol{w}_{j+1} = \boldsymbol{w}_j - \eta_j\nabla f_i (\boldsymbol{x}_i)
 \end{align*}
 where $j=1,...,m \cdot \#epochs$. Notice that the gradient is indexed as it is defined from the data points in the batch.
 
-As stated above subsection, gradient descent finds the local minima $f(\xi)$ by exploration. This is beneficial for convex functions or if the local minima is already known to be the global minima. For non-convex functions or in the case where the global minima is not known (which is the case most of the time), SGD introduces more exploration. This means that instead of getting stuck in a local minima, by randomness, there is a higher probability of finding the global minima. SGD also have an added bonus that it is dependent on the batch size rather than the data set size. Thus the learning rate can still converge, even if the data set is large.
+As stated in the previous subsection, gradient descent finds the local minima $f(\boldsymbol{\xi})$ by exploration. This is beneficial for convex functions, or if the local minima is already known to be the global minima. For non-convex functions, or in the case where the global minima is not known (which is the case most of the time), SGD introduces more exploration. This means that instead of getting stuck in a local minima, by randomness, there is a higher probability of finding the global minima. SGD also have an added bonus that it is dependent on the batch size rather than the data set size. Thus the learning rate can still converge, even if the data set is large.
 
-It is important to keep in mind that for the following descent methods we can define their corresponding stochastic counterparts in the same way as we did for gradient descent. And  that gradient descent and stochastic gradient descent is sometimes used to refer to the family of optimizers and their stochastic counterparts.
+It is important to keep in mind that for the following descent methods we can define their corresponding stochastic counterparts in the same way as we did for gradient descent. And that gradient descent and stochastic gradient descent is sometimes used to refer to the family of optimizers and their stochastic counterparts.
 
 \subsubsection{Momentum based gradient descent}
 Momentum is an added parameter meant to address these issues of vanilla gradient descent. The iteration is defined as
-
 \begin{equation}
 \begin{aligned} 
-    \mathbf{w}_{k+1} &= \mathbf{w}_k + \mathbf{v}_{t+1}, \\
-    \mathbf{v}_{t+1} &= \rho \mathbf{v}_t - \eta \mathbf{g}_k, \qquad \mathbf{v}_0 = 0 
+    \boldsymbol{w}_{k+1} &= \boldsymbol{w}_k + \boldsymbol{v}_{t+1}, \\
+    \boldsymbol{v}_{t+1} &= \rho \boldsymbol{v}_t - \eta \boldsymbol{g}_k, \qquad \boldsymbol{v}_0 = 0 
 \end{aligned}
 \label{eq:momentum_eq}
 \end{equation}
+$\boldsymbol{v}$ is called the velocity term and $\rho$ is the momentum parameter. $\rho$ can be thought of as the velocity's resistance to change while the learning rate $\eta$ characterizes the influence of the gradient. An intuitive analogy is to think of our descent algorithm as a particle moving on the surface we wish to minimize. The gradient is the force acting on our particle, $\eta$ is its amplifier, and $\rho$ is the mass of the particle. This way our particle might be able to roll past the saddle point in \autoref{fig:CrawlGradientDescent} and obtain a less ``zig-zaggy" path than in \autoref{fig:ZigZagMomentumGradientDescent}.
 
-
-$\mathbf{v}$ is called the velocity term and $\rho$ is the momentum parameter. $\rho$ can be thought of as the velocities resistance to change while the learning rate ($\eta$) characterizes the influence of the gradient. An intuitive analogy is to think of our descent algorithm as a particle moving on the surface we wish to minimize. The gradient is the force acting on our particle ($\eta$ is its amplifier) and $\rho$ is the mass of the particle. This way our particle might be able to roll past the saddle point in \autoref{fig:CrawlGradientDescent} and obtain a less "zig-zaggy" path in \autoref{fig:ZigZagMomentumGradientDescent}.
-
-Here we see momentum gradient descent performed on the same ill conditioned problem as the first panel of \autoref{fig:ZigZagMomentumGradientDescent} with $\rho$ equal to $0, 0.2, 0.7$ respectively
+Here we see momentum gradient descent performed on the same ill conditioned problem as the first panel of \autoref{fig:zigzagGradientDescent} with $\rho$ equal to $0, 0.2, 0.7$ respectively.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{Project2/figures/momentum_based_gradient_descent_less_zig.jpg.jpg}
-    \caption{Figure A3 \parencite[p.~478]{MLRefined} The zig-zagging behavior of gradient
-descent can be ameliorated using the momentum-accelerated gradient descent}
+    \caption{Figure A3 from \textcite[p.~478]{MLRefined}. The zig-zagging behavior of gradient descent can be ameliorated using the momentum-accelerated gradient descent}
     \label{fig:ZigZagMomentumGradientDescent}
 \end{figure}
 
 
 \subsubsection{AdaGrad}
 The Adaptive gradient optimizer, or AdaGrad was introduced by \textcite{duchi2011adaptive} and its update rule is given by
-
-\[ w_{k+1}= w_{k}-\eta \hspace{1mm} diag\left(\mathbf{G_{k}}\right)^{-1/2} \odot \mathbf{ g_k} \]
+\begin{equation*}
+    w_{k+1}= w_{k}-\eta \hspace{1mm} diag\left(\mathbf{G}_{k}\right)^{-1/2} \odot \mathbf{g}_k 
+\end{equation*}
 where $\odot$ is the Hadamard product and $G_k$ is the sum of the outerproducts of the previous gradients
 \begin{equation*}
-    G_k = \sum_{i = 0}^k \mathbf{g_i} \mathbf{g_i^T}
+    G_k = \sum_{i = 0}^k \mathbf{g}_i \mathbf{g}_i^T
 \end{equation*}
 
  We thus have that $diag\left(G_{k}\right)^{(n)}$ ( the $n^{th}$component of $diag\left(G_k\right)$) is the sum of the squares of the previous gradients in direction $n$
@@ -560,14 +440,18 @@ RMSprop, root mean square propagation, was first introduced in 2012, in lecture 
 \parencite{NNforML-Lecture6} It's update rule is defined as 
 
 \begin{align*}
-    \mathbf{v_{k+1}} =& \rho \mathbf{v_{k}} + (1-\rho) \mathbf{g_k}^{\circ 2}\\
+    \mathbf{v}_{k+1} =& \rho \mathbf{v}_{k} + (1-\rho) \mathbf{g}_k^{\circ 2}\\
     w_{k+1}^{(n)} =& w_k^{(n)} - \frac{\eta}{  \sqrt{\delta + v_{k+1}^{(n)}}} g_k^{(n)}
 \end{align*}
 
- We have chosen to only give the element wise update rule, as for RMSprop, as the vector notation for the final equation is not very pretty. $\delta$ is a numerical stabilizer, $0\leq \beta \leq 1$ and $\mathbf{v_0}$ is usually initialised to the zero vector.
+ $^{\circ}$ is the Hadamard power
+ \[
+ \mathbf{g_k}^{\circ 2} = \mathbf{g_k} \odot \mathbf{g_k}  
+ \]
+ We have chosen to only give the element wise update rule, as for RMSprop, as the vector notation for the final equation is not very pretty. $\delta$ is a numerical stabilizer, $0\leq \beta \leq 1$ and $\mathbf{v}_0$ is usually initialised to the zero vector.
 \par
 \vspace{1mm}
-Like AdaGrad the update keeps some sort of memory of previous gradients. Where $\beta$ can be thought of as the strength of the memory; how much of the previous iterations should impact the next. This allows for some of the same benefits as AdaGrads decaying learningrate.
+Like AdaGrad the update keeps some sort of memory of previous gradients. Where $\beta$ can be thought of as the strength of the memory; how much of the previous iterations should impact the next. This allows for some of the same benefits as AdaGrads decaying learning rate.
 
 \subsubsection{ADAM}
 Adaprive moment estimation, most commonly known as ADAM, is a optimization algorithm which combines some of the aspects from RMSprop with momentum. It's update is given by
@@ -581,15 +465,17 @@ Here $0 \leq \beta_1,\beta_2 < 1$
 \par
 \vspace{1mm}
 Notice that the denominator of $\mathbf{m}_{k+1}$ and $\mathbf{v}_{k+1}$ starts somewhere in $(0,1]$ and then increases to 1 as $k \to \infty$. This gives an amplification of $\mathbf{m}_k$ and $\mathbf{v}_k$, which subsides for larger $k$. This is meant to alleviate a bias towards zero as  $\mathbf{m}_0, \mathbf{v}_0 = 0$ \parencite[Section 3]{kingma2014adam}
-
+\label{AdamAmp}.
 %It may be tempting to conclude that every subsequent algorithm is superior to its predecessor. However, this is not strictly true.
-\vspace{2mm}
+% \vspace{2mm}
 Optimization algorithms can be used to minimize any specific function. However, the latter three are all designed for minimizing a particular set of functions; the cost functions of Artificial Neural Networks (ANNs). These cost functions measure the error made by ANNs in predicting observed values from input data. How these predictions are made and adjusted is the topic of section 2.4
 
-
-
-
-
+\subsubsection{Time-based decay}
+Time-based decay removes the need for the user to fix the learning rate $\eta$ themselves. Here, the rate is adjusted automatically based on the number of iterations computed, and two hyperparameters $t_0$ and $t_1$. It is defined simply by
+\begin{equation}\label{eq:TimeDecay}
+    \eta = \frac{t_0}{e \cdot M + m + t_1},
+\end{equation}
+where $e$ is the number of epochs passed, $M$ is the size of batches, and $m$ is the number of minibatches computed in the current epoch. Thus the earlier iterations are given higher priority, as $\eta \to 0$ as $e \to \infty$, with $\eta = \frac{t_0}{t_1}$ for the first iteration.
 
 \subsection{Neural Networks}
 % Neural networks are computational systems inspired by the networks of neurons in the brain.
@@ -837,22 +723,14 @@ However, this function suffers from what some call dying ReLUs, where nodes in e
         \gamma x & \textnormal{if } x < 0
     \end{cases}.
 \end{equation*}
-for some positive $\gamma \in \mathbb{R}$. 
-
-\begin{figure}[ht]
-    \centering
-    \includegraphics[width=.7\textwidth]{activators/RELU.pdf}
-    \caption{A plot of rectified linear unit (ReLU) activation function on $[-2, 2]$.}
-    \label{fig:RELU}
-\end{figure}
+for some positive $\gamma \in \mathbb{R}$. These functions are illustrated in \autoref{fig:LRELU}.
 
 \begin{figure}[ht]
     \centering
     \includegraphics[width=.7\textwidth]{activators/LReLU.pdf}
-    \caption{A plot of leaky rectified linear unit (LRELU) activation function on $[-2, 1]$, with $\gamma=0.1$, against RELU.}
+    \caption{A plot of leaky rectified linear unit (LReLU) activation function on $[-2, 1]$, with $\gamma=0.1$, against ReLU.}
     \label{fig:LRELU}
 \end{figure}
-
 
 Two other important functions that are particularly used on the output layer for multi-class classification problems, are the $\argmax$ and $softmax$ functions.
 
@@ -984,14 +862,25 @@ Combining equation \eqref{eq:1} with \eqref{eq:3} and \eqref{eq:2} with \eqref{e
     \frac{\partial C}{\partial b_i^l} = & \frac{\partial C}{\partial a_i^l} \frac{\partial f^l}{\partial z_i^l} \label{eq:7} 
 \end{align}
 Equations \eqref{eq:5} through \eqref{eq:7} form the backbone of the backpropagation algorithm. As we observe, equation \eqref{eq:5}, which is integral to both \eqref{eq:6} and \eqref{eq:7}, relies on the partial derivatives of the proceeding layer. After computing the forward pass and storing all the relevant network values, we can initiate the backpropagation process, moving from right to left, one layer at the time. This systematic approach allows us to calculate all the gradients necessary for our optimization algorithms.
+
+
 \subsubsection{Automatic Differentiation}
 Automatic Differentiation (AD), also known as algorithmic differentiation or computational differentiation, refers to a set of techniques to numerically evaluate partial derivatives. It differs from symbolic differentiation and numerical differentiation.
 
-At a high level, automatic differentiation leverages the principle that any computational calculation, regardless of its complexity, carries out a series of basic arithmetic tasks (like addition, subtraction, multiplication, and division) and fundamental functions (such as exp, log, sin, cos, etc.). By repeatedly applying the chain rule to these processes, it is possible to compute partial derivatives \parencite{walther2007automatic} . These computations are not only precise to the working standard but also efficient. They require added storage requirements, in the worst case growing proportionally with number of operations in the function.
+At a high level, automatic differentiation leverages the principle that any computational calculation, regardless of its complexity, carries out a series of basic arithmetic tasks (like addition, subtraction, multiplication, and division) and fundamental functions (such as exp, log, sin, cos, etc.). Every one of these functions are stored as separate variables. For instance our computation might encounter the expression $sin(a+b)$, where $a,b$ are two of the input variables. This could be stored as $h_1$. Furthermore $a+b$ could be stored as $h_2$. This gives 
+
+\[
+\frac{\partial h1}{\partial a} =  \frac{\partial h1}{\partial h2} \frac{\partial h2}{\partial a}
+\]
+\[
+\frac{\partial h1}{\partial b} =  \frac{\partial h1}{\partial h2} \frac{\partial h2}{\partial b}
+\]
+Just as we did for backpropagation!
+
+This way we can find the all partial derivatives with respect to any of the input variables by repeatedly applying the chain rule \parencite{walther2007automatic} . This method is not only very precise but also efficient. It does however, require added storage, in the worst case growing proportionally with number of operations in the function.
 \parencite{baydin2018automatic}
 
-The use of automatic differentiation techniques is most relevant for the calculation of $\frac{\partial C}{\partial a_i^L}$ for the final layer. As a single pass of reverse accumulation  allows us to calculate the partial derivatives with respect to the entire layer $a^L$. It is akin to what we do in back propagation. 
-
+The use of automatic differentiation techniques is most relevant for the calculation of $\frac{\partial C}{\partial a_i^L}$ for the final layer. As a single pass of reverse accumulation AD (the process briefly explained above) allows us to calculate the partial derivatives with respect to the entire layer $a^L$
 
 
 \subsubsection{Derivative of Binary Cross Entropy with respect to weights}
@@ -1069,7 +958,9 @@ With a better understanding of how gradient descent with the various methods wor
 \end{equation*}
 for $x,y \in [0,1]$. A major advantage with regression through the neural network is that we do not have to transform our inputs to a polynomial as in (\ref{eq:design}), instead allowing the network to learn the behaviour through the hidden layers. This has the advantage of not coaxing the network into fitting a polynomial. We therefore have only two input nodes for $x$ and $y$, with one output node outputting the predicted height $z$. We used 100 evenly spaced points in $[0,1]$ for our values of $x$ and $y$, transforming our inputs to a mesh grid giving $100 \times 100$ points.
 
-For classification, we used the original Wisconsin Breast Cancer Dataset \parencite{breastcancerwisonsin}, attempting to predict from measurements of tumours whether they are malignant or benign. The dataset consists of 9 features, being labeled either 2 for benign or 4 for malignant. There are 699 data points, however 16 of them are missing some data and are thus excluded from our analysis.
+For classification, we used the original Wisconsin Breast Cancer Dataset \parencite{breastcancerwisonsin}, attempting to predict from measurements of tumours whether they are malignant or benign. The dataset consists of 9 features, being labeled either 2 for benign or 4 for malignant. We transform the labels with $f(x) = x / 2 - 1$ such that the labels are binary. There are 699 data points, however 16 of them are missing some data and are thus excluded from our analysis.
+
+There are several different ways to initialize the weights and biases of ANNs; nonetheless we chose random initialization. Our weights are sampled from a normal distribution with mean zero and standard deviation 1. Conversely our weights are drawn from a narrower distribution, with the same mean, but a standard deviation of 0.01.
 
 \subsection{The code}
 Our original implementation primarily used \verb|NumPy| for the linear algebra and \verb|autograd| for automatic differentiation. Due to computational concerns, it was then rewritten to primarily rely on \verb|JAX| \parencite{jax2018github}, which is a Google developed library combining \verb|XLA| and \verb|autograd| designed for high-performance computing. This has the advantage of being a lot faster, however leads to more verbose code. As an example, consider the sigmoid function implemented in \verb|JAX| and \verb|NumPy|.
@@ -1086,7 +977,7 @@ def sigmoid_numpy(X): # NumPy equivalent
     return 1 / (1 + np.exp(-X))
 \end{minted}
 
-Note that we apply the \verb|@jit| operator to enable just-in-time compilation, which is a leading factor in the speedup. The sigmoid function is also a built-in function in \verb|JAX| under the name \verb|lax.logistic|, however we chose to use our own implementation to keep everything in the same style.
+Note that we apply the \verb|@jit| decorator to enable just-in-time compilation, which is a leading factor in the speedup. The sigmoid function is also a built-in function in \verb|JAX| under the name \verb|lax.logistic|, however we chose to use our own implementation to keep everything in the same style.
 
 As \verb|jit| works poorly with classes, requiring methods to be completely functional in order to assure correct functionality, we chose to extract the most costly computations into their own functions, using pure python primarily for higher level bookkeeping. One of the trickier parts of porting to \verb|JAX| was that it has no built in method for elementwise differentiation. Thus to differentiate the hidden functions, which are performed elementwise, we used the following code.
 
@@ -1107,6 +998,8 @@ To be able to structure our code better, we developed a simple package which can
 
 \newpage
 \section{Results}
+We generated a large number of plots, however we found it excessive to add everything here. The remaining figures are available on \href{https://github.com/augustfe/FYSSTK}{GitHub}.
+
 
 \subsection{Analysis of univariate polynomial}
 We began with the very simple case of attempting to fit (\ref{eq:simplepoly}) using Gradient Descent with a constant learning rate, with OLS as our cost function.
@@ -1192,7 +1085,7 @@ In \autoref{fig:GDadagrad} we see that Adagrad is considerably less sensitive to
     \label{fig:GDadagradpred}
 \end{figure}
 
-Introducing momentum leads to the same tendencies seen previously.
+Introducing momentum leads to the same tendencies seen previously, seen in \autoref{fig:GDadagradmomentumeta}, \autoref{fig:GDadagradmomentumrho} and \autoref{fig:GDadagradmomentumheatmappred}.
 
 \begin{figure}[H]%
     \centering
@@ -1214,26 +1107,150 @@ Introducing momentum leads to the same tendencies seen previously.
 
 \begin{figure}[H]%
     \centering
-    \subfloat[\centering Error for varying $\rho$.]{{\includegraphics[width=5.5cm]{Project2/figures/polynomial_grad/OLS_autodiff/adagrad_momentum_error_rho.pdf} }}%
+    \subfloat[\centering Heatmap of $\eta$ vs $\rho$.]{{\includegraphics[width=5.5cm]{Project2/figures/polynomial_grad/OLS_autodiff/adagrad_momentum_heatmap_eta_rho.pdf} }}%
     \qquad
-    \subfloat[\centering Parameters $\theta$ for varying $\rho$.]{{\includegraphics[width=5.5cm]{Project2/figures/polynomial_grad/OLS_autodiff/adagrad_momentum_thetas_rho.pdf} }}%
-    \caption{Gradient descent with Adagrad Momentum over 500 epochs with varying $\rho$, $\eta=0.1$.}%
-    \label{fig:GDadagradmomentumrho}%
+    \subfloat[\centering Predicted polynomials for varying $\eta$, $\rho = 0.9$]{{\includegraphics[width=5.5cm]{Project2/figures/polynomial_grad/OLS_autodiff/adagrad_momentum_prediction_eta.pdf} }}%
+    \caption{Heatmap and predictions from Gradient descent with Adagrad Momentum over 500 epochs.}%
+    \label{fig:GDadagradmomentumheatmappred}%
+\end{figure}
+
+
+\begin{figure}[H]%
+    \centering
+    \subfloat[\centering Error for varying $\eta$.]{{\includegraphics[width=5.5cm]{Project2/figures/polynomial_grad/OLS_autodiff/rms_prop_error_eta.pdf} }}%
+    \qquad
+    \subfloat[\centering Parameters $\theta$ for varying $\rho$.]{{\includegraphics[width=5.5cm]{Project2/figures/polynomial_grad/OLS_autodiff/rms_prop_thetas_eta.pdf} }}%
+    \caption{Gradient descent with RMSprop over 500 epochs with varying $\eta$, $\rho=0.9$.}%
+    \label{fig:GDrmspropeta}%
 \end{figure}
 
 \begin{figure}[H]%
     \centering
-    \includegraphics[width=8cm]{Project2/figures/polynomial_grad/OLS_autodiff/adagrad_momentum_heatmap_eta_rho.pdf}
-    \caption{Heatmap of $\eta$ vs. $\rho$ for Adagrad Momentum, with 500 epochs.}
-    \label{fig:GDadagradmomentumpred}
+    \subfloat[\centering Error for varying $\rho$.]{{\includegraphics[width=5.5cm]{Project2/figures/polynomial_grad/OLS_autodiff/rms_prop_error_rho.pdf} }}%
+    \qquad
+    \subfloat[\centering Parameters $\theta$ for varying $\rho$.]{{\includegraphics[width=5.5cm]{Project2/figures/polynomial_grad/OLS_autodiff/rms_prop_thetas_rho.pdf} }}%
+    \caption{Gradient descent with RMSprop over 500 epochs with varying $\rho$, $\eta=0.01$.}%
+    \label{fig:GDrmsproprho}%
 \end{figure}
 
-% temp so we don't mess with eachothers layout
+RMSprop gave rather stable results across the varying values of $\rho$, perhaps due to the simple nature of our chosen test function, as seen in \autoref{fig:GDrmsproprho}. The final scheduler applied to deterministic Gradient Descent was Adam, seen in \autoref{fig:GDadameta}. Varying $\rho_1$ in \autoref{fig:GDadamrho1} gave similar results to what we've seen previously. Varying $\rho_2$ in \autoref{fig:GDadamrho2} gave highly chaotic results, and such we will henceforth be sticking with $\rho_2 = 0.999$.
+
+\begin{figure}[H]%
+    \centering
+    \subfloat[\centering Error for varying $\eta$.]{{\includegraphics[width=5cm]{Project2/figures/polynomial_grad/OLS_autodiff/adam_error_eta.pdf} }}%
+    \qquad
+    \subfloat[\centering Parameters $\theta$ for varying $\eta$.]{{\includegraphics[width=5cm]{Project2/figures/polynomial_grad/OLS_autodiff/adam_thetas_eta.pdf} }}%
+    \caption{Gradient descent with Adam over 500 epochs with varying $\eta$, $\rho_1=0.9$ and $\rho_2=0.999$.}%
+    \label{fig:GDadameta}%
+\end{figure}
+
+\begin{figure}[H]%
+    \centering
+    \subfloat[\centering Error for varying $\rho_1$.]{{\includegraphics[width=5cm]{Project2/figures/polynomial_grad/OLS_autodiff/adam_error_rho1.pdf} }}%
+    \qquad
+    \subfloat[\centering Parameters $\theta$ for varying $\rho_1$.]{{\includegraphics[width=5cm]{Project2/figures/polynomial_grad/OLS_autodiff/adam_thetas_rho1.pdf} }}%
+    \caption{Gradient descent with Adam over 500 epochs with varying $\rho_1$, $\eta=0.1$ and $\rho_2=0.999$.}%
+    \label{fig:GDadamrho1}%
+\end{figure}
+
+\begin{figure}[H]%
+    \centering
+    \subfloat[\centering Error for varying $\rho_1$.]{{\includegraphics[width=5cm]{Project2/figures/polynomial_grad/OLS_autodiff/adam_error_rho2.pdf} }}%
+    \qquad
+    \subfloat[\centering Parameters $\theta$ for varying $\rho_2$.]{{\includegraphics[width=5cm]{Project2/figures/polynomial_grad/OLS_autodiff/adam_thetas_rho2.pdf} }}%
+    \caption{Gradient descent with Adam over 500 epochs with varying $\rho_2$, $\eta=0.1$ and $\rho_1=0.9$.}%
+    \label{fig:GDadamrho2}%
+\end{figure}
+
+\begin{figure}[H]%
+    \centering
+    \includegraphics[width=8cm]{Project2/figures/polynomial_grad/OLS_autodiff/adam_momentum_heatmap_eta_rho.pdf}
+    \caption{Heatmap of $\rho_1$ vs. $\eta$ for Gradient Descent with Adam after 500 epochs, with $\rho_2 = 0.999$.}
+    \label{fig:GDadamheatmap}
+\end{figure}
+
+Fixing $\rho_2$ as $0.999$ in \autoref{fig:GDadamheatmap}, we see the equivalent results to what we've seen previously. Notably, a number of these methods were developed for use with Stochastic Gradient Descent, described in \autoref{alg:SGD}.
+
+
+\begin{figure}[H]%
+    \centering
+    \subfloat[\centering Error for varying minibatch sizes.]{{\includegraphics[width=5.5cm]{Project2/figures/polynomial_grad/OLS_analytic/constant_error_minibatch.pdf} }}%
+    \qquad
+    \subfloat[\centering Parameters $\theta$ for varying minibatch size.]{{\includegraphics[width=5.5cm]{Project2/figures/polynomial_grad/OLS_analytic/constant_thetas_minibatch.pdf} }}%
+    \caption{Stochastic Gradient Descent for varying number of sizes of minibatches over 60 epochs.}%
+    \label{fig:SGDconstant}%
+\end{figure}
+
+The stochastic noise is evident in \autoref{fig:SGDconstant}. Interestingly, we observe a decrease in accuracy for larger minibatch sizes, perhaps resulting from the sampling of batches being with replacement, as the minibatch size approaches the total number of points 100. % This leads to significant redundancy, particularly when the minibatch size $M$ is close to $100$, the total number of points.
+
+\autoref{alg:SGD} further explains the larger gaps in $(a)$ and the step-like pattern in $(b)$. The number of iterations in its inner loop is determined by $ \left\lfloor\frac{n}{M}\right\rfloor = \left\lfloor\frac{100}{M}\right\rfloor$. This causes abrupt jumps when decreasing the batch size grants the algorithm another iteration, i.e. when $\left\lfloor \frac{100}{M - 1} \right\rfloor = \left\lfloor \frac{100}{M} \right\rfloor + 1$. This is shown more clearly in \autoref{fig:SGDadagrad}.
+
+\begin{figure}[H]%
+    \centering
+    \subfloat[\centering Error for varying minibatch sizes]{{\includegraphics[width=5.5cm]{Project2/figures/polynomial_grad/OLS_autodiff/adagrad_error_minibatch.pdf} }}%
+    \qquad
+    \subfloat[\centering Parameters $\theta$ for batchsize]{{\includegraphics[width=5.5cm]{Project2/figures/polynomial_grad/OLS_autodiff/adagrad_thetas_minibatch.pdf} }}%
+    \caption{Stochastic Gradient Descent with Adagrad over 150 epochs with $\eta = 0.1$}%
+    \label{fig:SGDadagrad}%
+\end{figure}
+
+These gaps are again different for ADAM in \autoref{fig:SGDadam}.
+These differences stem from the resetting of the cumulative memory parameters for each 
+epoch. Remember from
+\autoref{AdamAmp} how the amplification of step size is largest at the beginning of the iteration. This causes the steeper steps in \autoref{fig:SGDadam} (b), greatly affecting the convergence rate seen in \autoref{fig:SGDadamerror}
+
+\begin{figure}[H]%
+    \centering
+    \subfloat[\centering Error for varying minibatch sizes]{{\includegraphics[width=5.5cm]{Project2/figures/polynomial_grad/OLS_autodiff/adam_prediction_minibatch.pdf} }}%
+    \qquad
+    \subfloat[\centering Parameters $\theta$ for batchsize]{{\includegraphics[width=5.5cm]{Project2/figures/polynomial_grad/OLS_autodiff/adam_thetas_minibatch.pdf} }}%
+    \caption{Stochastic Gradient Descent with Adam over 40 epochs with $\rho_2$ = 0.999, $\rho_1=0.9$ and $\eta = 0.01$}%
+    \label{fig:SGDadam}%
+\end{figure}
+
+\begin{figure}[H]%
+    \centering
+    \includegraphics[width=8cm]{Project2/figures/polynomial_grad/OLS_autodiff/adam_error_minibatch.pdf}
+    \caption{Error for Stochastic Gradient Descent with Adam after 40 epochs, with $\rho_2 = 0.999$ and $\eta=0.01$.}
+    \label{fig:SGDadamerror}
+\end{figure}
+
+\begin{figure}[H]%
+    \centering
+    \subfloat[\centering Error for varying minibatch sizes]{{\includegraphics[width=5.5cm]{Project2/figures/polynomial_grad/OLS_autodiff/rms_prop_error_minibatch.pdf} }}%
+    \qquad
+    \subfloat[\centering Parameters $\theta$ for batchsize]{{\includegraphics[width=5.5cm]{Project2/figures/polynomial_grad/OLS_autodiff/rms_prop_thetas_minibatch.pdf} }}%
+    \caption{Stochastic Gradient Descent with RMSprop over 60 epochs with $\rho = 0.9$ and $\eta = 0.1$}%
+    \label{fig:SGDrmsprop}%
+\end{figure}
+
+With RMSprop we see the steepest steps, approximately converging with just two batches as seen in \autoref{fig:SGDrmsprop}. We see interesting behaviour with time decay in \autoref{fig:SGDtimedecay}, starting out with rapid convergence, but quickly stabilizing at various degrees of success. This is not suprising, giving the simplistic nature of the scheduler. It has less significant jumps, being also dependent on the size of the batches.
+
+\begin{figure}[H]%
+    \centering
+    \subfloat[\centering Error for varying minibatch sizes]{{\includegraphics[width=5.5cm]{Project2/figures/polynomial_grad/OLS_autodiff/time_decay_error_minibatch.pdf} }}%
+    \qquad
+    \subfloat[\centering Parameters $\theta$ for batchsize]{{\includegraphics[width=5.5cm]{Project2/figures/polynomial_grad/OLS_autodiff/time_decay_thetas_minibatch.pdf} }}%
+    \caption{Stochastic Gradient Descent with Time decay over 150 epochs with $t_0 = 1$ and $t_1 = 10$}%
+    \label{fig:SGDtimedecay}%
+\end{figure}
+
+Perhaps the most interesting graph, is seen in \autoref{fig:SGDadagradmomentum} with Momentum and Adagrad Momentum. Here we can clearly see the similarities between the approaches. Note that while the standard Momentum approach converges faster, it jumps up for a bit after first bottoming out, a behaviour we hardly see with Adagrad.
+
+\begin{figure}[H]%
+    \centering
+    \subfloat[\centering Adagrad Momentum]{{\includegraphics[width=5.5cm]{Project2/figures/polynomial_grad/OLS_autodiff/adagrad_momentum_error_minibatch.pdf} }}%
+    \qquad
+    \subfloat[\centering Momentum]{{\includegraphics[width=5.5cm]{Project2/figures/polynomial_grad/OLS_autodiff/momentum_error_minibatch.pdf} }}%
+    \caption{Error for varying size of minibatches from Stochastic Gradient Descent with Momentum and Adagrad Momentum over 60 epochs with $\eta = 0.01$ and $\rho = 0.9$}%
+    \label{fig:SGDadagradmomentum}%
+\end{figure}
+
 \newpage
+\subsection{Franke's function}
+With a better understanding of how drastic our choices of hyperparameters can affect our final results, we begin by exploring Franke's function through the use of a neural network. There are a lot of moving parts, with varying learning rates, regularization terms, activation function, etc. In order to get any results, we fix the hyperparameters for the schedulers from what has previously been shown to work, namely $\rho/\rho_1 = 0.9$, $\rho_2 = 0.999$. We also restrict ourselves to 100 epochs with a minibatch size of 40. For the sake of consistency, the neural networks all consisted of three hidden layers of width respectively 75, 75 and 100. Due to computational constraints, we only applied a $80 / 20$ train-validation split to see how well the networks perform on unseen data.
 
-\subsection{Franke Function}
-
-\subsection{Tumor Classification}
+\subsection{Tumor classification}
 
 \newpage
 \section{Discussion}
