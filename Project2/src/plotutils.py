@@ -305,6 +305,37 @@ def setup_axis(xlim: tuple[int], ylim: tuple[int]) -> plt.Axes:
     return ax
 
 
+def plot_Franke_input(
+    x, y, z, savePlots=False, showPlots=True, figsPath=None, saveName=None
+):
+    fig = plt.figure(figsize=plt.figaspect(0.5))
+
+    ax = fig.add_subplot(projection="3d")
+    surf = ax.plot_surface(
+        x,
+        y,
+        z.reshape(x.shape),
+        cmap="coolwarm",
+        linewidth=0,
+        antialiased=False,
+    )
+    # Customize the z axis.
+    ax.set_zlim(-0.10, 1.40)
+    ax.zaxis.set_major_locator(LinearLocator(10))
+    ax.zaxis.set_major_formatter(FormatStrFormatter("%.02f"))
+    ax.set_title("Input data for Franke's function")
+
+    # Add a color bar which maps values to colors.
+    fig.colorbar(surf, shrink=0.5, aspect=10)
+    plt.tight_layout()
+
+    if savePlots:
+        plt.savefig(figsPath / f"{saveName}.pdf", bbox_inches="tight")
+    if showPlots:
+        plt.show()
+    plt.close(fig)
+
+
 def plot_Franke(
     FFNN: NeuralNet,
     x: np.ndarray,
@@ -325,26 +356,7 @@ def plot_Franke(
 
     fig = plt.figure(figsize=plt.figaspect(0.5))
 
-    ax = fig.add_subplot(1, 3, 1, projection="3d")
-    surf = ax.plot_surface(
-        x,
-        y,
-        z.reshape(x.shape),
-        cmap="coolwarm",
-        linewidth=0,
-        antialiased=False,
-    )
-
-    # Customize the z axis.
-    ax.set_zlim(-0.10, 1.40)
-    ax.zaxis.set_major_locator(LinearLocator(10))
-    ax.zaxis.set_major_formatter(FormatStrFormatter("%.02f"))
-    ax.set_title("Input data")
-
-    # Add a color bar which maps values to colors.
-    fig.colorbar(surf, shrink=0.5, aspect=10)
-
-    ax = fig.add_subplot(1, 3, 2, projection="3d")
+    ax = fig.add_subplot(1, 2, 1, projection="3d")
     surf = ax.plot_surface(
         xnew,
         ynew,
@@ -358,12 +370,12 @@ def plot_Franke(
     ax.set_zlim(-0.10, 1.40)
     ax.zaxis.set_major_locator(LinearLocator(10))
     ax.zaxis.set_major_formatter(FormatStrFormatter("%.02f"))
-    ax.set_title("Output data")
+    ax.set_title("Predicted surface")
 
     # Add a color bar which maps values to colors.
     fig.colorbar(surf, shrink=0.5, aspect=10)
 
-    ax = fig.add_subplot(1, 3, 3, projection="3d")
+    ax = fig.add_subplot(1, 2, 2, projection="3d")
     surf = ax.plot_surface(
         xnew,
         ynew,
@@ -385,7 +397,7 @@ def plot_Franke(
     plt.tight_layout()
 
     if savePlots:
-        plt.savefig(figsPath / f"{saveName}.pdf", bbox_inches="tight")
+        plt.savefig(figsPath / f"{saveName}_surface.pdf", bbox_inches="tight")
     if showPlots:
         plt.show()
     plt.close(fig)
@@ -401,11 +413,11 @@ def plot_validation_train(
 ) -> None:
     fig, ax = plt.subplots()
     train_error = scores["train_errors"]
-    ax.plot(train_error, label="Train")
+    ax.plot(np.log10(train_error), label="Train")
     validation_error = scores["validation_errors"]
-    ax.plot(validation_error, label="Validation")
+    ax.plot(np.log10(validation_error), label="Validation")
 
-    ax.set_ylabel("Cost")
+    ax.set_ylabel(r"$\log_{10}$ Cost")
     ax.set_xlabel(r"$n_{epochs}$")
     ax.set_title(title)
     ax.legend()
