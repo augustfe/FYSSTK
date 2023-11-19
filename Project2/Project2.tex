@@ -92,7 +92,7 @@
 \newpage
 
 \begin{abstract}
-    The abstract will go here
+    In this project, we have looked at classification and regression and how to apply them to neural networks. In addition, we have looked deeper into neural networks, specifically feed forward neural networks, and how to optimize them. The optimization was done through the means of gradient descent method. And to further optimize, we have tested different versions of the gradient descent method, such as momentum, AdaGrad, RMSProp and ADAM, both stochastic and deterministic. Further, we have applied these methods to the Franke function and to the Wisconsin Breast Cancer Data. Testing the regression methods on the Franke function and the classification method on the Wisconsin Breast Cancer data set.
 \end{abstract}
 
 \section{Introduction}
@@ -116,7 +116,7 @@ Our study begins with a detailed exposition of the theoretical concepts underpin
 \subsection{The Cost function}
 In machine learning, the primary goal is to make accurate predictions based on known input data. The nature of these predictions can vary widely depending on the task at hand. For instance, a machine learning algorithm may predict whether an email is spam or not, an application of binary classification. In other cases, the algorithm might be used to anticipate the price of a house given certain features like its size, location and age, illustrating a regression task.
 
-Alternatively, it could predict whether a given image depicts a cat, a dog, a horse, or some other animal, a scenario referred to as multi-class classification. Similarly, algorithms can also forecast sequences of data, such as the words that come next in a sentence, generally considered as sequence prediction problems. In all these scenarios, the machine learning model uses patterns recognized from training data to make these predictions. The measure of accuracy from these predictions subsequently determines the subsequent course of action, i.e., optimizing the model's performance, which is where the concept of a cost function comes in
+Alternatively, it could predict whether a given image depicts a cat, a dog, a horse, or some other animal, a scenario referred to as multi-class classification. Similarly, algorithms can also forecast sequences of data, such as the words that come next in a sentence, generally considered as sequence prediction problems. In all these scenarios, the machine learning model uses patterns recognized from training data to make these predictions. The measure of accuracy from these predictions subsequently determines the subsequent course of action, i.e., optimizing the model's performance, which is where the concept of a cost function comes in.
 
 
 The cost function serves as a measure for a model's performance on a specific data set. It is what defines the multidimensional \textit{cost surface} we wish to minimize with respect to our model parameters. The choice of cost function is thus very important. The optimal cost function is dependent on the specific task at hand – whether it be regression, binary classification, or multi-class classification.
@@ -144,7 +144,7 @@ It is common practice to apply the \textit{Mean Squared Error} (MSE), defined by
 \begin{equation*}
     \frac{1}{n} \sum_{i = 0}^{n-1} (y_i - \hat{y}_i)^2,
 \end{equation*}
-where $\hat{y}_i$ are our predictions, in order the measure the performance of our fitting. Additionally we often include regularization, in order to avoid overfitting and improve generalization. 
+where $\hat{y}_i$ are our predictions, in order to measure the performance of our fitting. Additionally we often include regularization, in order to avoid overfitting and improve generalization. 
 
 
 % It is common practice to use Mean Squared Error (MSE). Additionally, to avoid overfitting and improve generalization, we often include a $L1$ or $L2$ regularization term in the cost function. 
@@ -219,14 +219,14 @@ again only whenever $\mathbf{X}^T \mathbf{X} + \lambda I$ is invertible. $\lambd
 \subsubsection{Binary Classification}
 When we use MSE as a loss function, we're primarily asking the model, ``How far is your prediction from the actual value?" This question is appropriate within regression, where we're attempting to predict continuous values. In classification we are however more interested in getting discrete labels correct, i.e. whether a prediction falls into class 0 or class 1, rather than how far the predicted probability is from the actual value.
 
-Let's consider a binary classification problem, where we have target which belongs to class 1, which our model predicts into class 0. This is a complete misclassification, however the squared error is only 1. We therefore need to consider a different measure of how far off our predictions are. We therefore apply \textit{Binary Cross-entropy} (BCE), sometimes referred to as \textit{log loss}.
+Let's consider a binary classification problem, where we have a target which belongs to class 1, which our model predicts into class 0. This is a complete misclassification, however, the squared error is only 1. We therefore need to consider a different measure of how far off our predictions are. We therefore apply \textit{Binary Cross-entropy} (BCE), sometimes referred to as \textit{log loss}.
 
 To find the BCE loss we evaluate the distance between our predicted probability value $p$ with the actual value $y \in \{0, 1\}$. The loss function is given by
 
 \begin{equation*}
     L(y, p) = -y \log(p) - (1 - y)\log(1-p)
 \end{equation*}
-If $y=1$ we simply get $L(1,p) = -\log(p)$. Clearly $L \to 0$ as $p \to 1$ and $L \to \infty$ as $p \to 0$.
+If $y=1$, we simply get $L(1,p) = -\log(p)$. Clearly $L \to 0$ as $p \to 1$ and $L \to \infty$ as $p \to 0$.
 If however $y = 0$, we get $L(0,p) = -log(1-p)$. We then see the reverse behaviour, where $L \to 0$ as $p \to 0$ and $L \to \infty$ as $p \to 1$. This measure of the loss is thus much more appropriate in a binary classification problem.
 
 The BCE cost function is then simply defined as the mean over $n$ evaluations of the loss, 
@@ -253,7 +253,7 @@ We assume that the probability of an observation with features $\boldsymbol{x}_i
 
 To fit this model we seek to find the parameters $\boldsymbol{\beta}$ which maximizes the likelihood function, which for a data set $\mathcal{D} = \{y_i, \boldsymbol{x}_i\}$ is defined as
 \begin{equation*}
-    L\left( \mathcal{D} | \boldsymbol{\beta} \right) = \prod_{i = 0}^{n-1} p\left( y_i = 1 | \boldsymbol{x}_i, \boldsymbol{\beta} \right)^{y_i} p\left( y_i = 0 | \boldsymbol{x}_i, \boldsymbol{\beta} \right)^{1 - y_i}
+    L\left( \mathcal{D} | \boldsymbol{\beta} \right) = \prod_{i = 0}^{n-1} p\left( y_i = 1 | \boldsymbol{x}_i, \boldsymbol{\beta} \right)^{y_i} p\left( y_i = 0 | \boldsymbol{x}_i, \boldsymbol{\beta} \right)^{1 - y_i}.
 \end{equation*}
 
 Maximizing this equation is what we call the method of maximum likelihood. To simplify, we take the $\log$ of the equation and get the \textit{log-likelihood} $\ell$ and also multiply with $-1$ such that it becomes a minimization problem instead of a maximization problem. We then get, writing $p(\boldsymbol{x}_i) = p\left( y_i = 1 | \boldsymbol{x}_i, \boldsymbol{\beta} \right)$,
@@ -262,9 +262,9 @@ Maximizing this equation is what we call the method of maximum likelihood. To si
     &= -\sum_{i=1}^{n} y_i\log p(\boldsymbol{x}_i) + (1 - y_i)\log(1 - p(\boldsymbol{x}_i))  \label{eq:BCE_cost}\\
     &= -\sum_{i=1}^{n} y_i\log p(\boldsymbol{x}_i) + \log(1 - p(\boldsymbol{x}_i)) - y_i\log(1 - p(\boldsymbol{x}_i)) \\
     & = -\sum_{i=1}^{n} y_i\boldsymbol{x}_i\boldsymbol{\beta} + \log(1 - p(\boldsymbol{x}_i))\\
-    & = - \sum_{i=1}^{n} y_i\boldsymbol{x_i} \boldsymbol{\beta} + log(1 - \frac{e^{\boldsymbol{x_i} \boldsymbol{\beta}}}{1 + e^{\boldsymbol{x_i \beta}}})\\
-    & = - \sum_{i=1}^{n} y_i\boldsymbol{x_i} \boldsymbol{\beta} + log(\frac{1}{ 1 + e^{\boldsymbol{x_i \beta} }})\\
-    & =  - \sum_{i=1}^{n} y_i\boldsymbol{x_i} \boldsymbol{\beta} - log(1 + e^{\boldsymbol{x_i \beta} })
+    & = - \sum_{i=1}^{n} y_i\boldsymbol{x_i} \boldsymbol{\beta} + \log \left( 1 - \frac{e^{\boldsymbol{x_i} \boldsymbol{\beta}}}{1 + e^{\boldsymbol{x_i \beta}}} \right)\\
+    & = - \sum_{i=1}^{n} y_i\boldsymbol{x_i} \boldsymbol{\beta} + \log\left( \frac{1}{ 1 + e^{\boldsymbol{x_i \beta} }} \right)\\
+    & =  - \sum_{i=1}^{n} y_i\boldsymbol{x_i} \boldsymbol{\beta} - \log\left( 1 + e^{\boldsymbol{x_i \beta} } \right)
 \end{align*}
 
 Note that the first equation is just the binary cross entropy cost without $\frac{1}{n}$. The same cost function used for binary classification, even when there is not a linear relationship between the features and the observed categories. The minima with respect to $\boldsymbol{\beta}$ is found at $\frac{\partial \ell }{\partial \boldsymbol{\beta}} = 0$ 
@@ -274,15 +274,14 @@ Note that the first equation is just the binary cross entropy cost without $\fra
     &= - \sum_{i=1}^{n}\boldsymbol{x_i} \left(y_i  -  p(\boldsymbol{x_i})\right) = \boldsymbol{0}
 \end{align*}
 
-This gives $p$ non linear equations
-
+This gives $p$ non-linear equations.
 This can also be expressed using matrix notation
 
 \[
 \frac{\partial \ell }{\partial \boldsymbol{\beta}}  = \boldsymbol{X} (\boldsymbol{y} - \boldsymbol{p}) = \boldsymbol{0}
 \]
 
-Here $\boldsymbol{0}$ denotes the $nxn$ zero matrix, $\mathbf{X}$ is our design matrix, containing or n $\boldsymbol{x_i}$s as column vectors, $\boldsymbol{y}$ consists of our observed categories and $\boldsymbol{p}$ our predicted category($\boldsymbol{p_i} = p(\boldsymbol{x_i})$)
+Here $\boldsymbol{0}$ denotes the $n \times n$ zero matrix, $\mathbf{X}$ is our design matrix, containing our n $\boldsymbol{x_i}$s as column vectors, $\boldsymbol{y}$ consists of our observed categories and $\boldsymbol{p}$ our predicted category($\boldsymbol{p_i} = p(\boldsymbol{x_i})$)
 
 
 % First, the derivative of the sigmoid function is
@@ -300,7 +299,7 @@ The accuracy score, although not suited as a cost function for optimization, is 
     \text{Accuracy Score} = \frac{ \# \text{ of Correct Predictions}}{\text{Total} \text{ of Predictions}}.
 \end{equation*}
 
-While it provides a straightforward and intuitive measure of overall model performance, the accuracy score can be misleading in scenarios where classes are imbalanced. In such cases, other metrics like precision or the F1 score may provide a more complete picture of a model's performance. These metrics fall outside the scope of this project, and are thus excluded. Nevertheless, the accuracy score serves as a great start point for model evaluation and comparison
+While it provides a straightforward and intuitive measure of overall model performance, the accuracy score can be misleading in scenarios where classes are imbalanced. In such cases, other metrics like precision or the F1 score may provide a more complete picture of a model's performance. These metrics fall outside the scope of this project, and are thus excluded. Nevertheless, the accuracy score serves as a great start point for model evaluation and comparison.
 
 \subsection{Optimization}
 As we've observed, the cost function is at the core of solving machine learning problems, which fundamentally involve optimization. That is we wish to find the minimum of a function. In a perfect scenario we would like to find this analytically, however for various reasons, whether they be computational or purely mathematical in nature, this is often not possible. Therefore we opt for iterative methods instead.
@@ -326,7 +325,7 @@ This is also known as simultaneous relaxation and under certain conditions on th
     \caption{Gradient Descent on the function $f(x)=x^2$, starting from $x_0 = -4$ with $\eta = 0.01$, ran for 30 iterations.}
     \label{fig:simple_gradient_descent}
 \end{figure}
-For this simple example the iteration converged quickly, reaching a absolute value less than 0.001 after only 27 iterations. Gradient descent is not always this efficient. 
+For this simple example the iteration converged quickly, reaching an absolute value less than 0.001 after only 27 iterations. Gradient descent is not always this efficient. 
 
 The two natural weaknesses of gradient descent are neatly explained in \textcite[p.~65--71]{MLRefined}. The first stems from the gradient always being perpendicular to the contour line. This is easily proved through parameterization.
 
@@ -373,7 +372,7 @@ We first introduce batch gradient descent, where we split out dataset into \text
 
 In stochastic gradient descent, we apply the same method, differing by drawing a sample of $M$ random points from our data set with replacement. The cost surface achieved by this is truly a different surface from the one achieved by using all the data points, but the number of features and thus the dimentionality, is the same. For this method to work we are banking on there being enough overlap between the samples such that the gradient is expected to point in the same direction when calculated for all data points.
 
-It is common practice to organize our algorithm in a double loop. If we have $n$ samples in total the inner loop iterates over $\lfloor\frac{M}{n} \rfloor$. That is the number of batches that fit in our dataset. The outer loop iterates over the number of epochs.
+It is common practice to organize our algorithm in a double loop. If we have $n$ samples in total, the inner loop iterates over $\lfloor\frac{M}{n} \rfloor$. That is the number of batches that fit in our dataset. The outer loop iterates over the number of epochs.
 
 \newpage
 
@@ -458,7 +457,7 @@ We have chosen to only give the element wise update rule, as the vector notation
 Like AdaGrad, the update keeps some sort of memory of previous gradients. Where $\rho$ can be thought of as the strength of the memory, i.e. how much of the previous iterations should impact the next. This allows for some of the same benefits as AdaGrads decaying learning rate.
 
 \subsubsection{ADAM}
-Adaptive moment estimation, most commonly known as ADAM, is a optimization algorithm which combines some of the aspects from RMSprop with momentum. It's update is given by
+Adaptive moment estimation, most commonly known as ADAM, is an optimization algorithm which combines some of the aspects from RMSprop with momentum. It's update is given by
 \begin{align*}
     \boldsymbol{m}_{k+1} =& \frac{\rho_1 \boldsymbol{m}_k + (1- \rho_1) \boldsymbol{g}_k}{\left(1 - \rho_1^{k+1}\right)}\\
     \boldsymbol{v}_{k+1} =& \frac{\rho_2 \boldsymbol{v}_k + (1-\rho_2) \boldsymbol{g}_k^{\circ 2}}{\left(1-\rho_2^{k+1}\right)}\\
@@ -621,7 +620,7 @@ We can then simplify the summation to get $\mathbf{z}_l = \mathbf{W}_l \mathbf{y
 \begin{equation*}
     F^l(\boldsymbol{x}) = \left[ f^l \left( x_0 \right), \ f^l \left( x_1 \right), \ \ldots, \ f^l \left( x_{N_l - 1} \right) \right]^T,
 \end{equation*}
-such that the function operates elementwise. For simplicity sake, this function $F^l$ will also be notated $f^l$.
+such that the function operates elementwise. For simplicity, this function $F^l$ will also be notated $f^l$.
 
 We define the realization of our neural network as the function $\mathcal{N}: \mathbb{R}^{N_0 \times 1} \to \mathbb{R}^{N_h \times 1}$, with $h$ being the output layer as
 \begin{equation*}
@@ -870,7 +869,7 @@ At a high level, automatic differentiation leverages the principle that any comp
 \]
 Just as we did for backpropagation!
 
-This way we can find the all partial derivatives with respect to any of the input variables by repeatedly applying the chain rule \parencite{walther2007automatic} . This method is not only very precise but also efficient. It does however, require added storage, in the worst case growing proportionally with number of operations in the function.
+This way we can find all the partial derivatives with respect to any of the input variables by repeatedly applying the chain rule \parencite{walther2007automatic} . This method is not only very precise but also efficient. It does however, require added storage, in the worst case growing proportionally with number of operations in the function.
 \parencite{baydin2018automatic}
 
 The use of automatic differentiation techniques is most relevant for the calculation of $\frac{\partial C}{\partial a_i^L}$ for the final layer. As a single pass of reverse accumulation AD (the process briefly explained above) allows us to calculate the partial derivatives with respect to the entire layer $a^L$
@@ -1275,6 +1274,7 @@ Note that due to a typo, the $y$-axis of the heatmaps are labeled $\rho$ when th
     \label{fig:FrankeAdagrad}%
 \end{figure}
 
+
 \begin{figure}[H]%
     \centering
     \subfloat[\centering Sigmoid]{{\includegraphics[width=5.5cm]{Project2/figures/franke/adagradmomentum/sigmoid_validation_error_heatmap.pdf} }}%
@@ -1347,7 +1347,7 @@ Selecting the top performers from \autoref{fig:FrankeMomentum} generated \autore
     \label{fig:FrankeReLU}%
 \end{figure}
 
-We had wildly inconsistent results using ReLU and LReLU, illustrated in \autoref{fig:FrankeReLU}, the reason for this is as of the time of writing unknown to the authors.
+We had wildly inconsistent results using ReLU and LReLU, illustrated in \autoref{fig:FrankeReLU}, the reason for this is at the time of writing unknown to the authors.
 
 \begin{figure}[H]%
     \centering
@@ -1424,15 +1424,50 @@ When exploring the optimal parameters, we ran into the same issues with ReLU and
     \label{fig:CancerRMS_prop}%
 \end{figure}
 
-\Cref{fig:CancerConstant,fig:CancerMomentum,fig:CancerAdagrad,fig:CancerRMS_prop,fig:CancerAdagradMomentum,fig:CancerAdam} illustrate the validation accuracy for the different schedulers and hidden activation functions. Note that brighter colors are considered better here.
+\Cref{fig:CancerConstant,fig:CancerMomentum,fig:CancerAdagrad,fig:CancerRMS_prop,fig:CancerAdagradMomentum,fig:CancerAdam} illustrate the validation accuracy for the different schedulers and hidden activation functions. Note that higher values are considered better for accuracy. We got a peak accuracy of $0.985$ with Adam and RMSprop.
 
 
 \newpage
 \section{Discussion}
 
+\subsection{Univariate Polynomial Analysis}
+
+In our analysis, all deterministic optimizers, given 500 epochs and a fair choice of parameters, consistently converged to correct $\theta$ values. These parameters included $\eta$ for Gradient Descent, $\rho$ for Momentum and Adagrad, and $\rho_1$ and $\rho_2$ for Adam. This ease of convergence most likely stems from the simplicity of the problem.
+
+In addition, methods such as Adagrad, Adam, RMS Prop and other momentum-based strategies showed less sensitivity to the choice of $\eta$. They converged quickly even with high $\eta$ values. This feature hints at their superior flexibility, suggesting they could provide faster convergence for more complex descent problems.
+
+For a more direct comparison of optimization methods' performances, errors could have been plotted on the same graph. This would provide immediate insights into each method's speed and stability of convergence. However, the unique sensitivities of each method to parameter choice would still require individual analysis.
+
+Our examination of stochastic techniques showed similar results for smaller batch sizes. However, these methods displayed instability when the batch size was not significantly smaller than the number of training samples. Given the number of samples and the simplicity of the problem, these methods were not expected to yield any additional performance.
+
+
+\subsection{Franke's function}
+
+In our model, validation was conducted through evaluating the performance on unseen data. More robust validation methods such as bootstrap or cross-validation could have been employed for a more comprehensive analysis, but these were not implemented due to time constraints.
+
+For our final layer activation, i.e., z-prediction, we employed the identity function to avoid biasing our output to a specific range.
+
+For the cost function we employed the L2 regularization term on the MSE to form the Ridge cost function.
+
+Our computational limitations encouraged us to opt for the stochastic variants of all our schedulers, as the deterministic counterparts were tediously slow.
+
+Throughout the analysis, we found that more advanced schedulers like Adam, AdagradMomentum, and RMSprop notably expanded the range of acceptable $\eta$ and $\lambda$ values (here, 'acceptable' is defined as yielding the lowest range of test errors observed in the magnitude of $e^{-3}$). ADAM in particular gave low test errors for almost all our $\lambda$ and $\eta$ values as seen in \autoref{fig:FrankeAdam} 
+
+When it comes to the activation of inner layers, the heatmaps gave a somewhat misleading representation of the error. As ReLU and LReLU seemed to allow for more variation in $\lambda$  and $\eta$ as seen in  \autoref{fig:FrankeAdagrad}.
+
+Furthermore, ReLU typically outperformed LReLU across all schedulers, as illustrated in \autoref{fig:FrankeAdam} and \autoref{fig:FrankeAdagradMomentum}
+
+Our 3D plots however, gave a more nuanced picture of the error. Also allowing us to see how the error is distributed. Giving us the best final
+
+\subsection{Tumor classification}
+
+
+\subsection{MINST classification}
+
+
 \section{Conclusion}
 
-% Når kommer du hjem att philip
+
 \section{References}
 
 \printbibliography
