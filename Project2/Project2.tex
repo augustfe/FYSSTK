@@ -92,7 +92,7 @@
 \newpage
 
 \begin{abstract}
-    In this project, we have looked at classification and regression and how to apply them to neural networks. In addition, we have looked deeper into neural networks, specifically feed forward neural networks, and how to optimize them. The optimization was done through the means of gradient descent method. And to further optimize, we have tested different versions of the gradient descent method, such as momentum, AdaGrad, RMSProp and ADAM, both stochastic and deterministic. Further, we have applied these methods to the Franke function and to the Wisconsin Breast Cancer Data. Testing the regression methods on the Franke function and the classification method on the Wisconsin Breast Cancer data set.
+    In this project, our focus was centered on classification and regression problems and how to solve them with neural networks. Specifically, we have looked at feed forward neural networks and how the optimization works. The optimization was done through the means of the gradient descent methods. To further optimize, we have tested different variations of the gradient descent method, such as momentum, AdaGrad, RMSProp and ADAM. All methods tested for both stochastic and deterministic versions. Further, we have applied these methods to a simple univarite polynomial, Franke's function and the Wisconsin Breast Cancer Data. Testing the regression methods on the univariate polynomial and Franke function and the classification methods on the Wisconsin Breast Cancer data set. Across the board, Adam was the top performer.
 \end{abstract}
 
 \section{Introduction}
@@ -1426,13 +1426,62 @@ When exploring the optimal parameters, we ran into the same issues with ReLU and
 
 \Cref{fig:CancerConstant,fig:CancerMomentum,fig:CancerAdagrad,fig:CancerRMS_prop,fig:CancerAdagradMomentum,fig:CancerAdam} illustrate the validation accuracy for the different schedulers and hidden activation functions. Note that higher values are considered better for accuracy. We got a peak accuracy of $0.985$ with Adam and RMSprop.
 
+\begin{figure}[H]%
+    \centering
+    \subfloat[\centering GD]{{\includegraphics[width=5.5cm]{Project2/figures/logreg/LogReg_Constant_error_gd.pdf} }}%
+    \qquad
+    \subfloat[\centering SGD]{{\includegraphics[width=5.5cm]{Project2/figures/logreg/LogReg_Constant_error_sgd.pdf} }}%
+    \caption{Logistic regression with Constant scheduler.}%
+    \label{fig:1CancerConstant}%
+\end{figure}
+\begin{figure}[H]%
+    \centering
+    \subfloat[\centering GD]{{\includegraphics[width=5.5cm]{Project2/figures/logreg/LogReg_Momentum_error_gd.pdf} }}%
+    \qquad
+    \subfloat[\centering SGD]{{\includegraphics[width=5.5cm]{Project2/figures/logreg/LogReg_Momentum_error_sgd.pdf} }}%
+    \caption{Logistic regression with Momentum scheduler.}%
+    \label{fig:1CancerMomentum}%
+\end{figure}
+\begin{figure}[H]%
+    \centering
+    \subfloat[\centering GD]{{\includegraphics[width=5.5cm]{Project2/figures/logreg/LogReg_Adagrad_error_gd.pdf} }}%
+    \qquad
+    \subfloat[\centering SGD]{{\includegraphics[width=5.5cm]{Project2/figures/logreg/LogReg_Adagrad_error_sgd.pdf} }}%
+    \caption{Logistic regression with Adagrad scheduler.}%
+    \label{fig:1CancerAdagrad}%
+\end{figure}
+\begin{figure}[H]%
+    \centering
+    \subfloat[\centering GD]{{\includegraphics[width=5.5cm]{Project2/figures/logreg/LogReg_AdagradMomentum_error_gd.pdf} }}%
+    \qquad
+    \subfloat[\centering SGD]{{\includegraphics[width=5.5cm]{Project2/figures/logreg/LogReg_AdagradMomentum_error_sgd.pdf} }}%
+    \caption{Logistic regression with AdagradMomentum scheduler.}%
+    \label{fig:1CancerAdagradMomentum}%
+\end{figure}
+\begin{figure}[H]%
+    \centering
+    \subfloat[\centering GD]{{\includegraphics[width=5.5cm]{Project2/figures/logreg/LogReg_Adam_error_gd.pdf} }}%
+    \qquad
+    \subfloat[\centering SGD]{{\includegraphics[width=5.5cm]{Project2/figures/logreg/LogReg_Adam_error_sgd.pdf} }}%
+    \caption{Logistic regression with Adam scheduler.}%
+    \label{fig:1CancerAdam}%
+\end{figure}
+\begin{figure}[H]%
+    \centering
+    \subfloat[\centering GD]{{\includegraphics[width=5.5cm]{Project2/figures/logreg/LogReg_RMS_prop_error_gd.pdf} }}%
+    \qquad
+    \subfloat[\centering SGD]{{\includegraphics[width=5.5cm]{Project2/figures/logreg/LogReg_RMS_prop_error_sgd.pdf} }}%
+    \caption{Logistic regression with RMSprop scheduler.}%
+    \label{fig:1CancerRMS_prop}%
+\end{figure}
+
+\Cref{fig:1CancerAdagrad,fig:1CancerAdagradMomentum,fig:1CancerAdam,fig:1CancerMomentum,fig:1CancerRMS_prop,fig:1CancerConstant} show the results from logistic regression with varying learning parameters. Although not included in this report due to time constraints, our best accuracy was found with Adam with an accuracy of $0.86\%$.
 
 \newpage
 \section{Discussion}
 
 \subsection{Univariate Polynomial Analysis}
-
-In our analysis, all deterministic optimizers, given 500 epochs and a fair choice of parameters, consistently converged to correct $\theta$ values. These parameters included $\eta$ for Gradient Descent, $\rho$ for Momentum and Adagrad, and $\rho_1$ and $\rho_2$ for Adam. This ease of convergence most likely stems from the simplicity of the problem.
+In our analysis, all deterministic optimizers, given 500 epochs and a fair choice of parameters, consistently converged to correct $\theta$ values. These parameters included $\eta$ for Gradient Descent, $\rho$ for Momentum, AdagradMomentum and RMSprop, and $\rho_1$ and $\rho_2$ for Adam. This ease of convergence most likely stems from the simplicity of the problem.
 
 In addition, methods such as Adagrad, Adam, RMS Prop and other momentum-based strategies showed less sensitivity to the choice of $\eta$. They converged quickly even with high $\eta$ values. This feature hints at their superior flexibility, suggesting they could provide faster convergence for more complex descent problems.
 
@@ -1442,32 +1491,27 @@ Our examination of stochastic techniques showed similar results for smaller batc
 
 
 \subsection{Franke's function}
-
 In our model, validation was conducted through evaluating the performance on unseen data. More robust validation methods such as bootstrap or cross-validation could have been employed for a more comprehensive analysis, but these were not implemented due to time constraints.
 
-For our final layer activation, i.e., z-prediction, we employed the identity function to avoid biasing our output to a specific range.
+For our final layer activation, i.e., z-prediction, we employed the identity function to avoid biasing our output to a specific range. For the cost function we employed the L2 regularization term on the MSE to form the Ridge cost function. Our computational limitations encouraged us to opt for the stochastic variants of all our schedulers, as the deterministic counterparts were tediously slow when working with 10 000 points of data.
 
-For the cost function we employed the L2 regularization term on the MSE to form the Ridge cost function.
+Throughout the analysis, we found that more advanced schedulers like Adam, AdagradMomentum, and RMSprop notably expanded the range of acceptable $\eta$ and $\lambda$ values (here, 'acceptable' is defined as yielding the lowest range of test errors observed in the magnitude of $10^{-3}$). ADAM in particular gave low test errors for almost all our $\lambda$ and $\eta$ values as seen in \autoref{fig:FrankeAdam} 
 
-Our computational limitations encouraged us to opt for the stochastic variants of all our schedulers, as the deterministic counterparts were tediously slow.
+When it comes to the activation of inner layers, the heatmaps gave a somewhat misleading representation of the error. As ReLU and LReLU seemed to allow for more variation in $\lambda$  and $\eta$ as seen in  \autoref{fig:FrankeAdagrad}. Furthermore, ReLU typically outperformed LReLU across all schedulers, as illustrated in \autoref{fig:FrankeAdam} and \autoref{fig:FrankeAdagradMomentum}
 
-Throughout the analysis, we found that more advanced schedulers like Adam, AdagradMomentum, and RMSprop notably expanded the range of acceptable $\eta$ and $\lambda$ values (here, 'acceptable' is defined as yielding the lowest range of test errors observed in the magnitude of $e^{-3}$). ADAM in particular gave low test errors for almost all our $\lambda$ and $\eta$ values as seen in \autoref{fig:FrankeAdam} 
-
-When it comes to the activation of inner layers, the heatmaps gave a somewhat misleading representation of the error. As ReLU and LReLU seemed to allow for more variation in $\lambda$  and $\eta$ as seen in  \autoref{fig:FrankeAdagrad}.
-
-Furthermore, ReLU typically outperformed LReLU across all schedulers, as illustrated in \autoref{fig:FrankeAdam} and \autoref{fig:FrankeAdagradMomentum}
-
-Our 3D plots however, gave a more nuanced picture of the error. Also allowing us to see how the error is distributed. Giving us the best final
+Our 3D plots however, gave a more nuanced picture of the error. Also allowing us to see how the error is distributed. Notably for our best results seen in \autoref{fig:FrankeBest}. The total error of the two methods were about the same, although the distribution was completely different.
 
 \subsection{Tumor classification}
+In our analysis, the final evaluation of our trained models was based on their accuracy score over a test set. While this method is straightforward, it may not perfectly mirror real-world applications. Certain misclassifications may have more serious implications than others, meaning not all errors should be weighted equally. For instance, in a traffic light recognition system, classifying a red light as green could have far more severe consequences than misclassifying a green light as red. Therefore, for a comprehensive and realistic evaluation in future studies, a cost-sensitive error metric could be employed.
 
+Nevertheless, we can observe that our FFNNs were able to achieve a remarkably high accuracy score, exceeding 0.985 with both ADAM and RMSprop optimizers (as shown in \autoref{fig:CancerRMS_prop} and \autoref{fig:CancerAdam} respectively). This performance greatly surpassed that of our logistic regression models, which achieved only a score of 0.86. This leads us to believe that the relationship between the features and the tumour class is a more complex one that requires the capabilities of a neural network to accurately mode
 
-\subsection{MINST classification}
 
 
 \section{Conclusion}
+This project highlighted the complexity of more advanced machine learning, as there are a large number of moving parts. Illustrating, and getting working results, proved difficult, particularly when restrained on computing power. We were perhaps a bit ambitious with the scope of our theory section, although we believe that the understanding we have gained of how Neural Networks operate will prove valuable in the future, having no previous knowledge before this project. We were faced with a number of different challenges, from how to visualize our results to attempting to get bearable performance out of our code. Further exploration possible from this project is how modelling using larger models, and utilizing methods like cross-validation and bootstrapping, can bring more accurate and informative results. Instead of focusing on the performance of our methods, we chose to focus on how the different methods differ from each other.
 
-
+\newpage
 \section{References}
 
 \printbibliography
