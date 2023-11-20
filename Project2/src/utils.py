@@ -42,4 +42,5 @@ def design(x: np.ndarray, dim: int, n: int) -> np.ndarray:
 
 @jit
 def update_theta(theta: np.ndarray, change: np.ndarray):
+    # return theta - change
     return lax.sub(theta, change)

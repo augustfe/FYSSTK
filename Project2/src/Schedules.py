@@ -1,6 +1,5 @@
 import jax.numpy as np
 from jax import lax, jit
-from functools import partial
 from line_profiler import profile
 
 
@@ -637,7 +636,6 @@ def fast_adam(
         np.ndarray: A numpy array of shape (batch_size, num_params) representing the change in the parameters.
     """
     delta = 1e-7  # avoid division by zero
-    # print(eta, moment, rho**n_epochs, second, rho2**n_epochs)
     moment_corrected = lax.div(
         moment,
         lax.sub(

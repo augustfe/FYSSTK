@@ -4,22 +4,20 @@ from typing import Callable
 
 
 @jit
-def CostCrossEntropy_fast(X: np.ndarray, target: np.ndarray) -> float:
-    return -lax.mul(
-        1.0 / target.size,
-        np.sum(
-            lax.mul(
-                target,
-                lax.log(
-                    lax.add(X, 1e-7),
-                ),
-            )
-        ),
-    )
-
-
-@jit
 def CostOLS_fast(X: np.ndarray, target: np.ndarray) -> float:
+    """
+    Calculates the mean squared error (MSE) for ordinary least squares (OLS) regression.
+
+    Calculates:
+        1/n * sum((y - X)^2)
+
+    Args:
+        X (np.ndarray): The prediction array of shape (n_samples,).
+        target (np.ndarray): The target array of shape (n_samples,).
+
+    Returns:
+        float: The mean squared error (MSE) value.
+    """
     return lax.mul(
         1.0 / target.size,
         np.sum(
@@ -30,6 +28,19 @@ def CostOLS_fast(X: np.ndarray, target: np.ndarray) -> float:
 
 @jit
 def CostCrossEntropy_binary(X, target):
+    """
+    Calculates the cross-entropy cost function for binary classification.
+
+    Calculates:
+        -1/n * sum(target * log(X) + (1 - target) * log(1 - X))
+
+    Args:
+        X (ndarray): The predicted values of shape (n_samples,).
+        target (ndarray): The target values of shape (n_samples,).
+
+    Returns:
+        float: The cross-entropy cost.
+    """
     # NOTE: A delta of 1e-8 is too small, is rounded to zero by jit.
     return -lax.mul(
         (1.0 / target.shape[0]),
@@ -82,6 +93,21 @@ def CostCrossEntropy(target: np.ndarray) -> Callable:
 def fast_OLS(
     X: np.ndarray, y: np.ndarray, theta: np.ndarray, lmbda: float = None
 ) -> np.ndarray:
+    """
+    Calculates the cost function for Ordinary Least Squares (OLS) regression.
+
+    Calculates:
+        1 / n * sum((y - X @ theta)^2)
+
+    Args:
+        X (np.ndarray): The input feature matrix of shape (n_samples, n_features).
+        y (np.ndarray): The target values of shape (n_samples,).
+        theta (np.ndarray): The weight vector of shape (n_features,).
+        lmbda (float, optional): Not used in this function.
+
+    Returns:
+        np.ndarray: The cost function value.
+    """
     return lax.mul(
         1.0 / X.shape[0],
         np.sum(lax.integer_pow(lax.sub(y, np.dot(X, theta)), 2)),
@@ -92,6 +118,21 @@ def fast_OLS(
 def fast_OLS_grad(
     X: np.ndarray, y: np.ndarray, theta: np.ndarray, lmbda: float = None
 ) -> np.ndarray:
+    """
+    Compute the analytic gradient of the Ordinary Least Squares (OLS) cost function.
+
+    Calculates:
+        2 / n * X.T @ (X @ theta - y)
+
+    Args:
+        X (np.ndarray): The input feature matrix of shape (n_samples, n_features).
+        y (np.ndarray): The target values of shape (n_samples,).
+        theta (np.ndarray): The weight vector of shape (n_features,).
+        lmbda (float, optional): Not used in this function.
+
+    Returns:
+        np.ndarray: The gradient of the OLS cost function with respect to theta, of shape (n_features,).
+    """
     return lax.mul(
         2.0 / X.shape[0],
         lax.dot(
@@ -105,6 +146,21 @@ def fast_OLS_grad(
 def fast_ridge(
     X: np.ndarray, y: np.ndarray, theta: np.ndarray, lmbda: float = None
 ) -> np.ndarray:
+    """
+    Compute the cost function for ridge regression.
+
+    Calculates:
+        1 / n * sum((y - X @ theta)^2) + lmbda * theta.T @ theta
+
+    Args:
+        X (np.ndarray): The input feature matrix of shape (n_samples, n_features).
+        y (np.ndarray): The target values of shape (n_samples,).
+        theta (np.ndarray): The weight vector of shape (n_features,).
+        lmbda (float, optional): The regularization parameter. Defaults to None.
+
+    Returns:
+        np.ndarray: The cost function value.
+    """
     tmp_theta = theta.squeeze()
     return 1.0 / X.shape[0] * np.sum(
         lax.integer_pow(lax.sub(y, np.dot(X, theta)), 2)
@@ -115,7 +171,21 @@ def fast_ridge(
 def fast_ridge_grad(
     X: np.ndarray, y: np.ndarray, theta: np.ndarray, lmbda: float = None
 ) -> np.ndarray:
-    # tmp_theta = theta.squeeze()
+    """
+    Compute the analytic gradient of the ridge regression cost function.
+
+    Calculates:
+        2 / n * X.T @ (X @ theta - y) + 2 * lmbda * theta
+
+    Args:
+        X (np.ndarray): The input feature matrix of shape (n_samples, n_features).
+        y (np.ndarray): The target values of shape (n_samples,).
+        theta (np.ndarray): The parameter vector of shape (n_features,).
+        lmbda (float, optional): The regularization parameter. Defaults to None.
+
+    Returns:
+        np.ndarray: The gradient of the ridge regression cost function, of shape (n_features,).
+    """
     return 2.0 * (
         lax.add(
             1.0

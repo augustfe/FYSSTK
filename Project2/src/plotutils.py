@@ -6,10 +6,9 @@ from typing import Callable, Optional
 import seaborn as sns
 from pandas import DataFrame
 from NeuralNetwork import NeuralNet
-
-# from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
 
+# Set up for LaTeX rendering
 mpl.rcParams["mathtext.fontset"] = "stix"
 mpl.rcParams["font.family"] = "STIXGeneral"
 mpl.rcParams["figure.titlesize"] = 15
@@ -28,6 +27,8 @@ def setColors(
             Array of values to be plotted.
         cmap_name (str, optional):
             Name of the colormap. Defaults to "viridis".
+        norm_type (str, optional):
+            Type of normalization to use. Defaults to "log".
 
     Returns:
         tuple[mpl.colors.Colormap, mpl.colors.LogNorm, mpl.cm.ScalarMappable]:
@@ -84,6 +85,8 @@ def PlotPredictionPerVariable(
             Label for the y-axis. Defaults to r"$y$".
         variable_label (str, optional):
             Label for the variable parameter. Defaults to r"$\eta$".
+        variable_type (str, optional):
+            Type of normalization to use. Defaults to "log".
         title (str, optional):
             Title for the plot. Defaults to "Predicted polynomials".
         n_epochs (int, optional):
@@ -93,7 +96,9 @@ def PlotPredictionPerVariable(
         showPlots (bool, optional):
             Whether to display the plot. Defaults to True.
         figsPath (Path, optional):
-            Path to the directory where the plot should be saved. Defaults to Path(__file__).parent.parent / "figures".
+            Path to the directory where the plot should be saved. Defaults to None.
+        saveName (str, optional):
+            Name of the file to save the plot as. Defaults to None.
 
     Returns:
         None
@@ -164,7 +169,9 @@ def PlotErrorPerVariable(
         showPlots (bool, optional):
             Whether to display the plot. Defaults to True.
         figsPath (Path, optional):
-            Path to the directory where the plot should be saved. Defaults to Path(__file__).parent.parent / "figures".
+            Path to the directory where the plot should be saved. Defaults to None.
+        saveName (str, optional):
+            Name of the file to save the plot as. Defaults to None.
 
     Returns:
         None
@@ -215,27 +222,27 @@ def plotThetas(
     Args:
         theta_arr (np.ndarray):
             Array of theta values for different values.
-        x_vals (np.ndarray):
+        variable_arr (np.ndarray):
             Array of x values.
-        xscale (str, optional):
+        variable_type (str, optional):
             Scale of the x-axis. Defaults to "log".
         true_theta (np.ndarray, optional):
             Array of true theta values. Defaults to None.
-        x_label (str, optional):
+        variable_label (str, optional):
             Label for the x-axis. Defaults to r"$eta$".
         title (str, optional):
             Title of the plot. Defaults to r"Values for $\theta$ for different values of $\eta$".
+        colormap (str, optional):
+            Name of the colormap to use. Defaults to "viridis".
         savePlots (bool, optional):
             Whether to save the plot. Defaults to False.
         showPlots (bool, optional):
             Whether to show the plot. Defaults to True.
         figsPath (Path, optional):
-            Path to the directory where the plot will be saved. Defaults to Path(__file__).parent.parent / "figures".
-
-    Returns:
-        None
+            Path to the directory where the plot will be saved. Defaults to None.
+        saveName (str, optional):
+            Name of the file to save the plot as. Defaults to None.
     """
-
     tmp_arr = np.linspace(1, 2, theta_arr.shape[1])
 
     cmap, norm, sm = setColors(tmp_arr, cmap_name=colormap, norm_type=variable_type)
@@ -277,6 +284,20 @@ def plotHeatmap(
     saveName: str = None,
     annot: bool = False,
 ) -> None:
+    """Plot a heatmap of the input DataFrame.
+
+    Args:
+        df (DataFrame): The DataFrame to plot.
+        title (str, optional): The title of the plot. Defaults to "Error".
+        x_label (str, optional): The label for the x-axis. Defaults to r"$\eta$".
+        y_label (str, optional): The label for the y-axis. Defaults to r"$\rho$".
+        colormap (str, optional): The name of the colormap to use. Defaults to "viridis".
+        savePlots (bool, optional): Whether to save the plot. Defaults to False.
+        showPlots (bool, optional): Whether to show the plot. Defaults to True.
+        figsPath (Path, optional): Path to the directory where the plot will be saved. Defaults to None.
+        saveName (str, optional): Name of the file to save the plot as. Defaults to None.
+        annot (bool, optional): Whether to annotate the heatmap. Defaults to False.
+    """
     fig, ax = plt.subplots()
     sns.heatmap(df, cmap=colormap, ax=ax, annot=annot, fmt=".3f")
     plt.title(title)
@@ -291,6 +312,15 @@ def plotHeatmap(
 
 
 def setup_axis(xlim: tuple[int], ylim: tuple[int]) -> plt.Axes:
+    """Set up the axis for a function plot.
+
+    Args:
+        xlim (tuple[int]): The limits of the x-axis.
+        ylim (tuple[int]): The limits of the y-axis.
+
+    Returns:
+        plt.Axes: The axis for the plot.
+    """
     _, ax = plt.subplots()
 
     ax.set_aspect("equal")
@@ -307,8 +337,25 @@ def setup_axis(xlim: tuple[int], ylim: tuple[int]) -> plt.Axes:
 
 
 def plot_Franke_input(
-    x, y, z, savePlots=False, showPlots=True, figsPath=None, saveName=None
-):
+    x: np.ndarray,
+    y: np.ndarray,
+    z: np.ndarray,
+    savePlots: bool = False,
+    showPlots: bool = True,
+    figsPath: Path = None,
+    saveName: str = None,
+) -> None:
+    """Plot the surface of Franke's function.
+
+    Args:
+        x (np.ndarray): The x-values.
+        y (np.ndarray): The y-values.
+        z (np.ndarray): The z-values.
+        savePlots (bool, optional): Whether to save the plot. Defaults to False.
+        showPlots (bool, optional): Whether to show the plot. Defaults to True.
+        figsPath (Path, optional): Path to the directory where the plot will be saved. Defaults to None.
+        saveName (str, optional): Name of the file to save the plot as. Defaults to None.
+    """
     fig = plt.figure(figsize=plt.figaspect(0.5))
 
     ax = fig.add_subplot(projection="3d")
@@ -347,7 +394,19 @@ def plot_Franke(
     showPlots: bool = True,
     figsPath: Path = None,
     saveName: str = None,
-):
+) -> None:
+    """Plot the surface of Franke's function.
+
+    Args:
+        FFNN (NeuralNey): The neural network to use for prediction.
+        x (np.ndarray): The x-values.
+        y (np.ndarray): The y-values.
+        z (np.ndarray): The z-values.
+        savePlots (bool, optional): Whether to save the plot. Defaults to False.
+        showPlots (bool, optional): Whether to show the plot. Defaults to True.
+        figsPath (Path, optional): Path to the directory where the plot will be saved. Defaults to None.
+        saveName (str, optional): Name of the file to save the plot as. Defaults to None.
+    """
     xnew = np.linspace(0, 1, 100)
     ynew = np.linspace(0, 1, 100)
     xnew, ynew = np.meshgrid(xnew, ynew)
@@ -382,7 +441,6 @@ def plot_Franke(
         ynew,
         np.abs(z.reshape(x.shape) - znew),
         cmap="coolwarm",
-        # offset=-1,
         cstride=1,
         rstride=1,
         linewidth=0,
@@ -412,6 +470,16 @@ def plot_validation_train(
     figsPath: Path = None,
     saveName: str = None,
 ) -> None:
+    """Plot the validation and training error.
+
+    Args:
+        scores (dict[str, np.ndarray[float]]): The scores dictionary.
+        title (str, optional): The title of the plot. Defaults to "Error".
+        savePlots (bool, optional): Whether to save the plot. Defaults to False.
+        showPlots (bool, optional): Whether to show the plot. Defaults to True.
+        figsPath (Path, optional): Path to the directory where the plot will be saved. Defaults to None.
+        saveName (str, optional): Name of the file to save the plot as. Defaults to None.
+    """
     fig, ax = plt.subplots()
     train_error = scores["train_errors"]
     ax.plot(np.log10(train_error), label="Train")

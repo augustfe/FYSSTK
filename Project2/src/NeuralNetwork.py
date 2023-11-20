@@ -1,41 +1,57 @@
 import jax.numpy as np
 import numpy as onp
-from jax import grad, vmap, jit, lax
+from jax import grad, jit, lax
 from typing import Optional, Callable
 from Activators import sigmoid, derivate
-from CostFuncs import CostCrossEntropy, CostOLS_fast
+from CostFuncs import CostOLS_fast
 from Schedules import Scheduler
 from sklearn.utils import resample
 from copy import deepcopy
 from tqdm import tqdm
 from utils import assign, vstack_arrs
-from line_profiler import profile
 from functools import partial
 
 
 @jit
 def fast_mul(a, b):
+    # Fast multiplication
     return lax.mul(a, b)
 
 
 @jit
 def fast_dot(a, b):
+    # Fast dot product
     return lax.dot(a, b)
 
 
 @jit
 def fast_dot_with_T(a, b):
+    # Fast dot product with transpose
     return lax.dot(a, b.T)
 
 
 @jit
 def fast_plus_eq(a, b):
+    # Fast inplace addition
     return lax.add(a, b)
 
 
-# @jit(static_argnames="lmbda")
 @partial(jit, static_argnames="lmbda")
 def calc_grad_w(a_layer, delta_matrix, weight_matrix, lmbda):
+    """Calculate the gradient for the weights of a layer.
+
+    Calculates:
+        a_layer.T @ delta_matrix + weight_matrix * lmbda
+
+    Args:
+        a_layer (np.ndarray): The activation layer.
+        delta_matrix (np.ndarray): The delta matrix.
+        weight_matrix (np.ndarray): The weight matrix.
+        lmbda (float): The regularization parameter.
+
+    Returns:
+        np.ndarray: The gradient for the weights of a layer.
+    """
     gradient_weights = lax.dot(a_layer.T, delta_matrix)
     gradient_weights = lax.add(gradient_weights, lax.mul(weight_matrix, lmbda))
     return gradient_weights
@@ -43,6 +59,7 @@ def calc_grad_w(a_layer, delta_matrix, weight_matrix, lmbda):
 
 @jit
 def setup_bias(X_batch: np.ndarray) -> np.ndarray:
+    # Initialize and stack the bias
     bias = lax.mul(np.ones((X_batch.shape[0], 1)), 0.01)
     return np.hstack([bias, X_batch])
 
@@ -137,7 +154,6 @@ class NeuralNet:
         self.reset_weights()
         self.set_classification()
 
-    @profile
     def reset_weights(self) -> None:
         """
         Resets the weights of the neural network.
@@ -157,7 +173,6 @@ class NeuralNet:
 
             self.weights.append(weight_array)
 
-    @profile
     def fit(
         self,
         X_train: np.ndarray,
@@ -209,8 +224,6 @@ class NeuralNet:
             raise TypeError(f"Number of batches must be int, not {type(batches)}")
         if not isinstance(epochs, int):
             raise TypeError(f"Number of epochs must be int, not {type(epochs)}")
-        # if not isinstance(lmbda, (int, float)):
-        #     raise TypeError(f"lmbda must be a number, not {type(lmbda)}")
 
         # Handle ValueErrors
         if batches <= 0:
@@ -234,10 +247,7 @@ class NeuralNet:
 
         # Training metrics
         train_errors = np.empty(epochs)
-        # train_errors.fill(np.nan)
-
         train_accuracies = np.empty(epochs)
-        # train_accuracies.fill(np.nan)
 
         self.schedulers_weight: list[Scheduler] = list()
         self.schedulers_bias: list[Scheduler] = list()
@@ -247,23 +257,15 @@ class NeuralNet:
                 f"Number of batches cannot exceed training points, {X_train.shape[0]} < {batches}"
             )
 
-        # self.cost_func_derivative = grad(self.cost_func)
-
         batch_size = X_train.shape[0] // batches
 
         # One step of bootstrap
         X_train, target_train = resample(X_train, target_train)
 
-        # cost_function_train = self.cost_func(target_train)
         if validate:
-            # cost_function_validate = self.cost_func(target_val)
-
             # Validation metrics
             validation_errors = np.empty(epochs)
-            # validation_errors.fill(np.nan)
-
             validation_accuracies = np.empty(epochs)
-            # validation_accuracies.fill(np.nan)
 
         for i in range(len(self.weights)):
             # I believe deepcopy is necessary to ensure layers are not cross contaminated
@@ -294,7 +296,6 @@ class NeuralNet:
 
             pred_train = self.predict(X_train)
             train_error = self.cost_func(pred_train, target_train)
-            # train_error = cost_function_train(pred_train)
             train_errors = assign(train_errors, e, train_error)
 
             if validate:
@@ -320,7 +321,6 @@ class NeuralNet:
 
         return scores
 
-    @profile
     def feed_forward(self, X_batch: np.ndarray) -> np.ndarray:
         """
         Performs a feed forward pass through the neural network.
@@ -342,8 +342,6 @@ class NeuralNet:
 
         # Add a bias
         X_batch = setup_bias(X_batch)
-        # bias = np.ones((X_batch.shape[0], 1)) * 0.01
-        # X_batch = np.hstack([bias, X_batch])
 
         a = X_batch
         self.a_layers.append(a)
@@ -352,37 +350,15 @@ class NeuralNet:
         # Feed forward for all but output layer
         for i in range(len(self.weights) - 1):
             z = fast_dot(a, self.weights[i])
-            # z = a @ self.weights[i]
             self.z_layers.append(z)
             a = self.hidden_func(z)
-            # print(
-            #     np.isnan(a).any(),
-            #     np.isnan(z).any(),
-            #     np.isnan(tmp_a).any(),
-            #     np.isnan(self.weights[i]).any(),
-            # )
 
             # Add bias layer
             a = setup_bias(a)
-            # bias = np.ones((a.shape[0], 1)) * 0.01
-            # a = np.hstack([bias, a])
             self.a_layers.append(a)
-
-        # for weight in self.weights[:-1]:
-        #     # Calculate z for hidden layers
-        #     z = a @ weight
-        #     self.z_layers.append(z)
-        #     # Activate layer
-        #     a = self.hidden_func(z)
-
-        #     # Add bias layer
-        #     bias = np.ones((a.shape[0], 1)) * 0.01
-        #     a = np.hstack((bias, a))
-        #     self.a_layers.append(a)
 
         # Output layer
         z = fast_dot(a, self.weights[-1])
-        # z = a @ self.weights[-1]
         a = self.output_func(z)
 
         self.a_layers.append(a)
@@ -391,7 +367,6 @@ class NeuralNet:
         # Return the output layer
         return a
 
-    @profile
     def back_propagate(
         self, X_batch: np.ndarray, target_batch: np.ndarray, lmbda: float
     ) -> None:
@@ -417,40 +392,15 @@ class NeuralNet:
         if self.output_func.__name__ == "softmax":
             delta_matrix = self.a_layers[i + 1] - target_batch
         else:
-            # delta_matrix = output_delta(
-            #     self.output_derivative,
-            #     self.cost_func,
-            #     self.z_layers[i + 1],
-            #     self.a_layers[i + 1],
-            #     target_batch,
-            # )
-            # cost_func_derivative = grad(self.cost_func(target_batch))
-
             left = self.output_derivative(self.z_layers[i + 1])
             right = self.cost_func_derivative(self.a_layers[i + 1], target_batch)
-            # print("a:", self.a_layers[i + 1])
-            # print(target_batch)
-            # print(right)
-            # quit()
-
-            # delta_matrix = output_derivative(
-            #     self.z_layers[i + 1]
-            # ) * cost_func_derivative(self.a_layers[i + 1])
             delta_matrix = fast_mul(left, right)
 
         # Output gradient
-        # gradient_weights = fast_dot(self.a_layers[i][:, 1:].T, delta_matrix)
-        # gradient_weights = self.a_layers[i][:, 1:].T @ delta_matrix
         gradient_bias = np.sum(delta_matrix, axis=0).reshape(1, delta_matrix.shape[1])
         gradient_weights = calc_grad_w(
             self.a_layers[i][:, 1:], delta_matrix, self.weights[i][1:, :], lmbda
         )
-
-        # gradient_weights = fast_plus_eq(
-        #     gradient_weights, fast_mul(self.weights[i][1:, :], lmbda)
-        # )
-
-        # gradient_weights += self.weights[i][1:, :] * lmbda
 
         update_matrix = vstack_arrs(
             self.schedulers_bias[i].update_change(gradient_bias),
@@ -463,29 +413,17 @@ class NeuralNet:
         for i in range(len(self.weights) - 2, -1, -1):
             # Calculate error for layer
             left = fast_dot_with_T(self.weights[i + 1][1:, :], delta_matrix)
-            # left = fast_dot(self.weights[i + 1][1:, :], delta_matrix.T)
             right = self.hidden_derivative(self.z_layers[i + 1])
 
             delta_matrix = fast_mul(left.T, right)
-            # delta_matrix = (
-            #     self.weights[i + 1][1:, :] @ delta_matrix.T
-            # ).T * hidden_derivative(self.z_layers[i + 1])
 
             # Calculate gradients
-            # gradient_weights = fast_dot(self.a_layers[i][:, 1:].T, delta_matrix)
-            # gradient_weights = self.a_layers[i][:, 1:].T @ delta_matrix
             gradient_bias = np.sum(delta_matrix, axis=0).reshape(
                 1, delta_matrix.shape[1]
             )
             gradient_weights = calc_grad_w(
                 self.a_layers[i][:, 1:], delta_matrix, self.weights[i][1:, :], lmbda
             )
-
-            # Regularize
-            # gradient_weights = fast_plus_eq(
-            #     gradient_weights, fast_mul(self.weights[i][1:, :], lmbda)
-            # )
-            # gradient_weights += self.weights[i][1:, :] * lmbda
 
             update_matrix = vstack_arrs(
                 self.schedulers_bias[i].update_change(gradient_bias),
@@ -525,10 +463,7 @@ class NeuralNet:
         self.classification = self.cost_func.__name__ in [
             "CostLogReg",
             "CostCrossEntropy",
-            "CostCrossEntropy_fast",
-            "CostCrossEntropy_binary" "BinaryCrossEntropy_fast",
             "CostCrossEntropy_binary",
-            "oops",
         ]
 
     def predict(self, X: np.ndarray, *, theshold: float = 0.5) -> np.ndarray:
@@ -546,140 +481,3 @@ class NeuralNet:
         if self.classification:
             return np.where(predict > theshold, 1.0, 0.0)
         return predict
-
-
-class OneLayerNeuralNet:
-    def __init__(
-        self,
-        X_data: np.ndarray,
-        Y_data: np.ndarray,
-        epochs: int,
-        n_hidden_nodes: int,
-        n_categories: int,
-        batch_size: int,
-        eta: float,
-        lmbda: float,
-        hidden_func: Callable = sigmoid,
-        output_func: Callable = sigmoid,
-        cost_func: Callable = CostCrossEntropy,
-    ):
-        self.X_data_full = X_data
-        self.Y_data_full = Y_data
-
-        self.n_inputs = X_data.shape[0]
-        self.n_features = X_data.shape[1]
-        self.n_hidden_nodes = n_hidden_nodes
-        self.n_categories = n_categories
-
-        self.batch_size = batch_size
-        self.iterations = min(self.n_inputs // self.batch_size, 1)
-        self.epochs = epochs
-        self.eta = eta
-        self.lmbda = lmbda
-
-        self.hidden_func = hidden_func
-        self.output_func = output_func
-        self.cost_func = cost_func
-
-        self.create_weights_and_bias()
-
-    def create_weights_and_bias(self):
-        # Weights and bias for the hidden layer
-        self.hidden_weights = onp.random.randn(self.n_features, self.n_hidden_nodes)
-        self.hidden_bias = np.zeros(self.n_hidden_nodes) + 0.01
-
-        # Weights and bias for the output layer
-        self.output_weights = onp.random.randn(self.n_hidden_nodes, self.n_categories)
-        self.output_bias = np.zeros(self.n_categories) + 0.01
-
-    def feed_forward(self):
-        # Weighted sum over the inputs - $z_h = \sum_{i=1}^F w_{ij}^l x_i + b_{i}^l$
-        self.z_h = self.X_data @ self.hidden_weights + self.hidden_bias
-        # Activation function - $a_h = f(z_h)$
-        self.a_h = self.hidden_func(self.z_h)
-
-        # Activation values $z$
-        self.z_o = self.a_h @ self.output_weights + self.output_bias
-
-        self.a_o = self.output_func(self.z_o)
-
-    def feed_forward_out(self, X: np.ndarray) -> np.ndarray:
-        # Weighted sum over the inputs - $z_h = \sum_{i=1}^F w_{ij}^l x_i + b_{i}^l$
-        z_h = X @ self.hidden_weights + self.hidden_bias
-        # Activation function - $a_h = f(z_h)$
-        a_h = self.hidden_func(z_h)
-
-        # Activation values $z$
-        z_o = a_h @ self.output_weights + self.output_bias
-        a_o = self.output_func(z_o)
-
-        return a_o
-
-    def back_propagation(self):
-        # Derivative of functions
-        derivative_hidden = vmap(grad(self.hidden_func))
-        derivative_output = vmap(grad(self.output_func))
-
-        # Derivative of cost function for our current targets
-        cost_func_derivative = grad(self.cost_func(self.Y_data))
-
-        # Error for output
-        error_output = derivative_output(self.z_o) * cost_func_derivative(self.a_o)
-
-        # Calculate gradients for output layer
-        gradient_weights_output = self.a_h.T @ error_output
-        gradient_bias_output = np.sum(error_output, axis=0)
-
-        gradient_weights_output += self.lmbda * self.output_weights
-
-        # Schedulers will eventually fit here
-
-        self.output_weights -= self.eta * gradient_weights_output
-        self.output_bias -= self.eta * gradient_bias_output
-
-        # Error for hidden layer
-        error_hidden = (
-            error_output @ self.output_weights.T * derivative_hidden(self.z_h)
-        )
-
-        # Calculate gradients for hidden layer
-        gradient_weights_hidden = self.X_data.T @ error_hidden
-        gradient_bias_hidden = np.sum(error_hidden, axis=0)
-
-        gradient_weights_hidden += self.lmbda * self.hidden_weights
-
-        # Schedulers will eventually fit here
-        self.hidden_weights -= self.eta * gradient_weights_hidden
-        self.hidden_bias -= self.eta * gradient_bias_hidden
-
-    def train(self):
-        data_indices = np.arange(self.n_inputs)
-        self.X_data = self.X_data_full
-        self.Y_data = self.Y_data_full
-
-        train_errors = np.zeros(self.epochs)
-
-        for i in range(self.epochs):
-            # self.feed_forward()
-            # self.back_propagation()
-
-            # train_error = cost_func_train(self.X_data)
-            # train_errors[i] = train_error
-
-            # We only have four datapoints in this case, otherwise:
-            for j in range(self.iterations):
-                batch_indices = onp.random.choice(data_indices, size=self.batch_size)
-
-                self.X_data = self.X_data_full[batch_indices]
-                self.Y_data = self.Y_data_full[batch_indices]
-
-                self.feed_forward()
-                self.back_propagation()
-        return train_errors
-
-    def score(self, Y_true: np.ndarray, Y_pred: np.ndarray) -> float:
-        return np.mean(Y_true == Y_pred)
-
-    def predict(self, X):
-        probabilites = self.feed_forward_out(X)
-        return np.where(probabilites > 0.5, 1, 0)
