@@ -284,7 +284,7 @@ def plotHeatmap(
     saveName: str = None,
     annot: bool = False,
 ) -> None:
-    """Plot a heatmap of the input DataFrame.
+    r"""Plot a heatmap of the input DataFrame.
 
     Args:
         df (DataFrame): The DataFrame to plot.

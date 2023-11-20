@@ -29,10 +29,6 @@ def sigmoid(X: np.ndarray) -> np.ndarray:
         np.ndarray: The output array after applying the sigmoid function.
     """
     return lax.reciprocal(lax.add(1.0, lax.exp(-X)))
-    # try:
-    #     return 1.0 / (1 + np.exp(-X))
-    # except FloatingPointError:
-    #     return np.where(X > np.zeros(X.shape), np.ones(X.shape), np.zeros(X.shape))
 
 
 @jit
