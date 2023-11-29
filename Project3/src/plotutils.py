@@ -559,7 +559,7 @@ def plot_heat(
 
     surf = ax.plot_surface(xv, tv, u, cmap=cmap)
 
-    set_plot_limits(ax, axlims)
+    set_plot_limits(ax, *axlims)
 
     fig.colorbar(surf, shrink=0.5, aspect=5)
 
