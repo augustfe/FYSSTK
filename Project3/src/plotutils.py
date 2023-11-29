@@ -1,12 +1,18 @@
-import matplotlib as mpl
-from matplotlib import colormaps, pyplot as plt
-import numpy as np
-from pathlib import Path
-from typing import Callable, Optional
-import seaborn as sns
-from pandas import DataFrame
-from NeuralNetwork import NeuralNet
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
+from NeuralNetwork import NeuralNet
+from pandas import DataFrame
+import seaborn as sns
+from typing import Callable, Optional
+from pathlib import Path
+import numpy as np
+from matplotlib import colormaps, pyplot as plt
+import matplotlib as mpl
+import sys
+sys.path.append('/ANN')
+
+
+# comment to stop autoformatting
+
 
 # Set up for LaTeX rendering
 mpl.rcParams["mathtext.fontset"] = "stix"
@@ -36,7 +42,8 @@ def setColors(
     """
     cmap = colormaps.get_cmap(cmap_name)
     if norm_type == "log":
-        norm = mpl.colors.LogNorm(vmin=np.min(variable_arr), vmax=np.max(variable_arr))
+        norm = mpl.colors.LogNorm(vmin=np.min(
+            variable_arr), vmax=np.max(variable_arr))
     elif norm_type == "linear":
         norm = mpl.colors.Normalize(
             vmin=np.min(variable_arr), vmax=np.max(variable_arr)
@@ -245,7 +252,8 @@ def plotThetas(
     """
     tmp_arr = np.linspace(1, 2, theta_arr.shape[1])
 
-    cmap, norm, sm = setColors(tmp_arr, cmap_name=colormap, norm_type=variable_type)
+    cmap, norm, sm = setColors(
+        tmp_arr, cmap_name=colormap, norm_type=variable_type)
 
     for i in range(theta_arr.shape[1]):
         plt.plot(variable_arr, theta_arr[:, i], color=cmap(norm(tmp_arr[i])))
@@ -494,7 +502,76 @@ def plot_validation_train(
     plt.tight_layout()
 
     if savePlots:
-        plt.savefig(figsPath / f"{saveName}_error_val.pdf", bbox_inches="tight")
+        plt.savefig(
+            figsPath / f"{saveName}_error_val.pdf", bbox_inches="tight")
+    if showPlots:
+        plt.show()
+    plt.close(fig)
+
+
+def set_plot_limits(ax, xlim=None, ylim=None, zlim=None):
+    """
+    Set the limits for the x, y, and z axes of a Matplotlib plot.
+
+    Parameters:
+    - ax: The axis object of the plot.
+    - xlim: Tuple containing the lower and upper limits for the x-axis, e.g., (xmin, xmax).
+    - ylim: Tuple containing the lower and upper limits for the y-axis, e.g., (ymin, ymax).
+    - zlim: Tuple containing the lower and upper limits for the z-axis, e.g., (zmin, zmax).
+    """
+
+    if xlim is not None:
+        ax.set_xlim(xlim)
+    if ylim is not None:
+        ax.set_ylim(ylim)
+    if zlim is not None:
+        ax.set_zlim(zlim)
+
+
+def plot_heat(
+    xv: np.ndarray[float],
+    tv: np.ndarray[float],
+    u: np.ndarray[float],
+    title: str = "Heat",
+    cmap: str = "viridis",
+    axlims: tuple = (None, None, (0, 0.7)),
+    showPlots: bool = True,
+    savePlots: bool = False,
+    figsPath: Path = None,
+    saveName: str = None,
+) -> None:
+    """Plot the heat map of the given data.
+
+    Args:
+        xv (np.ndarray[float]): The x values.
+        tv (np.ndarray[float]): The t values.
+        u (np.ndarray[float]): The heat values.
+        title (str, optional): The title of the plot. Defaults to "Heat".
+        cmap (str, optional): The colormap for the heat map. Defaults to "viridis".
+        axlims (tuple, optional): The limits for the x, y, and z axes. Defaults to (None, None, (0, 0.7)).
+        showPlots (bool, optional): Whether to show the plot. Defaults to True.
+        savePlots (bool, optional): Whether to save the plot. Defaults to False.
+        figsPath (Path, optional): Path to the directory where the plot will be saved. Defaults to None.
+        saveName (str, optional): Name of the file to save the plot as. Defaults to None.
+    """
+    fig = plt.figure(figsize=(12, 6))
+    ax = fig.add_subplot(111, projection="3d")
+
+    surf = ax.plot_surface(xv, tv, u, cmap=cmap)
+
+    set_plot_limits(ax, axlims)
+
+    fig.colorbar(surf, shrink=0.5, aspect=5)
+
+    ax.set_xlabel("x")
+    ax.set_ylabel("t")
+    ax.set_zlabel("Heat (u)")
+
+    ax.set_title(title)
+    plt.tight_layout()
+
+    if savePlots:
+        plt.savefig(figsPath / f"{saveName}_heat.pdf", bbox_inches="tight")
     if showPlots:
         plt.show()
     plt.close(fig)
