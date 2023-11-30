@@ -114,6 +114,8 @@ if __name__ == "__main__":
     # from plotutils import plotHeatmap, PlotErrorPerVariable
     T = 0.4
     n_samples = 4
+
+    # how to create heatmap
     """
     df = error_varying_stepsize(4, 4, T, 100)
     plotHeatmap(
@@ -127,24 +129,14 @@ if __name__ == "__main__":
         saveName="heatmap_MSE_varying_stepsize",
     )
     """
-
+    from plotutils import plot_error_heat_dx
+    # how to plot error vs dx
     errors, dX = error_varying_dx(2, T, n_samples)
-
-    import numpy as np
-    import matplotlib.pyplot as plt
-
-    ndx = 3
-    T = 0.3
-    n_samples = 10
-
-    errors, dX = error_varying_dx(ndx, T, n_samples)
-
-    plt.figure(figsize=(10, 6))
-    plt.plot(dX, errors, marker='o', linestyle='-', color='blue')
-    plt.xscale('log')
-    plt.yscale('log')
-    plt.xlabel('dx')
-    plt.ylabel('Error')
-    plt.title('Error vs. dx')
-    plt.grid(True)
-    plt.show()
+    plot_error_heat_dx(
+        errors=errors,
+        dx_array=dX,
+        savePlots=False,
+        showPlots=True,
+        figsPath=None,
+        saveName='heat_eq_error_vs_dx'
+    )

@@ -449,3 +449,61 @@ def plot_heat(
     if showPlots:
         plt.show()
     plt.close(fig)
+
+
+def plot_error_heat_dx(
+    errors: np.ndarray,
+    dx_array: np.ndarray,
+    error_label: str = "Error",
+    dx_label: str = "dx",
+    title: str = "Error vs. dx",
+    savePlots: bool = False,
+    showPlots: bool = True,
+    figsPath: Path = None,
+    saveName: str = None
+) -> None:
+    """
+    Plots error against dx for the heat equation solver.
+
+    Args:
+        errors (np.ndarray):
+            Array of error values to plot.
+        dx_array (np.ndarray):
+            Array of dx values corresponding to errors.
+        error_label (str, optional):
+            Label for the error. Defaults to "Error".
+        dx_label (str, optional):
+            Label for the dx. Defaults to "dx".
+        title (str, optional):
+            Title for the plot. Defaults to "Error vs. dx".
+        savePlots (bool, optional):
+            Whether to save the plot as a PNG file. Defaults to False.
+        showPlots (bool, optional):
+            Whether to display the plot. Defaults to True.
+        figsPath (Path, optional):
+            Path to the directory where the plot should be saved. Defaults to None.
+        saveName (str, optional):
+            Name of the file to save the plot as. Defaults to None.
+
+    Returns:
+        None
+    """
+    plt.figure(figsize=(10, 6))
+    plt.plot(dx_array, errors, marker='o', linestyle='-', color='blue')
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.xlabel(dx_label)
+    plt.ylabel(error_label)
+    plt.title(title)
+    plt.grid(True)
+
+    if savePlots:
+        if figsPath is None or saveName is None:
+            raise ValueError(
+                "figsPath and saveName must be provided if savePlots is True")
+        plt.savefig(Path(figsPath) / f"{saveName}.png")
+
+    if showPlots:
+        plt.show()
+    else:
+        plt.close()
