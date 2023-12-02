@@ -121,8 +121,8 @@ if __name__ == "__main__":
     plotHeatmap(
         df,
         title=r"MSE for varying stepsize",
-        x_label=r"$\Delta x$",
-        y_label=r"$\Delta t$",
+        x_label=r"$Delta x$",
+        y_label=r"$Delta t$",
         savePlots=False,
         showPlots=True,
         figsPath=None,
