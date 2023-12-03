@@ -5,6 +5,7 @@ from typing import Optional, Callable
 from Activators import sigmoid, derivate
 from CostFuncs import CostOLS_fast
 from Schedules import Scheduler
+
 # from sklearn.utils import resample
 from copy import deepcopy
 from tqdm import tqdm
@@ -126,8 +127,8 @@ class NeuralNet:
                 If any value in dimensions is less than or equal to 0.
         """
         if not isinstance(dimensions, tuple):
-            raise TypeError(f"Dimensions must be tuple, not {
-                            type(dimensions)}")
+            raise TypeError(
+                f"Dimensions must be tuple, not {type(dimensions)}")
         if not all(isinstance(layer, int) for layer in dimensions):
             raise TypeError(
                 f"Values of dimensions must be ints, not {dimensions}")
@@ -260,8 +261,7 @@ class NeuralNet:
 
         if X_train.shape[0] < batches:
             raise ValueError(
-                f"Number of batches cannot exceed training points, {
-                    X_train.shape[0]} < {batches}"
+                f"Number of batches cannot exceed training points, {X_train.shape[0]} < {batches}"
             )
 
         batch_size = X_train.shape[0] // batches
@@ -355,16 +355,10 @@ class NeuralNet:
         a = X_batch
         self.a_layers.append(a)
         self.z_layers.append(a)
-        print(self.weights)
         # Feed forward for all but output layer
         for i in range(len(self.weights) - 1):
-            print("a loop")
-            print(a)
-            print("w")
             print(self.weights[i])
             z = fast_z(a, self.weights[i])
-            print("z loop")
-            print(z)
             self.z_layers.append(z)
             a = self.hidden_func(z)
 
@@ -373,10 +367,6 @@ class NeuralNet:
             self.a_layers.append(a)
 
         # Output layer
-        print("a")
-        print(a)
-        print("w")
-        print(self.weights[-1])
         z = fast_z(a, self.weights[-1])
         a = self.output_func(z)
 
@@ -384,9 +374,6 @@ class NeuralNet:
         self.z_layers.append(z)
 
         # Return the output layer
-        print("========================================")
-        print("end feed forward")
-        print("========================================")
         return a
 
     def back_propagate(
@@ -414,24 +401,17 @@ class NeuralNet:
         if self.output_func.__name__ == "softmax":
             delta_matrix = self.a_layers[i + 1] - target_batch
         else:
-            print("shapes for first delta")
             left = self.output_derivative(self.z_layers[i + 1])
-            print(left.shape)
             right = self.cost_func_derivative(
                 self.a_layers[i + 1], target_batch)
-            print(right.shape)
             delta_matrix = fast_mul(left, right)
-            print(delta_matrix.shape)
 
         # Output gradient
-        print("shapes first gradients")
         gradient_bias = np.sum(delta_matrix, axis=0).reshape(
             1, delta_matrix.shape[1])
-        print(gradient_bias.shape)
         gradient_weights = calc_grad_w(
             self.a_layers[i], delta_matrix, self.weights[i][1:, :], lmbda
         )  # [:,1:] indexes away the bias
-        print(gradient_weights.shape)
 
         update_matrix = vstack_arrs(
             self.schedulers_bias[i].update_change(gradient_bias),
@@ -439,17 +419,12 @@ class NeuralNet:
         )
 
         self.weights[i] -= update_matrix
-        # print("=============================")
         # Back propagate the hidden layers
         for i in range(len(self.weights) - 2, -1, -1):
-
             left = fast_dot_with_T(self.weights[i + 1][1:, :], delta_matrix)
             right = self.hidden_derivative(self.z_layers[i + 1])
-            print(left.shape)
-            print(right.shape)
 
             delta_matrix = fast_mul(left.T, right)
-            print(delta_matrix.shape)
 
             # Calculate gradients
             gradient_bias = np.sum(delta_matrix, axis=0).reshape(
@@ -486,8 +461,7 @@ class NeuralNet:
         """
         if prediction.shape != target.shape:
             raise ValueError(
-                f"Shapes must correspond, not {
-                    prediction.shape} and {target.shape}"
+                f"Shapes must correspond, not {prediction.shape} and {target.shape}"
             )
         return np.average((target == prediction))
 
@@ -516,6 +490,9 @@ class NeuralNet:
         if self.classification:
             return np.where(predict > theshold, 1.0, 0.0)
         return predict
+
+    def __call__(self, x):
+        return self.feed_forward(x)
 
 
 if __name__ == "__main__":
