@@ -1,8 +1,6 @@
-from functools import partial
-from jax import grad, jit, vmap, lax
+from jax import jit, lax
 import jax.numpy as jnp
 from typing import Callable
-import NeuralNet from NeuralNetwork
 
 
 @jit
@@ -259,60 +257,3 @@ def CostLogReg(target: jnp.ndarray) -> Callable:
         )
 
     return func
-
-
-def Cost_1d_heat(
-    NNu: NeuralNet,
-    u0: jnp.ndarray,
-    tx: jnp.ndarray,
-    u_b: float,
-    mu1: float,
-    mu2: float,
-    alpha: float = 1,
-) -> callable:
-    # Define differentiable versions of the NN
-    dNNu_dx = grad(NNu, 1)
-    d2NNu_dx2 = grad(dNNu_dx, 1)
-
-    # JAX operations must be batched to process a batch of inputs (t, x)
-    d2_dx2 = jit(vmap(d2NNu_dx2, in_axes=(None, 0)))
-    d_dt = jit(vmap(grad(NNu, 0), in_axes=(None, 0)))
-
-    def mse_loss(y_true, y_pred):
-        return jnp.mean((y_true - y_pred) ** 2)
-
-    @partial(jit, static_argnums=(1,))
-    def inner_loss(nnu, t, x):
-        "calculate "
-        u_pred = nnu(jnp.stack([t, x], axis=1))
-        return mse_loss(
-            d_dt(NNu, t, x) - alpha * d2_dx2(NNu, t, x), jnp.zeros_like(u_pred)
-        )
-
-    @partial(jit, static_argnums=(1,))
-    def initial_loss(nnu, x):
-        u_pred = nnu(jnp.stack([jnp.zeros_like(x), x], axis=1))
-        return mse_loss(u0, u_pred)
-
-    @partial(jit, static_argnums=(1,))
-    def boundary_loss(nnu, t, x, ub):
-        u_pred = nnu(jnp.stack([t, x], axis=1))
-        return mse_loss(u_pred, jnp.full_like(u_pred, ub))
-
-    @jit
-    def func(NNu, batch: jnp.ndarray):
-        t_inner, x_inner, t_boundary, x_boundary = batch
-        pde_loss_val = inner_loss(NNu, t_inner, x_inner)
-        init_loss_val = initial_loss(NNu, tx)
-        boundary_loss_val = boundary_loss(NNu, t_boundary, x_boundary, u_b)
-
-        total_loss = (
-            mu1 * pde_loss_val + mu2 * boundary_loss_val +
-            (1 - mu2) * init_loss_val
-        )
-        return total_loss
-
-    # Partially applying the NNu to the func to make it a static argument
-    func_with_NNu = partial(func, NNu)
-
-    return func_with_NNu

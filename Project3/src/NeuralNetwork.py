@@ -179,7 +179,7 @@ class NeuralNet:
     def fit(
         self,
         X_train: np.ndarray,
-        target_train: np.ndarray,
+        target_train: Optional[np.ndarray],
         scheduler: Scheduler,
         batches: int = 1,
         epochs: int = 100,
@@ -195,6 +195,7 @@ class NeuralNet:
                 A numpy array representing the training data.
             target_train : np.ndarray
                 A numpy array representing the target values for the training data.
+                optional for PINNs
             scheduler : Scheduler
                 A scheduler object used to update the weights of the neural network.
             batches : int, optional
