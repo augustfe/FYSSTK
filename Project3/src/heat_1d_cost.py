@@ -2,16 +2,16 @@ from jax import grad, jit, vmap
 from functools import partial
 import jax.numpy as jnp
 
+# potenital new line from feed_forward_functional import feed_forward as nnu
+
 
 def mse_loss(y_true, y_pred, weight=1.0):
     return weight * jnp.mean((y_true - y_pred) ** 2)
 
 
 def NNu_unpacked(NNu):
-
     def unpacked(t, x, theta):
         return NNu(jnp.stack([t, x], axis=-1), theta)
-
     return unpacked
 
 
@@ -32,7 +32,7 @@ def make_d2_dx2_d_dt(NNu):
     return d2_dx2_jitted, d_dt_jitted
 
 
-def loss_calculator(theta, d2_dx2, d_dt, batch, NNu, u0, x0, u_b, mu1, mu2, alpha):
+def loss_calculator(theta, batch, NNu, d2_dx2, d_dt, u0, x0, u_b, mu1, mu2, alpha):
     t_inner, x_inner, t_boundary, x_boundary = batch
 
     pde_loss_val = jnp.mean(
@@ -70,15 +70,15 @@ def loss_1d_heat(
     alpha: float = 1
 ) -> callable:
 
-    @partial(jit, static_argnums=(1, 2, 3))
-    def wrapped_loss_calculator(weights, NNu, d2_dx2, d_dt, batch):
-        return loss_calculator(weights, NNu, d2_dx2, d_dt, batch, u0, x0, u_b, mu1, mu2, alpha)
+    @partial(jit, static_argnums=(2, 3, 4))
+    def wrapped_loss_calculator(theta, batch, NNu, d2_dx2, d_dt):
+        return loss_calculator(theta, batch, NNu, d2_dx2, d_dt, u0, x0, u_b, mu1, mu2, alpha)
 
-    def func(weights, batch: jnp.ndarray, NNu):
+    def func(theta, batch: jnp.ndarray, NNu):
 
         NNu = NNu_unpacked(NNu)
         d2_dx2, d_dt = make_d2_dx2_d_dt(NNu)
 
-        return wrapped_loss_calculator(weights, NNu, d2_dx2, d_dt, batch)
+        return wrapped_loss_calculator(theta, batch, d2_dx2, d_dt, NNu)
 
     return func

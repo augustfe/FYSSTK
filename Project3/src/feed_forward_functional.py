@@ -30,7 +30,7 @@ def initalize_theta_random(dimensions):
 
 
 @jit
-def feed_forward(X, theta, hidden_func=sigmoid, output_func=sigmoid):
+def fully_connected2(X, theta, hidden_func=sigmoid, output_func=sigmoid):
     a = X
     for W in theta[:-1]:
         a = jnp.concatenate(
@@ -41,6 +41,23 @@ def feed_forward(X, theta, hidden_func=sigmoid, output_func=sigmoid):
     # Add bias term for output layer
     a = jnp.concatenate((jnp.ones((a.shape[0], 1)), a), axis=1)
     z = jnp.dot(a, theta[-1])
+    a = output_func(z)
+    return a
+
+
+@jit
+def fully_connected(X, theta, hidden_func=sigmoid, output_func=sigmoid):
+    a = X
+    for W in theta[:-1]:
+        weights, bias = W[1:], W[0]
+        bias = bias.reshape(1, -1)   # Reshape the bias to ensure broadcasting
+        # bias gets added and broadcasted across 'a'
+        z = jnp.dot(a, weights) + bias
+        a = hidden_func(z)
+
+    weights, bias = theta[-1][1:], theta[-1][0]
+    bias = bias.reshape(1, -1)   # Make sure to reshape the output bias as well
+    z = jnp.dot(a, weights) + bias
     a = output_func(z)
     return a
 
@@ -58,4 +75,5 @@ if __name__ == "__main__":
     X_batch = jnp.ones((1, dimensions[0]))
 
     # feed forward pass
-    outputs = feed_forward(X_batch, theta)
+    outputs = fully_connected(X_batch, theta)
+    print(outputs.shape)
