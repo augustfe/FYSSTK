@@ -15,50 +15,59 @@ def NNu_unpacked(NNu, theta):
     return unpacked
 
 
+"""
 def dNNu_dx_vectorized(NNu_up, t, x):
     # Take the gradient of NNu_up (unpacked) with respect to x at each value of t and x.
     # This vmap will apply the grad over the first axis of t and x
     dNNu_dx = jit(vmap(grad(NNu_up, 1), (0, None), 0))
     return dNNu_dx(t, x)
+"""
 
 
-def dNNu_dt_vectorized(NNu_up, t, x):
+def dNNu_dt_vectorized(NNu_up):
     # Take the gradient of NNu_up (unpacked) with respect to t at each value of t and x.
     # This vmap will apply the grad over the first axis of t and x
-    dNNu_dt = jit(vmap(grad(NNu_up, 0), (None, 0), 0))
-    return dNNu_dt(t, x)
+    dNNu_dt = jit(vmap(fun=grad(NNu_up, 0), in_axes=(0, 0), out_axes=0))
+    return dNNu_dt
 
 
-def make_d2_dx2_d_dt(NNu):
+def d2NNu_dx2_vectorized(NNu_up):
+    # First, we compute the gradient (first derivative) of NNu_up with respect to x,
+    # and then we compute the gradient of that first derivative function, again with respect to x
+    dNNu_dx = vmap(fun=grad(NNu_up, 1),  in_axes=(0, 0), out_axes=0)
+    # Here we rely on vmap to vectorize our computation of the second derivative across samples.
+    d2NNu_dx2 = jit(vmap(fun=grad(dNNu_dx, 1), in_axes=(0, 0), out_axes=0))
+    return d2NNu_dx2
 
-    # First derivatives
-    dNNu_dx = dNNu_dx_vectorized(NNu)
-    dNNu_dt = dNNu_dt_vectorized(NNu)
 
-    # Second derivative with respect to x
-    d2NNu_dx2 = 
+def make_d2_dx2_d_dt(NNu_up):
 
-    # Return the second derivative with respect to x and the first derivative with respect to t
+    # Calculate first derivative with respect to 't' vectorized over all inputs
+    dNNu_dt = dNNu_dt_vectorized(NNu_up)
+
+    # Calculate the second derivative with respect to 'x' vectorized over all inputs
+    d2NNu_dx2 = d2NNu_dx2_vectorized(NNu_up)
+
+    # Return the second derivative with respect to 'x' and the first derivative with respect to 't'
     return d2NNu_dx2, dNNu_dt
 
 
 def test_no_hidden_single_input():
     from feed_forward_functional import fully_connected as nnu
 
-    NNu = NNu_unpacked(nnu)
+    theta = [jnp.ones((3, 1))]  # colapse the two input args to one output
+    NNu = NNu_unpacked(nnu, theta)
 
     d2_dx2, d_dt = make_d2_dx2_d_dt(NNu)
-    theta = [jnp.ones((3, 1))]  # colapse the two input args to one output
 
     t = jnp.asarray([0.3])
     x = jnp.asarray([0.9])
     print("\nTesting with single input no hidden layers...")
-    nnu = NNu(t, x, theta)
+    nnu = NNu(t, x)
     print(nnu)
-    d_dt = d_dt(t, x, theta)
+    d_dt = d_dt(t, x)
     print(d_dt)
-    d2_dx2 = d2_dx2(t, x, theta)
-
+    d2_dx2 = d2_dx2(t, x)
     print("NNu:", nnu)
     print("d_dt:", d_dt)
     print("d2_dx2:", d2_dx2)
@@ -69,15 +78,15 @@ def test_no_hidden_single_input():
 def test_no_hidden_vec_input():
     from feed_forward_functional import fully_connected as nnu
 
-    NNu = NNu_unpacked(nnu)
-
     theta = [jnp.ones((3, 1))]
+    NNu = NNu_unpacked(nnu, theta)
+
     t = jnp.array([1.5, 2.5, 3.5])
     x = jnp.array([0.5, 1.5, 2.5])
-    d2_dx2, d_dt = make_d2_dx2_d_dt(NNu, theta)
+    d2_dx2, d_dt = make_d2_dx2_d_dt(NNu)
 
     print("\nTesting with matrix input no hidden layers...")
-    output = NNu(t, x, theta)
+    output = NNu(t, x)
     # since we have three inputs for t and x we want three differen derivative values
     print("NNu:", output)
     assert (output.size == 3)
@@ -88,8 +97,7 @@ def test_no_hidden_vec_input():
 
     partial_2x = d2_dx2(t, x)
     print("d2_dx2:", partial_2x)
-    quit()
-    assert (partial_2x.size == 3)  # again three inputs -> thre derivatives
+    assert (partial_2x.size == 3)  # again three inputs -> three derivatives
 
     print("All tests passed.")
 
