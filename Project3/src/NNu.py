@@ -1,6 +1,4 @@
 from jax import jit, grad, vmap
-from functools import partial
-from jax import grad, jit, vmap
 import jax.numpy as jnp
 import numpy as np
 
@@ -11,67 +9,34 @@ def unpack(f):
     return unpacked
 
 
-def NNu_unpacked(NNu):
-    def unpacked(t, x, theta):
-        # .item() extracts the scalar output
+def NNu_unpacked(NNu, theta):
+    def unpacked(t, x):
         return NNu(jnp.stack([t, x], axis=-1), theta).reshape(-1,)
     return unpacked
 
 
-def make_d2_dx2_d_dt_1(NNu, theta):
-    # Partially apply NNu with fixed theta
-    NNu_theta_fixed = partial(NNu, theta=theta)
-
-    # A single scalar output is needed for taking the gradient.
-    # Define the function that takes the sum to get a scalar.
-    def summed_NNu(t, x):
-        return jnp.sum(NNu_theta_fixed(t, x))
-
-    # Compute the gradients with respect to the scalar sum.
-    dNNu_dx_summed = jit(grad(summed_NNu, 1))
-    dNNu_dt_summed = jit(grad(summed_NNu, 0))
-
-    # Vectorize the gradient computations to apply them to each element.
-    dNNu_dx_vectorized = jit(vmap(dNNu_dx_summed, in_axes=(0, 0)))
-    dNNu_dt_vectorized = jit(vmap(dNNu_dt_summed, in_axes=(0, 0)))
-
-    # Compute the second derivative by taking the gradient of the first derivative.
-    # Again, the summed version is used to comply with the scalar-output requirement.
-
-    def summed_dNNu_dx(t, x):
-        return jnp.sum(dNNu_dx_vectorized(t, x))
-
-    d2NNu_dx2_vectorized = jit(vmap(grad(summed_dNNu_dx, 1), in_axes=(0, 0)))
-
-    return d2NNu_dx2_vectorized, dNNu_dt_vectorized
-
-
-def dNNu_dx_vectorized(NNu, t, x):
-    # Take the gradient of NNu with respect to x at each value of t and x.
+def dNNu_dx_vectorized(NNu_up, t, x):
+    # Take the gradient of NNu_up (unpacked) with respect to x at each value of t and x.
     # This vmap will apply the grad over the first axis of t and x
-    dNNu_dx = jit(vmap(grad(NNu, 1), (0, None), 0))
+    dNNu_dx = jit(vmap(grad(NNu_up, 1), (0, None), 0))
     return dNNu_dx(t, x)
 
 
-def dNNu_dt_vectorized(NNu, t, x):
-    # Take the gradient of NNu with respect to t at each value of t and x.
+def dNNu_dt_vectorized(NNu_up, t, x):
+    # Take the gradient of NNu_up (unpacked) with respect to t at each value of t and x.
     # This vmap will apply the grad over the first axis of t and x
-    dNNu_dt = jit(vmap(grad(NNu, 0), (None, 0), 0))
+    dNNu_dt = jit(vmap(grad(NNu_up, 0), (None, 0), 0))
     return dNNu_dt(t, x)
 
 
-def make_d2_dx2_d_dt(NNu, theta):
-    # Fixed function with respect to theta
-    def NNu_fixed(t, x):
-        return NNu(t, x, theta)
+def make_d2_dx2_d_dt(NNu):
 
     # First derivatives
-    dNNu_dx = dNNu_dx_vectorized(NNu_fixed)
-    dNNu_dt = dNNu_dt_vectorized(NNu_fixed)
+    dNNu_dx = dNNu_dx_vectorized(NNu)
+    dNNu_dt = dNNu_dt_vectorized(NNu)
 
     # Second derivative with respect to x
-    d2NNu_dx2 = jit(
-        vmap(grad(lambda t, x: dNNu_dx(t, x).sum(), 1), (0, None), 0))
+    d2NNu_dx2 = 
 
     # Return the second derivative with respect to x and the first derivative with respect to t
     return d2NNu_dx2, dNNu_dt
