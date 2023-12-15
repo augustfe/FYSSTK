@@ -3,11 +3,7 @@ from jax import jacobian, hessian, grad, jit, vmap
 import numpy as onp
 from matplotlib import cm
 from matplotlib import pyplot as plt
-from mpl_toolkits.mplot3d import axes3d
-from line_profiler import profile
 from utils import assign
-
-## Set up the network
 
 
 @jit
@@ -23,19 +19,18 @@ def deep_neural_network(deep_params, x):
 
     num_points = np.size(x, 1)
     # N_hidden is the number of hidden layers
-    N_hidden = (
-        len(deep_params) - 1
-    )  # -1 since params consist of parameters to all the hidden layers AND the output layer
+    # -1 since params consist of parameters to all the hidden layers AND the output layer
+    N_hidden = len(deep_params) - 1
 
     # Assume that the input layer does nothing to the input x
     x_input = x
     x_prev = x_input
 
-    ## Hidden layers:
+    # Hidden layers:
 
-    for l in range(N_hidden):
+    for layer in range(N_hidden):
         # From the list of parameters P; find the correct weigths and bias for this layer
-        w_hidden = deep_params[l]
+        w_hidden = deep_params[layer]
 
         # Add a row of ones to include bias
         x_prev = np.concatenate((np.ones((1, num_points)), x_prev), axis=0)
@@ -46,7 +41,7 @@ def deep_neural_network(deep_params, x):
         # Update x_prev such that next layer can use the output from this layer
         x_prev = x_hidden
 
-    ## Output layer:
+    # Output layer:
 
     # Get the weights and bias for this layer
     w_output = deep_params[-1]
@@ -60,7 +55,7 @@ def deep_neural_network(deep_params, x):
     return x_output[0][0]
 
 
-## Define the trial solution and cost function
+# Define the trial solution and cost function
 @jit
 def u(x):
     return np.sin(np.pi * x)
@@ -105,34 +100,33 @@ def cost_function(P, x, t):
     return cost_sum / (np.size(x) * np.size(t))
 
 
-## For comparison, define the analytical solution
+# For comparison, define the analytical solution
 @jit
 def g_analytic(point):
     x, t = point
     return np.exp(-np.pi**2 * t) * np.sin(np.pi * x)
 
 
-## Set up a function for training the network to solve for the equation
-@profile
+# Set up a function for training the network to solve for the equation
 def solve_pde_deep_neural_network(x, t, num_neurons, num_iter, lmb):
-    ## Set up initial weigths and biases
+    # Set up initial weigths and biases
     N_hidden = np.size(num_neurons)
 
-    ## Set up initial weigths and biases
+    # Set up initial weigths and biases
 
     # Initialize the list of parameters:
     P = [None] * (N_hidden + 1)  # + 1 to include the output layer
 
-    P[0] = onp.random.randn(
-        num_neurons[0], 2 + 1
-    )  # 2 since we have two points, +1 to include bias
-    for l in range(1, N_hidden):
-        P[l] = onp.random.randn(
-            num_neurons[l], num_neurons[l - 1] + 1
-        )  # +1 to include bias
+    # 2 since we have two points, +1 to include bias
+    P[0] = onp.random.randn(num_neurons[0], 2 + 1)
+
+    for layer in range(1, N_hidden):
+        # +1 to include bias
+        P[layer] = onp.random.randn(num_neurons[layer], num_neurons[layer - 1] + 1)
 
     # For the output layer
-    P[-1] = onp.random.randn(1, num_neurons[-1] + 1)  # +1 since bias is included
+    # +1 since bias is included
+    P[-1] = onp.random.randn(1, num_neurons[-1] + 1)
 
     print("Initial cost: ", cost_function(P, x, t))
 
@@ -142,53 +136,47 @@ def solve_pde_deep_neural_network(x, t, num_neurons, num_iter, lmb):
     for i in range(num_iter):
         cost_grad = cost_function_grad(P, x, t)
 
-        for l in range(N_hidden + 1):
-            P[l] = P[l] - lmb * cost_grad[l]
+        for layer in range(N_hidden + 1):
+            P[layer] = P[layer] - lmb * cost_grad[layer]
 
     print("Final cost: ", cost_function(P, x, t))
 
     return P
 
 
-@profile
 def main():
-    ### Use the neural network:
+    # Use the neural network:
     onp.random.seed(15)
 
-    ## Decide the vales of arguments to the function to solve
-    Nx = 10
-    Nt = 10
+    # Decide the vales of arguments to the function to solve
+    Nx = 20
+    Nt = 20
     x = np.linspace(0, 1, Nx)
     t = np.linspace(0, 1, Nt)
 
-    ## Set up the parameters for the network
+    # Set up the parameters for the network
     num_hidden_neurons = [100, 25]
-    num_iter = 250
+    num_iter = 2500
     lmb = 0.01
 
     P = solve_pde_deep_neural_network(x, t, num_hidden_neurons, num_iter, lmb)
 
-    ## Store the results
+    # Store the results
     g_dnn_ag = np.zeros((Nx, Nt))
     G_analytical = np.zeros((Nx, Nt))
     for i, x_ in enumerate(x):
         for j, t_ in enumerate(t):
             point = np.array([x_, t_])
             g_dnn_ag = assign(g_dnn_ag, (i, j), g_trial(point, P))
-            # g_dnn_ag[i, j] =
-            # g_dnn_ag[i, j] = g_trial(point, P)
             G_analytical = assign(G_analytical, (i, j), g_analytic(point))
-            # G_analytical[i, j] = g_analytic(point)
 
     # Find the map difference between the analytical and the computed solution
     diff_ag = np.abs(g_dnn_ag - G_analytical)
     print(
-        "Max absolute difference between the analytical solution and the network: %g"
-        % np.max(diff_ag)
+        f"Max absolute difference between the analytical solution and the network: {np.max(diff_ag):g}"
     )
 
-    ## Plot the solutions in two dimensions, that being in position and time
-
+    # Plot the solutions in two dimensions, that being in position and time
     T, X = np.meshgrid(t, x)
 
     fig = plt.figure(figsize=(10, 10))
@@ -196,27 +184,25 @@ def main():
     ax.set_title(
         f"Solution from the deep neural network w/ {len(num_hidden_neurons)} layer"
     )
-    s = ax.plot_surface(T, X, g_dnn_ag, linewidth=0, antialiased=False, cmap=cm.viridis)
+    ax.plot_surface(T, X, g_dnn_ag, linewidth=0, antialiased=False, cmap=cm.viridis)
     ax.set_xlabel("Time $t$")
     ax.set_ylabel("Position $x$")
 
     fig = plt.figure(figsize=(10, 10))
     ax = fig.add_subplot(projection="3d")
     ax.set_title("Analytical solution")
-    s = ax.plot_surface(
-        T, X, G_analytical, linewidth=0, antialiased=False, cmap=cm.viridis
-    )
+    ax.plot_surface(T, X, G_analytical, linewidth=0, antialiased=False, cmap=cm.viridis)
     ax.set_xlabel("Time $t$")
     ax.set_ylabel("Position $x$")
 
     fig = plt.figure(figsize=(10, 10))
     ax = fig.add_subplot(projection="3d")
     ax.set_title("Difference")
-    s = ax.plot_surface(T, X, diff_ag, linewidth=0, antialiased=False, cmap=cm.viridis)
+    ax.plot_surface(T, X, diff_ag, linewidth=0, antialiased=False, cmap=cm.viridis)
     ax.set_xlabel("Time $t$")
     ax.set_ylabel("Position $x$")
 
-    ## Take some slices of the 3D plots just to see the solutions at particular times
+    # Take some slices of the 3D plots just to see the solutions at particular times
     indx1 = 0
     indx2 = int(Nt / 2)
     indx3 = Nt - 1
@@ -237,24 +223,24 @@ def main():
 
     # Plot the slices
     plt.figure(figsize=(10, 10))
-    plt.title("Computed solutions at time = %g" % t1)
+    plt.title(f"Computed solutions at time = {t1:g}")
     plt.plot(x, res1)
     plt.plot(x, res_analytical1)
     plt.legend(["dnn", "analytical"])
 
     plt.figure(figsize=(10, 10))
-    plt.title("Computed solutions at time = %g" % t2)
+    plt.title(f"Computed solutions at time = {t2:g}")
     plt.plot(x, res2)
     plt.plot(x, res_analytical2)
     plt.legend(["dnn", "analytical"])
 
     plt.figure(figsize=(10, 10))
-    plt.title("Computed solutions at time = %g" % t3)
+    plt.title(f"Computed solutions at time = {t3:g}")
     plt.plot(x, res3)
     plt.plot(x, res_analytical3)
     plt.legend(["dnn", "analytical"])
 
-    plt.show()
+    # plt.show()
 
 
 if __name__ == "__main__":
