@@ -240,7 +240,7 @@ def main():
     plt.plot(x, res_analytical3)
     plt.legend(["dnn", "analytical"])
 
-    # plt.show()
+    plt.show()
 
 
 if __name__ == "__main__":
