@@ -122,10 +122,32 @@ class IterationMethod(FiniteDifferenceHeat):
 
 
 @jit
-def solve_iter(u_init: np.ndarray, lower: int, upper: int, r: float):
+def solve_iter(u_init: np.ndarray, lower: int, upper: int, r: float) -> np.ndarray:
+    """Iterate with the vectorized iterative method.
+
+    Broken into own function to allow for jit compilation, as jit normally
+    tries to unroll loops into just a list of instructions, the number of
+    iterations has to be known at compile time. This also causes extremely
+    long compilation times for long loops, however this can be alleviated
+    through jax.lax.fori_loop. This function takes in the iteration bounds,
+    as well as the body of the iteration loop, giving massive performance
+    benefits.
+
+    bodyfun must have the signature (int, T) -> T, where T is the type of
+    the value to be iterated over.
+
+    Args:
+        u_init (np.ndarray): Initial values to iterate from.
+        lower (int): Starting index of the iteration.
+        upper (int): End index of the iteration.
+        r (float): dt/dx^2, stability criterion.
+
+    Returns:
+        np.ndarray: value after (upper - lower) iterations.
+    """
     val = u_init
 
-    def bodyfun(i, val):
+    def bodyfun(i: int, val: np.ndarray) -> np.ndarray:
         val = step_iteration_method_vectorized(val, r)
         return val
 
@@ -134,10 +156,21 @@ def solve_iter(u_init: np.ndarray, lower: int, upper: int, r: float):
 
 
 @jit
-def solve_mat(u_init: np.ndarray, lower: int, upper: int, M):
+def solve_mat(u_init: np.ndarray, lower: int, upper: int, M: np.ndarray) -> np.ndarray:
+    """Iterate with the matrix method.
+
+    Args:
+        u_init (np.ndarray): Initial values to iterate from.
+        lower (int): Lower bound for iteration.
+        upper (int): Upper bound for iteration.
+        M (np.ndarray): Sparse scheme matrix for the iteration.
+
+    Returns:
+        np.ndarray: Values after (upper - lower) iterations.
+    """
     val = u_init
 
-    def bodyfun(i, val):
+    def bodyfun(i: int, val: np.ndarray) -> np.ndarray:
         val = step_matrix_method(M, val)
         return val
 

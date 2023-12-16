@@ -57,9 +57,10 @@ if __name__ == "__main__":
         u_nums = compare(dx, T)
         for u_num, t in u_nums:
             # plt.axes().set_aspect("equal")
+            # plt.ylim(-1, 1)
             plt.plot(x_arr, u_num, label="Numerical")
             analytic_sol = analytic(x_arr, t)
             plt.plot(x_arr, analytic_sol, label="Analytic")
             plt.title(rf"$\Delta x = {dx}$ at $t = {t}$")
             plt.legend()
-            # plt.show()
+            plt.show()
