@@ -4,15 +4,16 @@ import numpy as onp
 from matplotlib import cm
 from matplotlib import pyplot as plt
 from utils import assign
+from jax.tree_util import Partial
+from typing import Callable
 
 
-@jit
 def sigmoid(z):
     return 1 / (1 + np.exp(-z))
 
 
 @jit
-def deep_neural_network(deep_params, x):
+def deep_neural_network(deep_params, x, activation_func: Callable[[float], float]):
     # x is now a point and a 1D numpy array; make it a column vector
     num_coordinates = np.size(x, 0)
     x = x.reshape(num_coordinates, -1)
@@ -36,7 +37,7 @@ def deep_neural_network(deep_params, x):
         x_prev = np.concatenate((np.ones((1, num_points)), x_prev), axis=0)
 
         z_hidden = np.matmul(w_hidden, x_prev)
-        x_hidden = sigmoid(z_hidden)
+        x_hidden = activation_func(z_hidden)
 
         # Update x_prev such that next layer can use the output from this layer
         x_prev = x_hidden
@@ -62,9 +63,11 @@ def u(x):
 
 
 @jit
-def g_trial(point, P):
+def g_trial(point, P, activation_func: Callable[[float], float]):
     x, t = point
-    return (1 - t) * u(x) + x * (1 - x) * t * deep_neural_network(P, point)
+    return (1 - t) * u(x) + x * (1 - x) * t * deep_neural_network(
+        P, point, activation_func
+    )
 
 
 # The right side of the ODE:
@@ -74,13 +77,13 @@ def f(point):
 
 
 @jit
-def innercost(point, P):
+def innercost(point, P, activation_func: Callable[[float], float]):
     # The inner cost function, evaluating each point
     g_t_jacobian_func = jit(jacobian(g_trial))
     g_t_hessian_func = jit(hessian(g_trial))
 
-    g_t_jacobian = g_t_jacobian_func(point, P)
-    g_t_hessian = g_t_hessian_func(point, P)
+    g_t_jacobian = g_t_jacobian_func(point, P, activation_func)
+    g_t_hessian = g_t_hessian_func(point, P, activation_func)
 
     g_t_dt = g_t_jacobian[1]
     g_t_d2x = g_t_hessian[0][0]
@@ -93,10 +96,10 @@ def innercost(point, P):
 
 # The cost function:
 @jit
-def cost_function(P, x, t):
+def cost_function(P, x, t, activation_func: Callable[[float], float]):
     total_points = np.array([[x_, t_] for x_ in x for t_ in t])
-    vec_cost = vmap(innercost, (0, None), 0)
-    cost_sum = np.sum(vec_cost(total_points, P))
+    vec_cost = vmap(innercost, (0, None, None), 0)
+    cost_sum = np.sum(vec_cost(total_points, P, activation_func))
     return cost_sum / (np.size(x) * np.size(t))
 
 
@@ -108,7 +111,7 @@ def g_analytic(point):
 
 
 # Set up a function for training the network to solve for the equation
-def solve_pde_deep_neural_network(x, t, num_neurons, num_iter, lmb):
+def solve_pde_deep_neural_network(x, t, num_neurons, num_iter, lmb, activation_func):
     # Set up initial weigths and biases
     N_hidden = np.size(num_neurons)
 
@@ -127,24 +130,45 @@ def solve_pde_deep_neural_network(x, t, num_neurons, num_iter, lmb):
     # For the output layer
     # +1 since bias is included
     P[-1] = onp.random.randn(1, num_neurons[-1] + 1)
+    # activation_func = Partial(activation_func)
 
-    print("Initial cost: ", cost_function(P, x, t))
+    print("Initial cost: ", cost_function(P, x, t, activation_func))
 
     cost_function_grad = jit(grad(cost_function, 0))
 
-    # Let the update be done num_iter times
+    # @jit
+    # def cost_function_grad_wrapper(i, P):
+    #     cost_grad = cost_function_grad(P, x, t, activation_func)
+
+    #     # P, _ = lax.fori_loop(0, N_hidden + 1, adjust_weights, (P, cost_grad))
+
+    #     for layer in range(N_hidden + 1):
+    #         P[layer] = P[layer] - lmb * cost_grad[layer]
+    #     return P
+
+    # # Let the update be done num_iter times
+    # @jit
+    # def jit_loop(lower, upper, P):
+    #     P = lax.fori_loop(lower, upper, cost_function_grad_wrapper, P)
+    #     return P
+
+    # P = jit_loop(0, 1, P)
+    # print(len(P), num_iter)
+    # P = jit_loop(1, num_iter, P)
+    # P = lax.fori_loop(0, num_iter, cost_function_grad_wrapper, P)
+
     for i in range(num_iter):
-        cost_grad = cost_function_grad(P, x, t)
+        cost_grad = cost_function_grad(P, x, t, activation_func)
 
         for layer in range(N_hidden + 1):
             P[layer] = P[layer] - lmb * cost_grad[layer]
 
-    print("Final cost: ", cost_function(P, x, t))
+    print("Final cost: ", cost_function(P, x, t, activation_func))
 
     return P
 
 
-def main():
+def main(activation_func):
     # Use the neural network:
     onp.random.seed(15)
 
@@ -159,15 +183,21 @@ def main():
     num_iter = 2500
     lmb = 0.01
 
-    P = solve_pde_deep_neural_network(x, t, num_hidden_neurons, num_iter, lmb)
+    activation_func = Partial(activation_func)
+
+    P = solve_pde_deep_neural_network(
+        x, t, num_hidden_neurons, num_iter, lmb, activation_func
+    )
 
     # Store the results
-    g_dnn_ag = np.zeros((Nx, Nt))
-    G_analytical = np.zeros((Nx, Nt))
+    x = np.linspace(0, 1, 100)
+    t = np.linspace(0, 1, 100)
+    g_dnn_ag = np.zeros((100, 100))
+    G_analytical = np.zeros((100, 100))
     for i, x_ in enumerate(x):
         for j, t_ in enumerate(t):
             point = np.array([x_, t_])
-            g_dnn_ag = assign(g_dnn_ag, (i, j), g_trial(point, P))
+            g_dnn_ag = assign(g_dnn_ag, (i, j), g_trial(point, P, activation_func))
             G_analytical = assign(G_analytical, (i, j), g_analytic(point))
 
     # Find the map difference between the analytical and the computed solution
@@ -244,4 +274,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main(sigmoid)
