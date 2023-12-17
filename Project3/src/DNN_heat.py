@@ -324,4 +324,4 @@ if __name__ == "__main__":
     # for func, lmb in zip(functions, lmbs):
     #     main(func, [100, 25], lmb=lmb, save=True)
 
-    main(swish, [50, 50, 50, 50], lmb=0.0000001, save=True)
+    # main(swish, [50, 50, 50, 50], lmb=0.0000001, save=True)
