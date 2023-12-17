@@ -1,17 +1,14 @@
+from typing import Any
 import jax.numpy as np
 from jax import jacobian, hessian, grad, jit, vmap
 import numpy as onp
 from utils import assign
 import Activators
-
-
-def activation_func(act_fun):
-    # Rewriting activation functions
-    return act_fun
+from typing import Callable
 
 
 @jit
-def deep_neural_network(deep_params, x):
+def deep_neural_network(deep_params, x, activation_func: Callable[[float], float]):
     # x is now a point and a 1D numpy array; make it a column vector
     num_coordinates = np.size(x, 0)
     x = x.reshape(num_coordinates, -1)
@@ -62,9 +59,9 @@ def u(x):
 
 
 @jit
-def g_trial(point, P):
+def g_trial(point, P, activation_func: Callable[[float], float]):
     x, t = point
-    return (1 - t) * u(x) + x * (1 - x) * t * deep_neural_network(P, point)
+    return (1 - t) * u(x) + x * (1 - x) * t * deep_neural_network(P, point, activation_func)
 
 
 # The right side of the ODE:
@@ -74,13 +71,13 @@ def f(point):
 
 
 @jit
-def innercost(point, P):
+def innercost(point, P, activation_func: Callable[[float], float]):
     # The inner cost function, evaluating each point
     g_t_jacobian_func = jit(jacobian(g_trial))
     g_t_hessian_func = jit(hessian(g_trial))
 
-    g_t_jacobian = g_t_jacobian_func(point, P)
-    g_t_hessian = g_t_hessian_func(point, P)
+    g_t_jacobian = g_t_jacobian_func(point, P, activation_func)
+    g_t_hessian = g_t_hessian_func(point, P, activation_func)
 
     g_t_dt = g_t_jacobian[1]
     g_t_d2x = g_t_hessian[0][0]
@@ -93,10 +90,10 @@ def innercost(point, P):
 
 # The cost function:
 @jit
-def cost_function(P, x, t):
+def cost_function(P, x, t, activation_func: Callable[[float], float]):
     total_points = np.array([[x_, t_] for x_ in x for t_ in t])
-    vec_cost = vmap(innercost, (0, None), 0)
-    cost_sum = np.sum(vec_cost(total_points, P))
+    vec_cost = vmap(innercost, (0, None, None), 0)
+    cost_sum = np.sum(vec_cost(total_points, P, activation_func))
     return cost_sum / (np.size(x) * np.size(t))
 
 

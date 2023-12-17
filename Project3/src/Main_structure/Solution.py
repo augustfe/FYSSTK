@@ -2,9 +2,10 @@ import jax.numpy as np
 from jax import jacobian, hessian, grad, jit, vmap
 import numpy as onp
 from utils import assign
-from pure_functions import deep_neural_network, u, g_trial, g_analytic, f, innercost, cost_function, activation_func
+from pure_functions import deep_neural_network, u, g_trial, g_analytic, f, innercost, cost_function
 import Activators
 import FiniteDiffMain as FD
+from jax.tree_util import Partial
 
 
 class Solution:
@@ -32,10 +33,9 @@ class Solution:
 
         self.num_hidden_neurons = num_hidden_neurons
         self.lmb = lmb
+        self.activation_function = act_fun
 
         # Rewrites activation function in pure_function.py to be able to use different ones
-        activation_func(act_fun)
-
         N_hidden = np.size(self.num_hidden_neurons)
 
         P = [None] * (N_hidden + 1)
@@ -52,12 +52,12 @@ class Solution:
 
         for i in range(self.num_iter):
             cost_grad = cost_function_grad(
-                P, self.x, self.t)
+                P, self.x, self.t, act_fun)
 
             for layer in range(N_hidden + 1):
                 P[layer] = P[layer] - self.lmb * cost_grad[layer]
 
-        self.final_cost = cost_function(P, self.x, self.t)
+        self.final_cost = cost_function(P, self.x, self.t, act_fun)
 
         self.P = P
 
@@ -76,15 +76,12 @@ class Solution:
         self.g_dnn_ag = np.zeros((self.Nx, self.Nt))
         self.G_analytical = np.zeros((self.Nx, self.Nt))
 
-        print(self.x)
-        print(self.t)
-
         for i, x_ in enumerate(self.x):
             for j, t_ in enumerate(self.t):
 
                 point = np.array([x_, t_])
                 self.g_dnn_ag = assign(
-                    self.g_dnn_ag, (i, j), g_trial(point, self.P))
+                    self.g_dnn_ag, (i, j), g_trial(point, self.P, self.activation_function))
                 self.G_analytical = assign(
                     self.G_analytical, (i, j), g_analytic(point))
 
@@ -100,5 +97,6 @@ class Solution:
 if __name__ == "__main__":
 
     sol = Solution(20, 20, (0, 1), 1, 2500)
-    sol.solve_pde_deep_neural_network([100, 25], 0.01, Activators.sigmoid)
+    sol.solve_pde_deep_neural_network(
+        [100, 25], 0.01, Partial(Activators.sigmoid))
     sol.stability()
