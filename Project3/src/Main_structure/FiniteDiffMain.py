@@ -60,7 +60,9 @@ if __name__ == "__main__":
             # plt.ylim(-1, 1)
             plt.plot(x_arr, u_num, label="Numerical")
             analytic_sol = analytic(x_arr, t)
+            # print(np.mean(u_num - analytic_sol) ** 2)
             plt.plot(x_arr, analytic_sol, label="Analytic")
-            plt.title(rf"$\Delta x = {dx}$ at $t = {t}$")
+            plt.title(rf"$\Delta x = {dx}$ at $t = {t:.1f}$")
+
             plt.legend()
             plt.show()

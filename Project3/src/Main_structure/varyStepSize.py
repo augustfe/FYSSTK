@@ -130,6 +130,7 @@ if __name__ == "__main__":
     )
     """
     from plotutils import plot_error_heat_dx
+
     # how to plot error vs dx
     errors, dX = error_varying_dx(2, T, n_samples)
     plot_error_heat_dx(
@@ -138,5 +139,5 @@ if __name__ == "__main__":
         savePlots=False,
         showPlots=True,
         figsPath=None,
-        saveName='heat_eq_error_vs_dx'
+        saveName="heat_eq_error_vs_dx",
     )
