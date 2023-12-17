@@ -26,7 +26,9 @@ class Solution:
         self.activation_function = None
         self.P = None
 
-    def solve_pde_deep_neural_network(self, num_hidden_neurons, lmb, act_fun):
+    def solve_pde_deep_neural_network(self, num_hidden_neurons, lmb, act_fun, seed=15):
+
+        # onp.random.seed(seed)
 
         self.num_hidden_neurons = num_hidden_neurons
         self.lmb = lmb
@@ -71,14 +73,14 @@ class Solution:
         such that it can be plottet with number of hidden nodes etc
         """
 
-        """
-        onp.random.seed(seed)
-
         self.g_dnn_ag = np.zeros((self.Nx, self.Nt))
         self.G_analytical = np.zeros((self.Nx, self.Nt))
 
+        print(self.x)
+        print(self.t)
+
         for i, x_ in enumerate(self.x):
-            for j, t_ in enumerate(self.x):
+            for j, t_ in enumerate(self.t):
 
                 point = np.array([x_, t_])
                 self.g_dnn_ag = assign(
@@ -93,11 +95,10 @@ class Solution:
         print(
             f"Max absolute difference between the analytical solution and the network: {np.max(self.diff_ag):g}"
         )
-        """
 
 
 if __name__ == "__main__":
 
     sol = Solution(20, 20, (0, 1), 1, 2500)
-    sol.solve_pde_deep_neural_network([100, 25], 0.01, Activators.softmax)
-    print(len(sol.P))
+    sol.solve_pde_deep_neural_network([100, 25], 0.01, Activators.sigmoid)
+    sol.stability()
