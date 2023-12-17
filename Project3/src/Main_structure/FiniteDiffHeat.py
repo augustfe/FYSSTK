@@ -1,7 +1,8 @@
 # import numpy as np
 from jax import jit, lax
 import jax.numpy as np
-from utils import assign
+
+# from utils import assign
 from jax.experimental import sparse
 
 
@@ -41,13 +42,13 @@ def step_iteration_method_vectorized(u_old: np.ndarray, r: float) -> np.ndarray:
     """
     u_new = np.zeros_like(u_old)
 
-    u_top = (1 - 2 * r) * u_old[0] + r * u_old[1]
+    # u_top = (1 - 2 * r) * u_old[0] + r * u_old[1]
     u_mid = r * u_old[:-2] + (1 - 2 * r) * u_old[1:-1] + r * u_old[2:]
-    u_bot = r * u_old[-2] + (1 - 2 * r) * u_old[-1]
+    # u_bot = r * u_old[-2] + (1 - 2 * r) * u_old[-1]
 
     u_new = assign_middle(u_new, u_mid)
-    u_new = assign(u_new, 0, u_top)
-    u_new = assign(u_new, -1, u_bot)
+    # u_new = assign(u_new, 0, u_top)
+    # u_new = assign(u_new, -1, u_bot)
 
     return u_new
 
@@ -57,7 +58,9 @@ class FiniteDifferenceHeat:
     Base class for finite difference method solutions to the heat equation.
     """
 
-    def __init__(self, dx: float, dt: float, T: int, L: int = 1) -> None:
+    def __init__(
+        self, dx: float, dt: float, nSavePoints: int, T: int, L: int = 1
+    ) -> None:
         # TODO: Add functionality for changing midpoint.
         if dt > 0.5 * dx**2:
             raise ValueError(
@@ -68,18 +71,10 @@ class FiniteDifferenceHeat:
         self.r = self.dt / self.dx**2
         self.nx = int(L // dx + 1)
         self.nt = int(T // dt + 1)
+        self.savePoints = np.linspace(0, self.nt, num=nSavePoints).astype(int)
         self.x = np.linspace(0, L, self.nx)
         self.t = np.linspace(0, T, self.nt)
         self.u0 = np.sin(np.pi * self.x)
-
-    def reset_initial_conditions(self) -> None:
-        """
-        Reset the initial temperature distribution as the first row of the solution grid.
-        """
-        # TODO: Remove and consider consequences.
-        # self.u = np.zeros((self.nt, self.nx))
-        # self.u = assign(self.u, 0, self.u0)
-        # self.u[0] = self.u0
 
 
 class MatrixMethod(FiniteDifferenceHeat):
@@ -87,19 +82,27 @@ class MatrixMethod(FiniteDifferenceHeat):
     Class that implements the matrix method for solving the heat equation using finite difference.
     """
 
-    def solve(self) -> np.ndarray:
+    def solve(self) -> tuple[list[np.ndarray], np.ndarray]:
         """
         Solve the heat equation using the matrix method.
         """
-        self.reset_initial_conditions()
+
         M = create_tridiagonal_matrix(self.nx, self.r)
         print(f"Will compute {self.nt} time steps for {self.nx} spatial steps")
-        mid = self.nt // 2
 
-        u_mid = solve_mat(self.u0, 0, mid, M)
-        u_new = solve_mat(u_mid, mid, self.nt, M)
+        u_result = [self.u0]
+        t_result = [0.0]
+        u_previous = self.u0
+        t_previous = 0
 
-        return (self.u0, 0.0), (u_mid, mid * self.dt), (u_new, (self.nt - 1) * self.dt)
+        for savePoint in self.savePoints[1:]:
+            u_new = solve_mat(u_previous, t_previous, savePoint, M)
+            u_result.append(u_new)
+            t_result.append(savePoint * self.dt)
+            u_previous = u_new
+            t_previous = savePoint
+
+        return u_result, np.array(t_result)
 
 
 class IterationMethod(FiniteDifferenceHeat):
@@ -107,18 +110,26 @@ class IterationMethod(FiniteDifferenceHeat):
     Class that implements the iterative method for solving the heat equation using finite difference.
     """
 
-    def solve(self) -> tuple[tuple[np.ndarray, int]]:
+    def solve(self) -> tuple[list[np.ndarray], np.ndarray]:
         """
         Solve the heat equation using an iterative method.
         """
-        self.reset_initial_conditions()
+
         print(f"Will compute {self.nt} time steps for {self.nx} spatial steps")
-        mid = self.nt // 2
 
-        u_mid = solve_iter(self.u0, 0, mid, self.r)
-        u_new = solve_iter(u_mid, mid, self.nt, self.r)
+        u_result = [self.u0]
+        t_result = [0.0]
+        u_previous = self.u0
+        t_previous = 0
 
-        return (self.u0, 0.0), (u_mid, mid * self.dt), (u_new, (self.nt - 1) * self.dt)
+        for savePoint in self.savePoints[1:]:
+            u_new = solve_iter(u_previous, t_previous, savePoint, self.r)
+            u_result.append(u_new)
+            t_result.append(savePoint * self.dt)
+            u_previous = u_new
+            t_previous = savePoint
+
+        return np.array(u_result), np.array(t_result)
 
 
 @jit
