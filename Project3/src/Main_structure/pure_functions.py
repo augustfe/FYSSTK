@@ -1,9 +1,5 @@
-from typing import Any
 import jax.numpy as np
-from jax import jacobian, hessian, grad, jit, vmap
-import numpy as onp
-from utils import assign
-import Activators
+from jax import jacobian, hessian, jit, vmap
 from typing import Callable
 
 
@@ -50,6 +46,7 @@ def deep_neural_network(deep_params, x, activation_func: Callable[[float], float
 
     return x_output[0][0]
 
+
 # Define the trial solution and cost function
 
 
@@ -61,7 +58,9 @@ def u(x):
 @jit
 def g_trial(point, P, activation_func: Callable[[float], float]):
     x, t = point
-    return (1 - t) * u(x) + x * (1 - x) * t * deep_neural_network(P, point, activation_func)
+    return (1 - t) * u(x) + x * (1 - x) * t * deep_neural_network(
+        P, point, activation_func
+    )
 
 
 # The right side of the ODE:

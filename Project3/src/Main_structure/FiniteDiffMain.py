@@ -30,6 +30,11 @@ def analytic(x: np.ndarray, t: float):
 
 
 if __name__ == "__main__":
+    import matplotlib as mpl
+
+    mpl.rcParams["mathtext.fontset"] = "stix"
+    mpl.rcParams["font.family"] = "STIXGeneral"
+    mpl.rcParams["figure.titlesize"] = 15
     figures_dir = Path(__file__).parent.parent.parent / "figures/1dHeat"
     figures_dir.mkdir(exist_ok=True, parents=True)
 
@@ -68,4 +73,4 @@ if __name__ == "__main__":
 
         plt.savefig(f"{figures_dir}/{dx=}.pdf", bbox_inches="tight")
 
-        # plt.show()
+        plt.show()
