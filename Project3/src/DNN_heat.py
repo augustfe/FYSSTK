@@ -7,6 +7,12 @@ from jax.tree_util import Partial
 from typing import Callable
 from tqdm import tqdm
 from pathlib import Path
+import matplotlib as mpl
+
+# Set up for LaTeX rendering
+mpl.rcParams["mathtext.fontset"] = "stix"
+mpl.rcParams["font.family"] = "STIXGeneral"
+mpl.rcParams["figure.titlesize"] = 15
 
 
 @jit
@@ -198,13 +204,13 @@ def main(
     savePath.mkdir(parents=True, exist_ok=True)
 
     # Decide the vales of arguments to the function to solve
-    Nx = 20
-    Nt = 20
+    Nx = 30
+    Nt = 30
     x = np.linspace(0, 1, Nx)
     t = np.linspace(0, 1, Nt)
 
     # Set up the parameters for the network
-    num_iter = 2500
+    num_iter = 20000
     # lmb = 0.01
 
     par_func = Partial(activation_func)
@@ -237,7 +243,7 @@ def main(
     plot_surface(T, X, g_dnn_ag, title, save, savePath, f"{saveBase}_dnn")
 
     title = f"{func_name}: Analytical solution"
-    plot_surface(T, X, G_analytical, title, save, savePath, f"{saveBase}_analytical")
+    plot_surface(T, X, G_analytical, title, save, savePath, "Analytical")
 
     title = f"{func_name}: Difference"
     plot_surface(T, X, diff_ag, title, save, savePath, f"{saveBase}_diff")
@@ -272,14 +278,14 @@ def plot_at_timestep(
     savePath: Path = None,
     saveName: str = None,
 ) -> None:
-    plt.figure(figsize=(10, 10))
+    plt.figure(figsize=plt.figaspect(0.5))
     plt.title(f"{func_name}: Computed solutions at time = {t:g}")
     plt.plot(x, res_dnn, label="Deep neural network")
     plt.plot(x, res_analytic, label="Analytical")
     plt.xlabel("Position $x$")
     plt.legend()
     if save:
-        plt.savefig(savePath / f"{saveName}_timestep_{t}.pdf")
+        plt.savefig(savePath / f"{saveName}_timestep_{t}.pdf", bbox_inches="tight")
     plt.close()
 
 
@@ -292,22 +298,30 @@ def plot_surface(
     savePath: Path = None,
     saveName: str = None,
 ) -> None:
-    fig = plt.figure(figsize=(10, 10))
+    fig = plt.figure(figsize=plt.figaspect(0.5))
     ax = fig.add_subplot(projection="3d")
     ax.set_title(title)
     ax.plot_surface(T, X, Z, linewidth=0, antialiased=False, cmap=cm.viridis)
     ax.set_xlabel("Time $t$")
     ax.set_ylabel("Position $x$")
     if save:
-        plt.savefig(savePath / f"{saveName}.pdf")
+        plt.savefig(savePath / f"{saveName}.pdf", bbox_inches="tight")
     plt.close()
 
 
 if __name__ == "__main__":
-    from jax.nn import relu, sigmoid, tanh, leaky_relu
+    from jax.nn import relu, sigmoid, tanh, leaky_relu, swish, elu
 
-    functions = [relu, sigmoid, tanh, leaky_relu]
-    lmbs = [0.0001, 0.01, 0.01, 0.0001]
-    for func, lmb in zip(functions, lmbs):
-        main(func, [100, 25], lmb=lmb, save=True)
-    # main(leaky_relu, [100, 25], lmb=0.0001, save=True)
+    relu.__name__ = "ReLU"
+    sigmoid.__name__ = "Sigmoid"
+    tanh.__name__ = "Tanh"
+    leaky_relu.__name__ = "Leaky_ReLU"
+    swish.__name__ = "Swish"
+    elu.__name__ = "ELU"
+
+    functions = [relu, sigmoid, tanh, leaky_relu, swish, elu]
+    lmbs = [0.0001, 0.01, 0.01, 0.0001, 0.001, 0.0001]
+    # for func, lmb in zip(functions, lmbs):
+    #     main(func, [100, 25], lmb=lmb, save=True)
+
+    main(swish, [50, 50, 50, 50], lmb=0.0000001, save=True)
