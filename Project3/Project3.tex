@@ -655,15 +655,12 @@ For a given set of values $\left\{ (x_i, t_i) \right\}_{i=0}^{N}$, our cost func
 \begin{equation*}
     C(\boldsymbol{x}, \boldsymbol{t}, \theta) = \frac{1}{N + 1} \sum_{i=0}^N \left( \frac{\partial g}{\partial t}(x_i, t_i) - \frac{\partial^2 g}{\partial x^2}(x_i, t_i) \right)^2.
 \end{equation*}
+We then adjust our weights by $\theta_\text{new} = \theta - \lambda \nabla_\theta C(\boldsymbol{x}, \boldsymbol{t}, \theta)$, for a chosen learning rate $\lambda$, by taking the gradient with respect to $\theta$. Calculating the gradient relative to the weights of the given expression is difficult as it implicates the entire network and not solely the output layer. However, the needed derivatives can be determined utilizing automatic differentiation, a method which we have elaborated on in the previous project.
 
-Calculating the gradient relative to the weights of the given expression is difficult as it implicates the entire network and not solely the output layer. This means we cant use back propagation. However, the needed derivatives can be determined utilizing automatic differentiation, a method which we have elaborated on in the previous project.
+As compared to the regression explored in the previous project, this method requires no labeled data points, rather relying on the underlying boundary conditions to learn how best to fit them.
 
-This setup requires no data for interior of the domain, it simply requires sampling pairs $(x_i, t_i)$
-
-%We then adjust our weights by $\theta_\text{new} = \theta - \lambda \nabla_\theta C(\boldsymbol{x}, \boldsymbol{t}, \theta)$, for a chosen learning rate $\lambda$, by taking the gradient with respect to $\theta$. As our expression now involves the entire neural network rather than just the output layer back propagation is no longer an option. Luckily, the derivatives can still be found through automatic differentiation, as discussed in greater detail in the previous project. It is then important to choose values $(x_i, t_i)$ such that we test for our given conditions.
-
-\subsubsection{Activation functions and Universal Approximation theorem}
-The activation functions serve as a way to introduce non-linearity into neural networks. Without them, the network becomes a linear operator, greatly reducing its ability to learn.  Which  activation function you chose is also important for model convergence and performance.
+\subsubsection{Activation functions and the Universal Approximation Theorem}
+The activation functions serve as a way to introduce non-linearity into neural networks, deciding whether to \textit{activate} the signal further throughout the network. Without them, the network itself becomes a linear operator, greatly reducing its ability to learn. Which  activation function you chose is also important for model convergence and performance.
 
 The Universal Approximation theorem states that any continuous function on a compact subset of $\mathbb{R}^{n}$ can be approximated arbitrarily well by a shallow neural network of arbitrary width. This was first proved for sigmoidal activation functions in  \textcite{universalapprox} and further extended to hold for activation functions if and only if they where non-polynomial by \textcite{pinkus_1999}. 
 
@@ -696,15 +693,15 @@ Another class of activation functions are based on the Rectified linear unit (Re
 \begin{equation*}
     \operatorname{ReLU}(x) = \max\{ 0, x \}.
 \end{equation*}
-It has the advantage of being extremely cheap to compute, while still introducing non-linearity into the network. However, it can suffer from an effect where nodes effectively turn off, outputting constant zero. To combat this, there are several variations, one of which is the Leaky ReLU (LReLU), where the negative values are reduced but not removed. It is given by $\operatorname{LReLU}(x) = \max\{ \gamma x, x\}$, for some small $\gamma > 0$.
+It has the advantage of being extremely cheap to compute, while still introducing non-linearity into the network. However, it can suffer from an effect where nodes effectively turn off, outputting constant zero. To combat this, there are several variations, one of which is the Leaky ReLU (LReLU), where the negative values are reduced but not removed. It is given by $\operatorname{LReLU}(x) = \max\{ \gamma x, x\}$, for some small $\gamma > 0$, as seen in \autoref{fig:relu}.
 
 \begin{figure}[H]%
     \centering
     \subfloat[\centering $\operatorname{ReLU}(x)$]{{\includegraphics[width=5.5cm]{Project3/figures/activators/relu.pdf} }}%
     \qquad
-    \subfloat[\centering $\operatorname{LReLU}(x)$, with $\gamma = 0.01$]{{\includegraphics[width=5.5cm]{Project3/figures/activators/leaky_relu.pdf} }}%
-    \caption{Sigmoid and $\tanh$ activation functions.}%
-    \label{fig:sigmoidtanh}%
+    \subfloat[\centering $\operatorname{LReLU}(x)$, with $\gamma = 0.1$]{{\includegraphics[width=5.5cm]{Project3/figures/activators/leaky_relu.pdf} }}%
+    \caption{ReLU and LReLU activation functions.}%
+    \label{fig:relu}%
 \end{figure}
 
 The final two activation functions, relevant for this project, are the Exponential linear unit (ELU) and Swish (or SiLU) functions. They are defined respectively as
@@ -715,8 +712,25 @@ The final two activation functions, relevant for this project, are the Exponenti
         \gamma (e^x - 1) & x \leq 0
     \end{cases}
     &\textnormal{and}&&
-    \operatorname{Swish}(x) &= x \sigma(x).
+    \operatorname{Swish}(x) &= x \sigma(x),
 \end{align*}
+seen in \autoref{fig:swish}. A comparison of all the activation functions is seen in \autoref{fig:activation}.
+
+\begin{figure}[H]%
+    \centering
+    \subfloat[\centering $\operatorname{Swish}(x)$]{{\includegraphics[width=5.5cm]{Project3/figures/activators/silu.pdf} }}%
+    \qquad
+    \subfloat[\centering $\operatorname{ELU}(x)$]{{\includegraphics[width=5.5cm]{Project3/figures/activators/elu.pdf} }}%
+    \caption{Swish and ELU activation functions.}%
+    \label{fig:swish}%
+\end{figure}
+
+\begin{figure}[H]%
+    \centering
+    \includegraphics[width=8cm]{Project3/figures/activators/activators.pdf}%
+    \caption{All activation functions applied.}%
+    \label{fig:activation}%
+\end{figure}
 
 \newpage
 \section{Method}
@@ -743,7 +757,7 @@ We utilized \verb|jax.grad|, \verb|jax.jacobian| and \verb|jax.hessian| in order
 
 With this, we are able to find all the derivatives necessary for our cost function and back propagation. Through vectorization, and the techniques mentioned previously, we were able to again achieve good performance. As this project was a lot more focused on one problem, we choose a more functional approach for our implementations, as \verb|JAX| works poorly with classes.
 
-A major advantage of this approach, is that we are not restricted by the previous stability criterion, meaning we aren't forced to choose as many points. For this project we chose 20x20 points evenly sampled on the domain $[0,T]$x$[0, L]$
+A major advantage of this approach, is that we are not restricted by the previous stability criterion, meaning we aren't forced to choose as many points. For this project we chose $30 \times 30$ points evenly sampled on the domain $[0,1]$x$[0, 1]$. For the sake of consistency, all of the networks, with one exception, were run over 2500 iterations.
 
 
 
@@ -760,81 +774,165 @@ A major advantage of this approach, is that we are not restricted by the previou
 
 \subsection{The Analytical Solution}
 As a reference for the results here is the analytical solution of the one-dimensional Heat equation, given by
-\[
-u(t,x) = e^{-\pi^2 t}sin(\pi x)
-\]
+\begin{equation*}
+    u(t,x) = e^{-\pi^2 t} \sin(\pi x)
+\end{equation*}
 
 \begin{figure}[H]%
     \centering
-    \includegraphics[width=10cm]{Project3/figures/1dHeat/Analytical_sol.pdf}
+    \includegraphics[width=8cm]{Project3/figures/1dHeat/Analytical_sol.pdf}
     \caption{Analytical solution of the one-dimensional Heat equation }
     \label{fig:Analytic}
 \end{figure}
 
-For this rapport we found two types of plots to be most descriptive. The first are 3D plots of the difference between the analytical and the numerical solution and the second are 2D slices of both solutions. 
+For this report we found two types of plots to be most descriptive. The first are 3D plots of the difference between the analytical and the numerical solution and the second are 2D slices of both solutions. 
 
 \subsection{Forward Euler}
-For forward Euler we found that the analytical solution was greater than the numerical one.  The 3D plots bellow are thus simply $u_{\text{analytical}} - u_{\text{numerical}}$
+
 \begin{figure}[H]%
     \centering
-    \includegraphics[width=10cm]{Project3/figures/1dHeat/dx=0.1.pdf}
+    \includegraphics[width=8cm]{Project3/figures/1dHeat/dx=0.1.pdf}
     \caption{Difference between the analytical and Forward Euler solution $\Delta x = \frac{1}{10}$, $\Delta t = \frac{\Delta x^2}{2} = \frac{1}{200} $}
     \label{fig:ForwardEulerdx=0.1}
 \end{figure}
 
-
+As anticipated by \autoref{fig:ForwardEulerdx=0.1-t0}, the numerical and analytical solutions initially appear very similar, with the only real difference being the resolution. This is limited in the case of the forward Euler solution by $dx = \frac{1}{10}$. This is also seen in the 3D plot as it appears as if beginning of the surface is missing in \autoref{fig:ForwardEulerdx=0.1} when comparing it to \autoref{fig:Analytic}
 \begin{figure}[H]%
     \centering
-    \includegraphics[width=10cm]{Project3/figures/1dHeat/dx=0.1.pdf}
-    \caption{Difference between the analytical and Forward Euler solution $\Delta x = \frac{1}{10}$, $\Delta t = \frac{\Delta x^2}{2} = \frac{1}{200} $}
-    \label{fig:ForwardEulerdx=0.1}
+    \includegraphics[width=8cm]{Project3/figures/1dHeat/difference_surf_dx_0.1_timestep_0.0.pdf}
+    \caption{Analytical and Forward Euler solution at time $t=0$, $\Delta x = \frac{1}{10}$, $\Delta t = \frac{\Delta x^2}{2} = \frac{1}{200} $}
+    \label{fig:ForwardEulerdx=0.1-t0}
+\end{figure}
+For $t=0.5$ we see a larger difference between the two solutions in \autoref{fig:ForwardEulerdx=0.1-t=0.5}
+\begin{figure}[H]%
+    \centering
+    \includegraphics[width=8cm]{Project3/figures/1dHeat/difference_surf_dx_0.1_timestep_0.5.pdf}
+    \caption{Analytical and Forward Euler solution at time $t=0.5$, $\Delta x = \frac{1}{10}$, $\Delta t = \frac{\Delta x^2}{2} = \frac{1}{200} $}
+    \label{fig:ForwardEulerdx=0.1-t=0.5}
 \end{figure}
 
 
+For $\Delta x = \frac{1}{1000}$ the plots look quite similar, however the performance is significantly better which can be seen on the scale of the u-axis 
+
 \begin{figure}[H]%
     \centering
-    \includegraphics[width=11cm]{Project3/figures/1dHeat/dx=0.001.pdf}
-    \caption{Difference between the analytical and Forward Euler solution $\Delta x = \frac{1}{1000}$, $\Delta t = \frac{\Delta x^2}{2} = \frac{1}{2000000} $}
+    \includegraphics[width=8cm]{Project3/figures/1dHeat/dx=0.001.pdf}
+    \caption{Difference between the analytical and Forward Euler solution $\Delta x = 1 / 1000$, $\Delta t = \frac{\Delta x^2}{2} = 5 \cdot 10^{-7}$}
     \label{fig:ForwardEulerdx=0.001}
 \end{figure}
 
 
 
+Here we see that for smaller $\Delta x$ the resolution is a lot better, making the analytic and Forward Euler solutions indistinguishable 
+
+
 \begin{figure}[H]%
     \centering
-    \includegraphics[width=11cm]{Project3/figures/1dHeat/dx=0.001.pdf}
-    \caption{Difference between the analytical and Forward Euler solution $\Delta x = \frac{1}{1000}$, $\Delta t = \frac{\Delta x^2}{2} = \frac{1}{2000000} $}
-    \label{fig:ForwardEulerdx=0.001}
+    \includegraphics[width=8cm]{Project3/figures/1dHeat/difference_surf_dx_0.001_timestep_0.0.pdf}
+    \caption{Analytical and Forward Euler solution  at time $t=0$ $\Delta x = \frac{1}{1000}$, $\Delta t = \frac{\Delta x^2}{2} = \frac{1}{2000000} $}
+    \label{fig:ForwardEulerdx=0.001t=0}
 \end{figure}
 
+For $t = 0$
+
+\begin{figure}[H]%
+    \centering
+    \includegraphics[width=8cm]{Project3/figures/1dHeat/difference_surf_dx_0.001_timestep_0.5000004768371582.pdf}
+    \caption{Analytical and Forward Euler solution a time $t = 0.5$ $\Delta x = \frac{1}{1000}$, $\Delta t = \frac{\Delta x^2}{2} = \frac{1}{2000000} $}
+    \label{fig:ForwardEulerdx=0.001t=0.5}
+\end{figure}
 
 \subsection{Neural Networks}
 
-\subsubsection*{ReLU}
+\subsubsection{ReLU}
+
 \begin{figure}[H]%
     \centering
-    \includegraphics[width=11cm]{Project3/figures/ReLU/-4_[100, 25]_dnn.pdf}
-    \caption{Solution from DNN using ReLU activation function, with 2 hidden layers of $100$ and $25$}
-    \label{fig:ForwardEulerdx=0.001}
+    \subfloat[\centering Predicted solution]
+    {\includegraphics[width=5.5cm]{Project3/figures/ReLU/-4_[100, 25]_dnn.pdf}}%
+    \qquad
+    \subfloat[\centering Absolute difference between DNN and analytical solution]
+    {\includegraphics[width=5.5cm]{Project3/figures/ReLU/-4_[100, 25]_diff.pdf}}%
+    \caption{DNN with ReLU as activation function, using 2 hidden layers of size 100 and 25 nodes.}%
+    \label{fig:DNN_ReLU_3d}%
+\end{figure}
+From the predicted solution in figure \ref{fig:DNN_ReLU_3d}(a), we can see that the network has learned the general shape of the analytical solution, except from a region near the middle of the x-t plane, in which we get negative values. Looking over to figure \ref{fig:DNN_ReLU_3d}(b), the absolute difference is relatively large and variable all over.
+
+
+\begin{figure}[H]
+    \centering
+    \subfloat[\centering Time step $t = 0.5$]{\includegraphics[width=8cm]{Project3/figures/ReLU/-4_[100, 25]_timestep_0.5.pdf}}
+    \qquad
+    \subfloat[\centering Time step $t = 1$]{\includegraphics[width=8cm]{Project3/figures/ReLU/-4_[100, 25]_timestep_1.0.pdf}}
+    \caption{Difference between analytic and DNN solution for a single time step. DNN using ReLU with 2 layers of size $100$ and $25$.}
+    \label{fig:diff_DNN_ReLU_single_step}
 \end{figure}
 
-\subsubsection*{Sigmoid}
+\subsubsection{Sigmoid}
 
-\subsubsection*{Tanh}
+\begin{figure}[H]%
+    \centering
+    \subfloat[\centering Predicted solution]
+    {\includegraphics[width=5.5cm]{Project3/figures/Sigmoid/-2_[100, 25]_dnn.pdf}}%
+    \qquad
+    \subfloat[\centering Absolute difference between DNN and analytical solution]
+    {\includegraphics[width=5.5cm]{Project3/figures/Sigmoid/-2_[100, 25]_diff.pdf}}%
+    \caption{DNN with Sigmoid as activation function using 2 hidden layers of size $100$ and $25$ nodes.}%
+    \label{fig:DNN_Sigmoid_3d}%
+\end{figure}
+In figure \ref{fig:DNN_Sigmoid_3d}(a), the predicted solution from the DNN using the sigmoid function has an even similar shape to the analytical solution. As is further shown from figure \ref{fig:DNN_Sigmoid_3d}
 
+\begin{figure}[H]
+    \centering
+    \subfloat[\centering Time step $t = 0.5$]{\includegraphics[width=8cm]{Project3/figures/Sigmoid/-2_[100, 25]_timestep_0.5.pdf}}
+    \qquad
+    \subfloat[\centering Time step $t = 1$]{\includegraphics[width=8cm]{Project3/figures/Sigmoid/-2_[100, 25]_timestep_1.0.pdf}}
+    \caption{Difference between analytic and DNN solution for a single time step. DNN using Sigmoid with 2 layers of size $100$ and $25$.}
+    \label{fig:diff_DNN_Sigmoid_single_step}
+\end{figure}
 
+\subsubsection{Tanh}
+
+\begin{figure}[H]%
+    \centering
+    \subfloat[\centering Predicted solution]
+    {\includegraphics[width=5.5cm]{Project3/figures/Tanh/-2_[100, 25]_dnn.pdf}}%
+    \qquad
+    \subfloat[\centering Absolute difference between DNN and analytical solution]
+    {\includegraphics[width=5.5cm]{Project3/figures/Tanh/-2_[100, 25]_diff.pdf}}%
+    \caption{DNN with Tanh as activation function using 2 hidden layers of size $100$ and $25$ nodes.}%
+    \label{fig:DNN_Tanh_3d}%
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \subfloat[\centering Time step $t = 0.5$]{\includegraphics[width=8cm]{Project3/figures/Tanh/-2_[100, 25]_timestep_0.5.pdf}}
+    \qquad
+    \subfloat[\centering Time step $t = 1$]{\includegraphics[width=8cm]{Project3/figures/Tanh/-2_[100, 25]_timestep_1.0.pdf}}
+    \caption{Difference between analytic and DNN solution for a single time step. DNN using Tanh with 2 layers of size $100$ and $25$.}
+    \label{fig:diff_DNN_Sigmoid_single_step}
+\end{figure}
+
+\newpage
 \section{Discussion}
 While the numerical approach was able to generate more precise results, it was highly restricted in what information we were able to extract from the problem. Per the stability criterion, a 10x increase in the spatial resolution required a 1000x increase in the total computation. The network on the other hand, was able to generalize well from a limited subset of points. Representing a higher upfront cost, once the network was trained it allowed values to be generated from arbitrary time steps, without the need for previous ones to be computed beforehand.
 
 The approaches differed in the type of work which was required in order to get working results. While the numerical approach required a bit of pen and paper work in order to figure out what to implement, and what was required for stable results, implementing with code was rather simple.
 
-The neural network on the other hand required relatively little work in the form of theoretical results, however implementing everything was not a simple task. Once implemented though, changing the equation in question only requires updating the cost function. The network then still requires tuning of the parameters in order to get good results.
+The neural network on the other hand required relatively little work in the form of theoretical results, however implementing everything correctly was not a simple task. Once implemented though, changing the equation in question only requires updating the cost function. The network then still requires tuning of the parameters in order to get good results.
 
-
-
+With the explicit forward Euler approach, we saw significant performance gains from utilizing the regularity of the computations involved, while the complexity introduced from the different sizes of the layers in the network limited our ability to optimize further. The numerical approach was able to generate the results presented with a negligible computational cost.
 
 \section{Conclusion}
+For a simple problem such as this one, there was no real benefit in applying the neural network in simulating the diffusion of heat. For one, the analytical solution is relatively simple to derive, and the numerical approach is both faster and more accurate than what we were able to produce. However, their ability to generalize from comparatively few points was quite impressive.
 
+We believe this to be the key advantage for PINNs. For a sufficiently complex problem, the required complexity of a numerical method might be elapsed by utilizing a framework for a neural network. The interpolation required for updating the trial solution is comparatively simple, while tuning the parameters requires little more than patience in our experience. In addition, if this ability to generalize on unseen data extends to more complex problems, we believe that the potential insight available will be unmatched once the network is properly tuned and trained.  
+
+\newpage
+\section{References}
 \printbibliography
+
+\section{Appendix}
+The code is publicly available on \href{https://github.com/augustfe/FYSSTK}{github.com/augustfe/FYSSTK}, written in python.
 
 \end{document}
