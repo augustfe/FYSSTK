@@ -1,18 +1,11 @@
 import jax.numpy as np
 from jax import jacobian, hessian, grad, jit, vmap, lax
 import numpy as onp
-from matplotlib import cm
-from matplotlib import pyplot as plt
 from jax.tree_util import Partial
 from typing import Callable
 from tqdm import tqdm
 from pathlib import Path
-import matplotlib as mpl
-
-# Set up for LaTeX rendering
-mpl.rcParams["mathtext.fontset"] = "stix"
-mpl.rcParams["font.family"] = "STIXGeneral"
-mpl.rcParams["figure.titlesize"] = 15
+from plotutils import plot_surface, plot_at_timestep
 
 
 @jit
@@ -266,47 +259,6 @@ def main(
         )
 
     # plt.show()
-
-
-def plot_at_timestep(
-    x: np.ndarray,
-    res_dnn: np.ndarray,
-    res_analytic: np.ndarray,
-    t: float,
-    func_name: str,
-    save: bool,
-    savePath: Path = None,
-    saveName: str = None,
-) -> None:
-    plt.figure(figsize=plt.figaspect(0.5))
-    plt.title(f"{func_name}: Computed solutions at time = {t:g}")
-    plt.plot(x, res_dnn, label="Deep neural network")
-    plt.plot(x, res_analytic, label="Analytical")
-    plt.xlabel("Position $x$")
-    plt.legend()
-    if save:
-        plt.savefig(savePath / f"{saveName}_timestep_{t}.pdf", bbox_inches="tight")
-    plt.close()
-
-
-def plot_surface(
-    T: np.ndarray,
-    X: np.ndarray,
-    Z: np.ndarray,
-    title: str,
-    save: bool,
-    savePath: Path = None,
-    saveName: str = None,
-) -> None:
-    fig = plt.figure(figsize=plt.figaspect(0.5))
-    ax = fig.add_subplot(projection="3d")
-    ax.set_title(title)
-    ax.plot_surface(T, X, Z, linewidth=0, antialiased=False, cmap=cm.viridis)
-    ax.set_xlabel("Time $t$")
-    ax.set_ylabel("Position $x$")
-    if save:
-        plt.savefig(savePath / f"{saveName}.pdf", bbox_inches="tight")
-    plt.close()
 
 
 if __name__ == "__main__":

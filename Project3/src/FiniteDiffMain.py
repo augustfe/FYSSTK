@@ -4,6 +4,7 @@ from jax import jit, lax
 import matplotlib.pyplot as plt
 from sklearn.metrics import mean_squared_error
 from pathlib import Path
+from plotutils import plot_surface, plot_at_timestep
 
 
 @jit
@@ -30,11 +31,6 @@ def analytic(x: np.ndarray, t: float):
 
 
 if __name__ == "__main__":
-    import matplotlib as mpl
-
-    mpl.rcParams["mathtext.fontset"] = "stix"
-    mpl.rcParams["font.family"] = "STIXGeneral"
-    mpl.rcParams["figure.titlesize"] = 15
     figures_dir = Path(__file__).parent.parent.parent / "figures/1dHeat"
     figures_dir.mkdir(exist_ok=True, parents=True)
 
@@ -57,20 +53,21 @@ if __name__ == "__main__":
 
         u_difference = u_analytical - u_numerical
         mse = mean_squared_error(u_analytical, u_numerical)
-        fig = plt.figure()
-
-        ax = fig.add_subplot(111, projection="3d")
-
-        ax.plot_surface(T_, X_, u_difference, cmap="viridis")
-        title = (
-            rf"Analytical solution - Forward Euler ($\Delta x = {dx}$, MSE : {mse:.2e})"
+        plot_surface(
+            T_,
+            X_,
+            u_numerical,
+            "Numerical solution",
+            True,
+            figures_dir,
+            f"numerical_surf_dx_{dx}",
         )
-        ax.set_title(title)
-
-        ax.set_xlabel("Time")
-        ax.set_ylabel("Space")
-        ax.set_zlabel("u")
-
-        plt.savefig(f"{figures_dir}/{dx=}.pdf", bbox_inches="tight")
-
-        plt.show()
+        plot_surface(
+            T_,
+            X_,
+            u_difference,
+            "Difference",
+            True,
+            figures_dir,
+            f"difference_surf_dx_{dx}",
+        )
