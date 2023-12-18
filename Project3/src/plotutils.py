@@ -111,6 +111,28 @@ def plot_at_timestep(
     plt.close()
 
 
+def plot_at_timestepEuler(
+    x_numeric: np.ndarray,
+    res_numeric: np.ndarray,
+    x_anal: np.ndarray,
+    res_analytic: np.ndarray,
+    t: float,
+    func_name: str,
+    save: bool,
+    savePath: Path = None,
+    saveName: str = None,
+) -> None:
+    plt.figure(figsize=plt.figaspect(0.5))
+    plt.title(f"{func_name}: Computed solutions at time = {t:g}")
+    plt.plot(x_anal, res_analytic, label="Analytical")
+    plt.plot(x_numeric, res_numeric, label="Forward Euler")
+    plt.xlabel("Position $x$")
+    plt.legend()
+    if save:
+        plt.savefig(savePath / f"{saveName}_timestep_{t}.pdf", bbox_inches="tight")
+    plt.close()
+
+
 def plot_surface(
     T: np.ndarray,
     X: np.ndarray,
