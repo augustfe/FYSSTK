@@ -181,13 +181,13 @@ This temperature is at its maximum at the middle of the rod, $x=\tfrac{1}{2}$. T
 \subsubsection{Analytical solution}
 To analytically solve this equation, we use separation of variables. We need to find a family of particular solutions $\{u_k(x,t)\}$. $u(x,t)$ would then be a sum of different solutions by the principle of superposition. This sum would then be
 \begin{equation*}
-    u(x,t) = \sum_{k}c_ku_k(x,t)
+    u(x,t) = \sum_{k}c_ku_k(x,t) \qquad k = 0,1,2,\dots
 \end{equation*}
 where $c_k$ is the Fourier coefficient. This means that our initial condition can be written as
 \begin{equation*}
     f(x) = \sum_{k}c_ku(x,0) = \sum_k c_k\sin(\pi x) = \sin(\pi x)
 \end{equation*}
-hence, $c_k = 1$ for some $k$. This means we can omit the full derivation of the general method for separation of variables using Fourier coefficients. 
+hence, $c_k = 1$ for some $k$ and zero for all other values of $k$. This means we can omit the full derivation of the general method for separation of variables using Fourier coefficients. 
 We start by assuming that the solution has the form
 \begin{equation*}
     u(x,t) = X(x)T(t).
@@ -549,15 +549,15 @@ This setup requires no data for interior of the domain, it simply requires sampl
 %We then adjust our weights by $\theta_\text{new} = \theta - \lambda \nabla_\theta C(\boldsymbol{x}, \boldsymbol{t}, \theta)$, for a chosen learning rate $\lambda$, by taking the gradient with respect to $\theta$. As our expression now involves the entire neural network rather than just the output layer back propagation is no longer an option. Luckily, the derivatives can still be found through automatic differentiation, as discussed in greater detail in the previous project. It is then important to choose values $(x_i, t_i)$ such that we test for our given conditions.
 
 \subsubsection{Activation functions and Universal Approximation theorem}
-The activation functions serve as a way to introduce non-linearity into neural networks. Without them, the network becomes a linear operator, greatly reducing its ability to learn.   
+The activation functions serve as a way to introduce non-linearity into neural networks. Without them, the network becomes a linear operator, greatly reducing its ability to learn.  Which  activation function you chose is also important for model convergence and performance.
 
-However, there are many to choose from.
+The Universal Approximation theorem states that any continuous function on a compact subset of $\mathbb{R}^{n}$ can be approximated arbitrarily well by a shallow neural network of arbitrary width. This was first proved for sigmoidal activation functions in  \textcite{universalapprox} and further extended to hold for activation functions if and only if they where non-polynomial by \textcite{pinkus_1999}. 
 
-The Universal Approximation Theorem, first proved for sigmoidal activation functions by \textcite{universalapprox}, proved the existence of neural networks as universal approximators. 
+Many other similar and interesting results have been shown for deep (more than one layer) neural networks. Specifically \textcite{kidger2020universal} showed that for  deep narrow networks the restrictions are continuity, non affiance (not a multivariate polynomial of degree less than 2) and continuously differentiable on at least one point which is different from zero. Reflecting the greater complexity of the deep networks
 
-However, knowing these approximators exist does not necessarily
-tell us how to construct them or that they will perform efficiently in practice. The choice of an appropriate activation function can greatly impact the speed of convergence during training, the ability of the network to generalize from the training data, and its overall predictive performance.
+However, knowing these approximates exist does not necessarily tell us how to construct them or that they will perform efficiently in practice.
 
+The sigmoid function, also known as the logistic function, is one of the earliest activation functions used in neural networks. It maps any input to a value between 0 and 1, which is particularly useful for models where we need to predict probabilities as outputs. The shape of its curve resembles an "S," providing a smooth gradient.  However, it is susceptible to the vanishing gradient problem as the gradient approaches zero for very large or vary small especially in deep networks
 
 
 \newpage
