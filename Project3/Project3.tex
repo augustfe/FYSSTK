@@ -100,7 +100,7 @@ Partial differential equations (PDEs) are one of the most applicable areas of ma
 
 The most interesting PDEs are usually hard to solve, and often don't even have a solution. To get around this, we use numerical algorithms to find an approximation to the solution. These algorithm can however quickly turn computationally costly for a required accuracy, and can be hard to come up with or implement.
 
-This is where machine learning enters the picture. As machine learning has become more popular due to the increase in computational power, it has seen a vast range of applications, and solving PDEs are no exception. A key point is that regular regression methods won't get us to our goal, as we initially only have a few conditions to work from. To avoid this issue, we \textit{inform} our network of the underlying problem, such that it is able to produce results which corresponds with the rules which we have imprinted it with.
+This is where machine learning enters the picture. As machine learning has become more popular due to the increase in computational power, it has seen a vast range of applications, and solving PDEs are no exception. A key point is that regular regression methods won't get us to our goal, as we initially only have a few conditions to work from. To avoid this issue, we \textit{inform} the network of the underlying problem, such that it is able to produce results which corresponds with the rules which we have imprinted it with.
 
 In this project, we aim to train a neural network to solve the heat equation, and see how it holds up to the analytic solution, and compare it to a simple numeric solution by the method of finite differences.
 
@@ -437,6 +437,7 @@ This reveals a major drawback of this method, as with just 1 000 steps in $x$, w
 \subsection{Neural networks}
 A neural network is composed of interconnected nodes arranged in layers. The initial layer is the input layer, the final layer is the output layer, and the intervening layers—called hidden layers—are responsible for processing the inputs into the final output. 
 
+
 In this project we wish to find an approximation of the function $u$ which satisfies the conditions given by \eqref{eq:equation_conditions}. Our network will thus have two input nodes ($t$ and $x$) and a single output node $u$, the temperature. We'll also be limiting ourselves to fully connected neural networks, that is each node is connected to every node in the next layer. Thus obtaining a model depicted by \autoref{fig:FullyConnectedFeedForward}.
 
 \begin{figure}[ht]
@@ -509,6 +510,119 @@ The cost function for such a setup might look like this
 Here, $u_{\text{predicted}}^{(i)}$ represents the neural network's output for the $i$-th input sample, $u_{\text{true}}^{(i)}$ denotes the corresponding true or observed value of $u$, $\theta$ represents the network parameters (weights and biases) and W the weights. The first term enforces the accuracy of the regression, while the second term aims to mitigate overfitting.
 
 \end{comment}
+Information in this network moves from left to right. The value of a node is dependent on the weights and values of the previous layer, as well as the bias. Let $N_l \in \mathbb{N}$ be the number of nodes in layer $l$ with the input layer being $l = 0$. We then calculate
+\begin{equation*}
+    z_{i}^1 = \sum_{j = 0}^{N_0 - 1} w_{ij}^1 x_j + b_i^1 \qquad \textnormal{for} \ i = 0, 1, \ldots, N_1 - 1,
+\end{equation*}
+with $w^l_{ij}$ being the weight connecting node $i$ in layer $l$ and node $j$ in layer $l-1$, $b_i^l$ the bias of node $i$ and $x_j$ the $j^{th}$ input. We call $z$ the activation value. Let $f^l: \mathbb{R} \to \mathbb{R}$ be a function, called the activation function for the $l^{\text{th}}$ layer. We calculate the output of the node by $a_i^l = f^l(z_i^l)$. For the following layers, we calculate a \textit{feed-forward pass}
+\begin{equation*}
+    a_i^l = f^l(z_{i}^l) = f^l \left( \sum_{j = 0}^{N_l - 1} w_{ij}^l a_j^{l-1} + b_i^{l} \right) \qquad \textnormal{for} \ i = 0, 1, \ldots, N_l - 1,
+\end{equation*}
+illustrated in \autoref{fig:FeedForward}.
+
+\begin{figure}[ht]
+\centering
+\def\layersep{3cm}
+\def\nodeinlayersep{2cm}
+\begin{tikzpicture}[shorten >=1pt,->,draw=black!50, node distance=\layersep]
+    \tikzstyle{every pin edge}=[<-,shorten <=1pt]
+    \tikzstyle{neuron}=[circle, fill=black!25,minimum size=25pt,inner sep=0pt]
+    \tikzstyle{input neuron}=[neuron, fill=red!50];
+    \tikzstyle{output neuron}=[neuron, fill=orange!50];
+    \tikzstyle{hidden neuron}=[neuron, fill=blue!50];
+
+    % Input nodes
+    \foreach \name / \y in {0,...,1}
+        \node[input neuron] (I-\name) at (0,-\y * \nodeinlayersep) {$x_\y$};
+
+    % Hidden layer
+    \foreach \name / \y in {0,...,1}
+        \node[hidden neuron] (H-\name) at (\layersep,-\y * \nodeinlayersep) {$a_\y^1$};
+
+    % Output node
+    \path[yshift=-0.5 * \nodeinlayersep]
+        node[output neuron] (O-0) at (2*\layersep, 0 cm) {$a_0^2$};
+
+    \path[->] 
+        % Weights from first input
+        (I-0) edge [->] node [midway, above] {$w^1_{0, 0}$} (H-0)
+        (I-0) edge [->] node [midway, above] {$w^1_{0, 1}$} (H-1)
+        % Weights from second input
+        (I-1) edge [->] node [midway, below] {$w^1_{1, 0}$} (H-0)
+        (I-1) edge [->] node [midway, below] {$w^1_{1, 1}$} (H-1)
+        % Weights to output
+        (H-0) edge [->] node [midway, above] {$w^2_{0, 0}$} (O-0)
+        (H-1) edge [->] node [midway, below] {$w^2_{1, 0}$} (O-0);
+
+    
+    \foreach \source in {0,...,1}
+        \foreach \dest in {0}
+            \path (H-\source) edge (O-\dest);
+
+    \path[->]
+        (H-0) edge [loop above] node [above] {$f\left(z_0^1\right)$} ()
+        (H-1) edge [loop below] node [below] {$f\left(z_1^1\right)$} ()
+        (O-0) edge [loop above] node [above] {$f\left(z_0^2\right)$} ();
+
+    \node (BH-0) at (0.5*\layersep,  0.5*\nodeinlayersep) {$b_0^1$};
+    \node (BH-1) at (0.5*\layersep, -1.5*\nodeinlayersep) {$b_1^1$};
+    \node (BO-0) at (1.5*\layersep, -0.5*\nodeinlayersep) {$b_0^2$};
+
+    \path[->]
+        (BH-0) edge (H-0)
+        (BH-1) edge (H-1)
+        (BO-0) edge (O-0);
+\end{tikzpicture}
+\caption{Illustration of a feed-forward pass in a neural network with two inputs (red), two hidden nodes (blue), and one output node (orange).}
+\label{fig:FeedForward}
+\end{figure}
+
+We gather the weights connecting the $l^{th}$ and $(l-1)^{th}$ layers in a $N_{l} \times N_{l-1}$ matrix $\mathbf{W}_l$, and the biases and outputs in $N_l \times 1$ column vectors $\mathbf{b}_l, \mathbf{y}_l$ as follows.
+\begin{equation*}
+    \mathbf{W}_l = 
+    \begin{bmatrix}
+        w_{0,0} & w_{0,1} & \ldots & w_{0,N_{l-1}} \\
+        w_{1,0} & w_{1,1} & \ldots & w_{1,N_{l-1}} \\
+        \vdots & \vdots & \ddots & \vdots \\
+        w_{N_{l},0} & w_{N_{l},1} & \ldots & w_{N_{l},N_{l-1}} \\
+    \end{bmatrix}
+    \qquad
+    \mathbf{b}_l =
+    \begin{bmatrix}
+        b_0^l \\ b_1^l \\ \vdots \\ b_{N_l}^l
+    \end{bmatrix}
+    \qquad
+    \mathbf{y}_l =
+    \begin{bmatrix}
+        y_0^l \\ y_1^l \\ \vdots \\ y_{N_l}^l
+    \end{bmatrix}
+\end{equation*}
+We can then simplify the summation to get $\mathbf{z}_l = \mathbf{W}_l \mathbf{y}_{l-1} + \mathbf{b}_l$. We then extend the function $f^l: \mathbb{R} \to \mathbb{R}$ to the function $F^l: \mathbb{R}^{N_l \times 1} \to \mathbb{R}^{N_l \times 1}$ by defining
+\begin{equation*}
+    F^l(\boldsymbol{x}) = \left[ f^l \left( x_0 \right), \ f^l \left( x_1 \right), \ \ldots, \ f^l \left( x_{N_l - 1} \right) \right]^T,
+\end{equation*}
+such that the function operates elementwise. For simplicity, this function $F^l$ will also be notated $f^l$.
+
+We define the realization of our neural network as the function $\mathcal{N}: \mathbb{R}^{N_0 \times 1} \to \mathbb{R}^{N_h \times 1}$, with $h$ being the output layer as
+\begin{equation*}
+    \mathcal{N}(\boldsymbol{x}) =
+    f^h\left(
+    \mathbf{W}_h f^{h-1} \left(
+    \mathbf{W}_{h-1}f^{h-2} \left(\ldots f^1\left( \mathbf{W}_1 \boldsymbol{x} + \mathbf{b}_1 \right) \right)
+    + \mathbf{b}_{h-1} \right) 
+    + \mathbf{b}_h \right).
+\end{equation*}
+Defining the function $\mathcal{A}^l: \mathbb{R}^{N_{l-1} \times 1} \to \mathbb{R}^{N_{l}}$ as the function
+\begin{equation*}
+    \mathcal{A}^l (\boldsymbol{x}) = \mathbf{W}_l \boldsymbol{x} + \mathbf{b}_l,
+\end{equation*}
+we can simplify our notation by noting that $\mathcal{N}$ is a composition of functions
+\begin{align*}
+    \mathcal{N} &= f^h \circ \mathcal{A}^h \circ f^{h-1} \circ \mathcal{A}^{h-1} \circ \ldots \circ f^1 \circ \mathcal{A}^1 \\
+    &= \bigcirc_{i = 1}^h f^{i} \circ \mathcal{A}^{i}.
+\end{align*}
+
+
 
 \subsubsection{Physics-informed neural networks}
 
@@ -557,8 +671,52 @@ Many other similar and interesting results have been shown for deep (more than o
 
 However, knowing these approximates exist does not necessarily tell us how to construct them or that they will perform efficiently in practice.
 
-The sigmoid function, also known as the logistic function, is one of the earliest activation functions used in neural networks. It maps any input to a value between 0 and 1, which is particularly useful for models where we need to predict probabilities as outputs. The shape of its curve resembles an "S," providing a smooth gradient.  However, it is susceptible to the vanishing gradient problem as the gradient approaches zero for very large or vary small especially in deep networks
+The sigmoid function, also known as the logistic function, is one of the earliest activation functions used in neural networks. It maps any input to a value between 0 and 1, which is particularly useful for models where we need to predict probabilities. The shape of its curve resembles an ``S," providing a smooth gradient. However, it is susceptible to the vanishing gradient problem as the gradient approaches zero for very large or vary small inputs.
 
+The function is defined simply by
+\begin{equation*}
+    \sigma(x) = \frac{1}{1 + e^{-x}}.
+\end{equation*}
+A similar function in shape is the hyperbolic tangent, $\tanh$, mapping inputs to $[-1, 1]$. It is defined as
+\begin{equation*}
+    \tanh(x) = \frac{\sinh(x)}{\cosh(x)} = \frac{e^x - e^{-x}}{e^x + e^{-x}}.
+\end{equation*}
+A plot of their shapes are seen in \autoref{fig:sigmoidtanh}.
+
+\begin{figure}[H]%
+    \centering
+    \subfloat[\centering $\sigma(x)$]{{\includegraphics[width=5.5cm]{Project3/figures/activators/sigmoid.pdf} }}%
+    \qquad
+    \subfloat[\centering $\tanh(x)$]{{\includegraphics[width=5.5cm]{Project3/figures/activators/tanh.pdf} }}%
+    \caption{Sigmoid and $\tanh$ activation functions.}%
+    \label{fig:sigmoidtanh}%
+\end{figure}
+
+Another class of activation functions are based on the Rectified linear unit (ReLU), defined by
+\begin{equation*}
+    \operatorname{ReLU}(x) = \max\{ 0, x \}.
+\end{equation*}
+It has the advantage of being extremely cheap to compute, while still introducing non-linearity into the network. However, it can suffer from an effect where nodes effectively turn off, outputting constant zero. To combat this, there are several variations, one of which is the Leaky ReLU (LReLU), where the negative values are reduced but not removed. It is given by $\operatorname{LReLU}(x) = \max\{ \gamma x, x\}$, for some small $\gamma > 0$.
+
+\begin{figure}[H]%
+    \centering
+    \subfloat[\centering $\operatorname{ReLU}(x)$]{{\includegraphics[width=5.5cm]{Project3/figures/activators/relu.pdf} }}%
+    \qquad
+    \subfloat[\centering $\operatorname{LReLU}(x)$, with $\gamma = 0.01$]{{\includegraphics[width=5.5cm]{Project3/figures/activators/leaky_relu.pdf} }}%
+    \caption{Sigmoid and $\tanh$ activation functions.}%
+    \label{fig:sigmoidtanh}%
+\end{figure}
+
+The final two activation functions, relevant for this project, are the Exponential linear unit (ELU) and Swish (or SiLU) functions. They are defined respectively as
+\begin{align*}
+    \operatorname{ELU}(x) &=
+    \begin{cases}
+        x & x > 0 \\
+        \gamma (e^x - 1) & x \leq 0
+    \end{cases}
+    &\textnormal{and}&&
+    \operatorname{Swish}(x) &= x \sigma(x).
+\end{align*}
 
 \newpage
 \section{Method}
@@ -585,7 +743,7 @@ We utilized \verb|jax.grad|, \verb|jax.jacobian| and \verb|jax.hessian| in order
 
 With this, we are able to find all the derivatives necessary for our cost function and back propagation. Through vectorization, and the techniques mentioned previously, we were able to again achieve good performance. As this project was a lot more focused on one problem, we choose a more functional approach for our implementations, as \verb|JAX| works poorly with classes.
 
-A major advantage of this approach, is that we are not restricted by the previous stability criterion, meaning we aren't forced to choose as many points.
+A major advantage of this approach, is that we are not restricted by the previous stability criterion, meaning we aren't forced to choose as many points. For this project we chose 20x20 points evenly sampled on the domain $[0,T]$x$[0, L]$
 
 
 
@@ -613,9 +771,18 @@ u(t,x) = e^{-\pi^2 t}sin(\pi x)
     \label{fig:Analytic}
 \end{figure}
 
+For this rapport we found two types of plots to be most descriptive. The first are 3D plots of the difference between the analytical and the numerical solution and the second are 2D slices of both solutions. 
 
 \subsection{Forward Euler}
-For the majority of this rapport we found it most descriptive to plot the difference between the analytical approximations and our numerical solutions. For forward Euler we found that the analytical solution was greater than the numerical one. Thus the figures below are simply $u_{\text{analytical}} - u_{\text{numerical}}$
+For forward Euler we found that the analytical solution was greater than the numerical one.  The 3D plots bellow are thus simply $u_{\text{analytical}} - u_{\text{numerical}}$
+\begin{figure}[H]%
+    \centering
+    \includegraphics[width=10cm]{Project3/figures/1dHeat/dx=0.1.pdf}
+    \caption{Difference between the analytical and Forward Euler solution $\Delta x = \frac{1}{10}$, $\Delta t = \frac{\Delta x^2}{2} = \frac{1}{200} $}
+    \label{fig:ForwardEulerdx=0.1}
+\end{figure}
+
+
 \begin{figure}[H]%
     \centering
     \includegraphics[width=10cm]{Project3/figures/1dHeat/dx=0.1.pdf}
@@ -633,8 +800,27 @@ For the majority of this rapport we found it most descriptive to plot the differ
 
 
 
+\begin{figure}[H]%
+    \centering
+    \includegraphics[width=11cm]{Project3/figures/1dHeat/dx=0.001.pdf}
+    \caption{Difference between the analytical and Forward Euler solution $\Delta x = \frac{1}{1000}$, $\Delta t = \frac{\Delta x^2}{2} = \frac{1}{2000000} $}
+    \label{fig:ForwardEulerdx=0.001}
+\end{figure}
+
 
 \subsection{Neural Networks}
+
+\subsubsection*{ReLU}
+\begin{figure}[H]%
+    \centering
+    \includegraphics[width=11cm]{Project3/figures/ReLU/-4_[100, 25]_dnn.pdf}
+    \caption{Solution from DNN using ReLU activation function, with 2 hidden layers of $100$ and $25$}
+    \label{fig:ForwardEulerdx=0.001}
+\end{figure}
+
+\subsubsection*{Sigmoid}
+
+\subsubsection*{Tanh}
 
 
 \section{Discussion}
