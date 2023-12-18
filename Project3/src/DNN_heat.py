@@ -14,6 +14,16 @@ def deep_neural_network(
     x: np.ndarray,
     activation_func: Callable[[float], float],
 ) -> float:
+    """Perform a forward pass of the deep neural network.
+
+    Args:
+        deep_params (list[np.ndarray]): Weights and biases for each layer
+        x (np.ndarray): Input variables
+        activation_func (Callable[[float], float]): Activation function
+
+    Returns:
+        float: Output of the network
+    """
     # x is now a point and a 1D numpy array; make it a column vector
     num_coordinates = np.size(x, 0)
     x = x.reshape(num_coordinates, -1)
@@ -56,9 +66,9 @@ def deep_neural_network(
     return x_output[0][0]
 
 
-# Define the trial solution and cost function
 @jit
 def u(x: float) -> float:
+    "Initial condition of the problem."
     # sin(pi * x)
     return lax.sin(lax.mul(np.pi, x))
 
@@ -67,14 +77,27 @@ def u(x: float) -> float:
 def g_trial(
     point: np.ndarray, P: list[np.ndarray], activation_func: Callable[[float], float]
 ) -> float:
+    """Trial solution of the PDE.
+
+    Args:
+        point (np.ndarray): Input x and t
+        P (list[np.ndarray]): Weights and biases of the network
+        activation_func (Callable[[float], float]): Activation function for the hidden layers
+
+    Returns:
+        float: Predicted value of the trial solution
+    """
     x, t = point
     # (1 - t) * u(x) + x * (1 - x) * t * N(x, t, P)
-    res = lax.mul(
-        lax.sub(1.0, t),
-        u(x),
-    ) + lax.mul(
-        lax.mul(x, lax.sub(1.0, x)),
-        lax.mul(t, deep_neural_network(P, point, activation_func)),
+    res = lax.add(
+        lax.mul(
+            lax.sub(1.0, t),
+            u(x),
+        ),
+        lax.mul(
+            lax.mul(x, lax.sub(1.0, x)),
+            lax.mul(t, deep_neural_network(P, point, activation_func)),
+        ),
     )
     return res
 
@@ -83,7 +106,16 @@ def g_trial(
 def innercost(
     point: np.ndarray, P: list[np.ndarray], activation_func: Callable[[float], float]
 ) -> float:
-    # The inner cost function, evaluating each point
+    """Cost function for the PDE, evaluated at a single point.
+
+    Args:
+        point (np.ndarray): x and t values
+        P (list[np.ndarray]): Parameters of the network
+        activation_func (Callable[[float], float]): Activation function for the network
+
+    Returns:
+        float: Loss at the point
+    """
     g_t_jacobian_func = jit(jacobian(g_trial))
     g_t_hessian_func = jit(hessian(g_trial))
 
@@ -101,7 +133,6 @@ def innercost(
     return err_sqr
 
 
-# The cost function:
 @jit
 def cost_function(
     P: list[np.ndarray],
@@ -109,6 +140,17 @@ def cost_function(
     t: np.ndarray,
     activation_func: Callable[[float], float],
 ) -> float:
+    """Cost function for the network. Evaluates at each point in the grid.
+
+    Args:
+        P (list[np.ndarray]): Parameters of the network
+        x (np.ndarray): Input x values
+        t (np.ndarray): Input t values
+        activation_func (Callable[[float], float]): Activation function for the network
+
+    Returns:
+        float: Cost for the network
+    """
     X, T = np.meshgrid(x, t)
     total_points = np.vstack([X.ravel(), T.ravel()]).T
     vec_cost = vmap(innercost, (0, None, None), 0)
@@ -116,9 +158,16 @@ def cost_function(
     return cost_sum / (np.size(x) * np.size(t))
 
 
-# For comparison, define the analytical solution
 @jit
 def g_analytic(point: np.ndarray) -> float:
+    """Analytical solution of the PDE.
+
+    Args:
+        point (np.ndarray): x and t values
+
+    Returns:
+        float: True value of the solution.
+    """
     x, t = point
     # e^(-pi^2 * t) * sin(pi * x)
     res = lax.mul(
@@ -134,10 +183,19 @@ def g_analytic(point: np.ndarray) -> float:
 
 @jit
 def update_P(P: np.ndarray, cost_grad: np.ndarray, lmb: float) -> np.ndarray:
+    """Convenience function for updating the parameters of the network.
+
+    Args:
+        P (np.ndarray): Parameters of the network
+        cost_grad (np.ndarray): Gradient of the cost, w.r.t. the parameters
+        lmb (float): Learning rate for gradient descent
+
+    Returns:
+        np.ndarray: Updated parameters for the layer.
+    """
     return lax.sub(P, lax.mul(lmb, cost_grad))
 
 
-# Set up a function for training the network to solve for the equation
 def solve_pde_deep_neural_network(
     x: np.ndarray,
     t: np.ndarray,
@@ -146,6 +204,19 @@ def solve_pde_deep_neural_network(
     lmb: float,
     activation_func: Callable[[float], float],
 ) -> list[np.ndarray]:
+    """Solve the chosen PDE using a physics-informed neural network.
+
+    Args:
+        x (np.ndarray): Input x values
+        t (np.ndarray): Input t values
+        num_neurons (list[int]): Size of each hidden layer
+        num_iter (int): Number of iterations for gradient descent
+        lmb (float): Learning rate for gradient descent
+        activation_func (Callable[[float], float]): Activation function for the hidden layers
+
+    Returns:
+        list[np.ndarray]: Optimized parameters for the network.
+    """
     # Set up initial weigths and biases
     N_hidden = np.size(num_neurons)
 
@@ -187,6 +258,19 @@ def main(
     save: bool = False,
     savePath: Path = None,
 ) -> None:
+    """Main function for the script.
+
+    Uses evenly spaced points in x and t, and solves the PDE using a deep neural network.
+    Compares the predicted values againts the true analytical solution, producing several
+    plots of the results.
+
+    Args:
+        activation_func (Callable[[float], float]): Activation function for the hidden layers
+        num_hidden_neurons (list[int]): Number of neurons in each hidden layer
+        lmb (float, optional): Learning rate for gradient descent. Defaults to 0.01.
+        save (bool, optional): Whether or not to save the plots. Defaults to False.
+        savePath (Path, optional): Path to save the plots to. Defaults to None.
+    """
     # Use the neural network:
     func_name = activation_func.__name__
     saveBase = f"{round(np.log10(lmb))}_{num_hidden_neurons}"
@@ -204,8 +288,8 @@ def main(
 
     # Set up the parameters for the network
     num_iter = 20000
-    # lmb = 0.01
 
+    # Use partial such that the activation function can be passed as an argument with JAX
     par_func = Partial(activation_func)
 
     P = solve_pde_deep_neural_network(x, t, num_hidden_neurons, num_iter, lmb, par_func)
@@ -224,14 +308,13 @@ def main(
     G_analytical = vmap(g_analytic, 0)(total_points)
     G_analytical = G_analytical.reshape(Nt, Nx)
 
-    # Find the map difference between the analytical and the computed solution
+    # Find the max absolute difference between the analytical and the computed solution
     diff_ag = np.abs(g_dnn_ag - G_analytical)
     print(
         f"Max absolute difference between the analytical solution and the network: {np.max(diff_ag):g}"
     )
 
     # Plot the solutions in two dimensions, that being in position and time
-
     title = f"{func_name}: Solution from the deep neural network w/ {len(num_hidden_neurons)} layers"
     plot_surface(T, X, g_dnn_ag, title, save, savePath, f"{saveBase}_dnn")
 
@@ -257,8 +340,6 @@ def main(
             savePath,
             saveBase,
         )
-
-    # plt.show()
 
 
 if __name__ == "__main__":

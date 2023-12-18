@@ -1,16 +1,19 @@
 # import numpy as np
 from jax import jit, lax
 import jax.numpy as np
-
-# from utils import assign
+from utils import assign, assign_middle
 from jax.experimental import sparse
 
 
-# @jit
 def create_tridiagonal_matrix(n: int, r: float) -> np.ndarray:
-    """
-    Create a tridiagonal matrix used in the finite difference method for
-    solving the heat equation.
+    """Explicit Forward Euler scheme matrix for the heat equation.
+
+    Args:
+        n (int): Number of spatial steps.
+        r (float): dt/dx^2, stability criterion.
+
+    Returns:
+        np.ndarray: Sparse scheme matrix.
     """
     main_diag = 2 * np.ones(n)
     off_diag = -1 * np.ones(n - 1)
@@ -23,32 +26,30 @@ def create_tridiagonal_matrix(n: int, r: float) -> np.ndarray:
 @jit
 @sparse.sparsify
 def step_matrix_method(M: np.ndarray, u_old: np.ndarray) -> np.ndarray:
-    """
-    Perform one time step using the matrix method approach.
-    """
+    "Perform one time step using the matrix method approach."
     return lax.dot(M, u_old)
 
 
 @jit
-def assign_middle(u_new, u_mid):
-    u_new = u_new.at[1:-1].set(u_mid)
-    return u_new
-
-
-@jit
 def step_iteration_method_vectorized(u_old: np.ndarray, r: float) -> np.ndarray:
-    """
-    Perform one time step using an iterative method approach.
+    """Perform one time step using an iterative method approach.
+
+    Args:
+        u_old (np.ndarray): The previous time step.
+        r (float): dt/dx^2, stability criterion.
+
+    Returns:
+        np.ndarray: The next time step.
     """
     u_new = np.zeros_like(u_old)
 
-    # u_top = (1 - 2 * r) * u_old[0] + r * u_old[1]
+    u_top = (1 - 2 * r) * u_old[0] + r * u_old[1]
     u_mid = r * u_old[:-2] + (1 - 2 * r) * u_old[1:-1] + r * u_old[2:]
-    # u_bot = r * u_old[-2] + (1 - 2 * r) * u_old[-1]
+    u_bot = r * u_old[-2] + (1 - 2 * r) * u_old[-1]
 
     u_new = assign_middle(u_new, u_mid)
-    # u_new = assign(u_new, 0, u_top)
-    # u_new = assign(u_new, -1, u_bot)
+    u_new = assign(u_new, 0, u_top)
+    u_new = assign(u_new, -1, u_bot)
 
     return u_new
 
@@ -61,7 +62,18 @@ class FiniteDifferenceHeat:
     def __init__(
         self, dx: float, dt: float, nSavePoints: int, T: int, L: int = 1
     ) -> None:
-        # TODO: Add functionality for changing midpoint.
+        """Use the method of Finite Differences to solve the heat equation.
+
+        Args:
+            dx (float): Size of spatial steps.
+            dt (float): Size of time steps.
+            nSavePoints (int): Number of time steps to save.
+            T (int): Length of time to solve for.
+            L (int, optional): Length of space to solve for. Defaults to 1.
+
+        Raises:
+            ValueError: If size of time steps is larger than stability criterion requires.
+        """
         if dt > 0.5 * dx**2:
             raise ValueError(
                 "dt cannot be larger than 0.5 * dx^2 for numerical stability"
@@ -78,15 +90,12 @@ class FiniteDifferenceHeat:
 
 
 class MatrixMethod(FiniteDifferenceHeat):
-    """
-    Class that implements the matrix method for solving the heat equation using finite difference.
-    """
-
     def solve(self) -> tuple[list[np.ndarray], np.ndarray]:
-        """
-        Solve the heat equation using the matrix method.
-        """
+        """Uses the matrix method to solve the heat equation.
 
+        Returns:
+            tuple[list[np.ndarray], np.ndarray]: Computed solutions and corresponding time steps.
+        """
         M = create_tridiagonal_matrix(self.nx, self.r)
         print(f"Will compute {self.nt} time steps for {self.nx} spatial steps")
 
@@ -106,15 +115,12 @@ class MatrixMethod(FiniteDifferenceHeat):
 
 
 class IterationMethod(FiniteDifferenceHeat):
-    """
-    Class that implements the iterative method for solving the heat equation using finite difference.
-    """
-
     def solve(self) -> tuple[list[np.ndarray], np.ndarray]:
-        """
-        Solve the heat equation using an iterative method.
-        """
+        """Uses a vectorized iterative method to solve the heat equation.
 
+        Returns:
+            tuple[list[np.ndarray], np.ndarray]: Computed solutions and corresponding time steps.
+        """
         print(f"Will compute {self.nt} time steps for {self.nx} spatial steps")
 
         u_result = [self.u0]

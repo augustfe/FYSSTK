@@ -1,3 +1,5 @@
+"""Script for plotting activation functions."""
+
 from jax.nn import relu, sigmoid, tanh, leaky_relu, swish, elu
 from plotutils import setup_axis
 import numpy as np
@@ -37,7 +39,7 @@ ax.set_xlabel(r"$x$")
 ax.set_ylabel(r"$y$", rotation=0)
 ax.set_title("Leaky ReLU")
 
-plt.savefig(path / f"leaky_relu.pdf", bbox_inches="tight")
+plt.savefig(path / "leaky_relu.pdf", bbox_inches="tight")
 plt.clf()
 
 ax = setup_axis(xlim=[-2, 2], ylim=[-1, 2])

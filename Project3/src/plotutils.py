@@ -100,6 +100,18 @@ def plot_at_timestep(
     savePath: Path = None,
     saveName: str = None,
 ) -> None:
+    """Plot the computed solution at a given time step agains the analytic.
+
+    Args:
+        x (np.ndarray): Spatial coordinates computed at
+        res_dnn (np.ndarray): Predicted from the DNN
+        res_analytic (np.ndarray): Analytic solution
+        t (float): Time step
+        func_name (str): Name of the activation function used
+        save (bool): Whether to save the plot
+        savePath (Path, optional): Path of the directory to save figures. Defaults to None.
+        saveName (str, optional): Name of the file to save figure as. Defaults to None.
+    """
     plt.figure(figsize=plt.figaspect(0.5))
     plt.title(f"{func_name}: Computed solutions at time = {t:g}")
     plt.plot(x, res_dnn, label="Deep neural network")
@@ -122,6 +134,19 @@ def plot_at_timestepEuler(
     savePath: Path = None,
     saveName: str = None,
 ) -> None:
+    """Plot the computed solution at a given time step agains the analytic.
+
+    Args:
+        x_numeric (np.ndarray): x-coordinates for the numerical solution
+        res_numeric (np.ndarray): Computed solution
+        x_anal (np.ndarray): x-coordinates for the analytic solution
+        res_analytic (np.ndarray): Analytic solution for comparison
+        t (float): Time step computed at
+        func_name (str): Name of the method used
+        save (bool): Whether to save the figure
+        savePath (Path, optional): Path to the directory to save the figure to. Defaults to None.
+        saveName (str, optional): What to save the figure as. Defaults to None.
+    """
     plt.figure(figsize=plt.figaspect(0.5))
     plt.title(f"{func_name}: Computed solutions at time = {t:g}")
     plt.plot(x_anal, res_analytic, label="Analytical")
@@ -142,6 +167,17 @@ def plot_surface(
     savePath: Path = None,
     saveName: str = None,
 ) -> None:
+    """Plot the predicted solution as a surface plot.
+
+    Args:
+        T (np.ndarray): Time coordinates
+        X (np.ndarray): Spatial coordinates
+        Z (np.ndarray): Predicted / Computed solution
+        title (str): Title of the figure
+        save (bool): Whether to save the figure
+        savePath (Path, optional): Where to save the figure to. Defaults to None.
+        saveName (str, optional): What to save the figure as. Defaults to None.
+    """
     fig = plt.figure(figsize=plt.figaspect(0.5))
     ax = fig.add_subplot(projection="3d")
     ax.set_title(title)

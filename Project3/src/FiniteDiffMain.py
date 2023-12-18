@@ -7,7 +7,16 @@ from plotutils import plot_surface, plot_at_timestepEuler
 
 
 @jit
-def analytic(x: np.ndarray, t: float):
+def analytic(x: np.ndarray, t: float) -> np.ndarray:
+    """Analytical solution to the 1D heat equation.
+
+    Args:
+        x (np.ndarray): x-coordinates.
+        t (float): Time step.
+
+    Returns:
+        np.ndarray: Solution at given time step.
+    """
     res = lax.mul(
         lax.exp(
             lax.mul(
@@ -26,7 +35,6 @@ def analytic(x: np.ndarray, t: float):
         ),
     )
     return res
-    # return np.exp(-np.pi**2 * t) * np.sin(np.pi * x)
 
 
 if __name__ == "__main__":
@@ -72,21 +80,6 @@ if __name__ == "__main__":
                 f"difference_surf_dx_{dx}",
             )
 
-        """
-        def plot_at_timestep(
-        x: np.ndarray,
-        res_dnn: np.ndarray,
-        res_analytic: np.ndarray,
-        t: float,
-        func_name: str,
-        save: bool,
-        savePath: Path = None,
-        saveName: str = None,
-        ) -> None:
-        """
-
-        """
-
         T_, X_ = np.meshgrid(solve_times, x_arr)
 
         u_analytical = analytic(X_.flatten(), T_.flatten())
@@ -112,4 +105,3 @@ if __name__ == "__main__":
             figures_dir,
             f"difference_surf_dx_{dx}",
         )
-        """
